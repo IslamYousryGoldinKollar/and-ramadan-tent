@@ -150,7 +150,7 @@ export default function ManageReservationPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your.email@eand.com"
+                  placeholder="your.email@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

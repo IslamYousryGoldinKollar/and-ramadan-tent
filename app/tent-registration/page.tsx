@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { formatDate, isValidEandEmail } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
+import { isValidEgyptPhone } from '@/lib/sms'
 import { Calendar, ArrowLeft, CheckCircle2, User, Hash, ChevronRight, ChevronLeft, Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
 import { EandLogo } from '@/components/ui/eand-logo'
@@ -50,9 +51,9 @@ export default function TentRegistrationPage() {
     if (!employeeId.trim()) e.employeeId = 'Required'
     if (!employeeName.trim()) e.employeeName = 'Required'
     if (!email.trim()) e.email = 'Required'
-    else if (!isValidEandEmail(email)) e.email = 'Must be @eand.com'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Enter a valid email'
     if (!phoneNumber.trim()) e.phoneNumber = 'Required'
-    else if (phoneNumber.replace(/[\s\-]/g, '').length < 10) e.phoneNumber = 'Invalid number'
+    else if (!isValidEgyptPhone(phoneNumber)) e.phoneNumber = 'Enter a valid Egyptian mobile (e.g. 01012345678)'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -158,7 +159,7 @@ export default function TentRegistrationPage() {
                   <User className="h-6 w-6 text-eand-burgundy" />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Your Information</h1>
-                <p className="text-sm text-gray-500 mt-1">We&apos;ll send confirmation via email & SMS</p>
+                <p className="text-sm text-gray-500 mt-1">We&apos;ll send confirmation via email, SMS & WhatsApp</p>
               </div>
               <Card className="border-0 shadow-md rounded-2xl bg-white">
                 <CardContent className="p-4 space-y-3">
@@ -175,14 +176,14 @@ export default function TentRegistrationPage() {
                     {errors.employeeName && <p className="text-xs text-red-500">{errors.employeeName}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-sm">Corporate Email *</Label>
-                    <Input id="email" type="email" inputMode="email" autoComplete="email" placeholder="name@eand.com"
+                    <Label htmlFor="email" className="text-sm">Email *</Label>
+                    <Input id="email" type="email" inputMode="email" autoComplete="email" placeholder="name@company.com"
                       value={email} onChange={(e) => setEmail(e.target.value)} />
                     {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="phone" className="text-sm">Mobile Number *</Label>
-                    <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="01xxxxxxxxx"
+                    <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="01012345678" maxLength={11}
                       value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
                     {errors.phoneNumber && <p className="text-xs text-red-500">{errors.phoneNumber}</p>}
                     <p className="text-[11px] text-gray-400">Egyptian mobile (e.g. 01012345678)</p>

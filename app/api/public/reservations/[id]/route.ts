@@ -171,7 +171,7 @@ export async function PATCH(
       },
     })
 
-    const bookedSeats = existingReservations.reduce((sum, r) => sum + r.seatCount, 0)
+    const bookedSeats = existingReservations.reduce((sum: number, r) => sum + r.seatCount, 0)
     const availableSeats = 20 - bookedSeats
 
     if (availableSeats < reservation.seatCount) {

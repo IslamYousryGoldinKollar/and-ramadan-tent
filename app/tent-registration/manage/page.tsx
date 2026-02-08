@@ -173,7 +173,7 @@ export default function ManageReservationPage() {
                   type="email"
                   inputMode="email"
                   autoComplete="email"
-                  placeholder="your.name@eand.com"
+                  placeholder="your.name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

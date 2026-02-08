@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicReservation } from '@/lib/reservations'
-import { isValidEandEmail } from '@/lib/utils'
+import { isValidEgyptPhone, normalizeEgyptPhone } from '@/lib/sms'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
@@ -8,7 +8,7 @@ const createReservationSchema = z.object({
   employeeId: z.string().min(1),
   employeeName: z.string().min(1),
   email: z.string().email(),
-  phoneNumber: z.string().min(10, 'Valid mobile number is required'),
+  phoneNumber: z.string().min(1, 'Mobile number is required'),
   reservationDate: z.string().transform((str) => new Date(str)),
   seatCount: z.number().min(1).max(10),
 })
@@ -28,10 +28,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validated = createReservationSchema.parse(body)
 
-    // Validate email domain
-    if (!isValidEandEmail(validated.email)) {
+    // Validate Egyptian mobile number
+    if (!isValidEgyptPhone(validated.phoneNumber)) {
       return NextResponse.json(
-        { error: 'Email must be from @eand.com domain' },
+        { error: 'Please enter a valid Egyptian mobile number (e.g. 01012345678)' },
         { status: 400 }
       )
     }
