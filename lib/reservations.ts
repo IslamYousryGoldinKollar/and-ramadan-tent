@@ -5,6 +5,7 @@ import { generateQRCode } from './qrcode'
 import { fillVacatedSlots } from './waiting-list'
 import { sendBookingConfirmation, sendModificationAlert, sendCancellationConfirmation } from './notifications'
 import { sendBookingConfirmationSms } from './sms'
+import { sendBookingConfirmationWhatsApp, sendCancellationWhatsApp, sendRescheduleWhatsApp } from './whatsapp'
 import { createAuditLog } from './audit'
 
 const MAX_CAPACITY = 120
@@ -96,9 +97,12 @@ export async function createPublicReservation(
     location: 'e& Egypt Corporate Ramadan Tent',
   })
 
-  // Send confirmation SMS
+  // Send confirmation SMS + WhatsApp
   if (phoneNumber) {
-    await sendBookingConfirmationSms(phoneNumber, serialNumber, reservationDate, seatCount)
+    await Promise.allSettled([
+      sendBookingConfirmationSms(phoneNumber, serialNumber, reservationDate, seatCount),
+      sendBookingConfirmationWhatsApp(phoneNumber, serialNumber, reservationDate, seatCount),
+    ])
   }
 
   return reservation
@@ -199,10 +203,13 @@ export async function cancelReservation(reservationId: string, userId: string) {
     seatCount: reservation.seatCount,
   })
 
-  // Send cancellation email
+  // Send cancellation email + WhatsApp
   const email = reservation.user?.email || reservation.email
   if (email) {
     await sendCancellationConfirmation(email, reservation.serialNumber)
+  }
+  if (reservation.phoneNumber) {
+    await sendCancellationWhatsApp(reservation.phoneNumber, reservation.serialNumber)
   }
 
   // Trigger waiting list fill
@@ -270,7 +277,7 @@ export async function rescheduleReservation(
     newSerialNumber,
   })
 
-  // Send modification email
+  // Send modification email + WhatsApp
   const email = reservation.user?.email || reservation.email
   if (email) {
     await sendModificationAlert(email, {
@@ -278,6 +285,9 @@ export async function rescheduleReservation(
       newDate,
       serialNumber: newSerialNumber,
     })
+  }
+  if (reservation.phoneNumber) {
+    await sendRescheduleWhatsApp(reservation.phoneNumber, newSerialNumber, oldDate, newDate)
   }
 
   // Trigger waiting list fill for old date
