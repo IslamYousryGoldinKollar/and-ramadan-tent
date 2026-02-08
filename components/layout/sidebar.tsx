@@ -13,6 +13,7 @@ import {
   Settings,
   Lightbulb,
   Brain,
+  ClipboardList,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -26,6 +27,7 @@ const employeeNavItems = [
 
 const adminNavItems = [
   { href: '/admin', label: 'Admin Dashboard', icon: LayoutDashboard },
+  { href: '/admin/reservations', label: 'Reservations', icon: ClipboardList },
   { href: '/admin/calendar', label: 'Calendar View', icon: Calendar },
   { href: '/admin/checkin', label: 'Check-in', icon: Settings },
   { href: '/admin/riddles', label: 'Riddles Management', icon: Brain },

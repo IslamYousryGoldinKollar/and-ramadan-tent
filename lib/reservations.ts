@@ -7,7 +7,7 @@ import { sendBookingConfirmation, sendModificationAlert, sendCancellationConfirm
 import { sendBookingConfirmationSms } from './sms'
 import { createAuditLog } from './audit'
 
-const MAX_CAPACITY = 20
+const MAX_CAPACITY = 120
 
 /**
  * Check availability for a specific date
@@ -56,8 +56,8 @@ export async function createPublicReservation(
   seatCount: number
 ) {
   // Validate seat count
-  if (seatCount < 1 || seatCount > 20) {
-    throw new Error('Seat count must be between 1 and 20')
+  if (seatCount < 1 || seatCount > 10) {
+    throw new Error('Seat count must be between 1 and 10')
   }
 
   // Check availability
@@ -113,8 +113,8 @@ export async function createReservation(
   seatCount: number
 ) {
   // Validate seat count
-  if (seatCount < 1 || seatCount > 20) {
-    throw new Error('Seat count must be between 1 and 20')
+  if (seatCount < 1 || seatCount > 10) {
+    throw new Error('Seat count must be between 1 and 10')
   }
 
   // Check availability

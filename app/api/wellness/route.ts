@@ -20,12 +20,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const admin = searchParams.get('admin') === 'true'
 
-    const session = await getServerSession(authOptions)
-    const isAdmin = session?.user && (session.user as any).role === 'ADMIN'
-
-    if (admin && isAdmin) {
-      const content = await getAllWellnessContent()
-      return NextResponse.json(content)
+    if (admin) {
+      const session = await getServerSession(authOptions)
+      const isAdmin = session?.user && (session.user as any).role === 'ADMIN'
+      if (isAdmin) {
+        const content = await getAllWellnessContent()
+        return NextResponse.json(content)
+      }
     }
 
     const content = await getActiveWellnessContent()

@@ -43,9 +43,9 @@ export function calculateCredits(seatCount: number): number {
   return seatCount * 10 // 10 credits per seat for partial bookings
 }
 
-export function getAvailabilityColor(availableSeats: number, totalSeats: number = 20): string {
+export function getAvailabilityColor(availableSeats: number, totalSeats: number = 120): string {
   if (availableSeats === 0) return 'red'
-  if (availableSeats <= 5) return 'orange'
+  if (availableSeats <= 20) return 'orange'
   return 'green'
 }
 

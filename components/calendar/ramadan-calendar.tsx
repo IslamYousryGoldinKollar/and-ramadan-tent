@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { getAvailabilityColor } from '@/lib/utils'
+
+const TOTAL_SEATS = 120
 
 interface AvailabilityData {
   date: string
@@ -66,23 +67,13 @@ export function RamadanCalendar({
     fetchAvailability()
   }, [startDate])
 
-  const getColor = (date: Date): string => {
-    const dateKey = date.toISOString().split('T')[0]
-    const data = availability[dateKey]
-    if (!data) return 'gray'
-    return getAvailabilityColor(data.availableSeats)
-  }
-
   const handleDateClick = (date: Date) => {
     if (onDateSelect) {
       onDateSelect(date)
     }
   }
 
-  const isToday = (date: Date) => {
-    return date.toDateString() === today.toDateString()
-  }
-
+  const isToday = (date: Date) => date.toDateString() === today.toDateString()
   const isPast = (date: Date) => {
     const d = new Date(date)
     d.setHours(0, 0, 0, 0)
@@ -104,13 +95,18 @@ export function RamadanCalendar({
               {dates.map((date) => {
                 const dateKey = date.toISOString().split('T')[0]
                 const data = availability[dateKey]
-                const color = getColor(date)
                 const past = isPast(date)
                 const todayDate = isToday(date)
-                const isSelected =
-                  selectedDate &&
-                  date.toDateString() === selectedDate.toDateString()
-                const isFull = color === 'red'
+                const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
+                const available = data?.availableSeats ?? TOTAL_SEATS
+                const booked = data?.bookedSeats ?? 0
+                const isFull = available === 0
+                const pct = Math.round((booked / TOTAL_SEATS) * 100)
+                const isLimited = available > 0 && available <= 20
+
+                // Colors
+                const barColor = isFull ? 'bg-red-500' : isLimited ? 'bg-amber-400' : 'bg-green-400'
+                const textColor = isFull ? 'text-red-500' : isLimited ? 'text-amber-600' : 'text-green-600'
 
                 return (
                   <button
@@ -118,51 +114,53 @@ export function RamadanCalendar({
                     onClick={() => !past && !isFull && handleDateClick(date)}
                     disabled={past || isFull}
                     className={`
-                      relative p-2 rounded-xl text-center transition-all min-h-[4rem]
-                      ${past ? 'opacity-40 cursor-not-allowed' : 'active:scale-95'}
-                      ${!past && !isFull ? 'cursor-pointer' : ''}
-                      ${color === 'green' && !past ? 'bg-green-50 border border-green-200' : ''}
-                      ${color === 'orange' && !past ? 'bg-amber-50 border border-amber-200' : ''}
-                      ${color === 'red' && !past ? 'bg-red-50 border border-red-200 cursor-not-allowed' : ''}
-                      ${color === 'gray' ? 'bg-gray-50 border border-gray-200' : ''}
-                      ${isSelected ? 'ring-2 ring-eand-red ring-offset-1 !bg-red-50 !border-eand-red' : ''}
-                      ${todayDate && !isSelected ? 'ring-1 ring-gray-400' : ''}
+                      relative p-2 rounded-xl text-center transition-all min-h-[5rem]
+                      ${past ? 'opacity-30 cursor-not-allowed' : 'active:scale-95'}
+                      ${!past && !isFull ? 'cursor-pointer hover:shadow-md' : ''}
+                      ${isFull && !past ? 'bg-red-50 border border-red-200 cursor-not-allowed' : ''}
+                      ${!isFull && !past ? 'bg-white border border-gray-200' : ''}
+                      ${past ? 'bg-gray-50 border border-gray-100' : ''}
+                      ${isSelected ? 'ring-2 ring-eand-red ring-offset-1 !border-eand-red shadow-md' : ''}
+                      ${todayDate && !isSelected ? 'ring-1 ring-red-300' : ''}
                     `}
                   >
                     {todayDate && (
-                      <span className="absolute -top-1 left-1/2 -translate-x-1/2 text-[9px] font-bold text-eand-red bg-white px-1 rounded">
+                      <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[8px] font-bold text-white bg-eand-red px-1.5 py-0.5 rounded-full">
                         TODAY
                       </span>
                     )}
-                    <div className="text-base font-bold leading-tight">
-                      {date.getDate()}
-                    </div>
-                    <div className="text-[10px] text-gray-500 leading-tight">
-                      {dayNames[date.getDay()]}
-                    </div>
-                    {data && !past && (
-                      <div className={`text-[10px] font-semibold mt-0.5 leading-tight ${
-                        isFull ? 'text-red-500' : color === 'orange' ? 'text-amber-600' : 'text-green-600'
-                      }`}>
-                        {isFull ? 'Full' : `${data.availableSeats}`}
-                      </div>
+                    <div className="text-base font-bold leading-tight">{date.getDate()}</div>
+                    <div className="text-[10px] text-gray-400 leading-tight">{dayNames[date.getDay()]}</div>
+                    {!past && (
+                      <>
+                        {/* Progress bar */}
+                        <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${barColor}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <div className={`text-[9px] font-semibold mt-0.5 leading-tight ${textColor}`}>
+                          {isFull ? 'FULL' : `${available} left`}
+                        </div>
+                      </>
                     )}
                   </button>
                 )
               })}
             </div>
-            {/* Compact legend */}
-            <div className="mt-3 flex items-center justify-center gap-3 text-[10px] text-gray-400">
+            {/* Legend */}
+            <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-gray-400">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+                <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
                 Available
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-                Limited
+                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                Limited (&le;20)
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-red-400 inline-block"></span>
+                <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
                 Full
               </span>
             </div>
