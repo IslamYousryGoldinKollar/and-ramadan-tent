@@ -9,8 +9,11 @@ import { EandLogo } from '@/components/ui/eand-logo'
 interface WellnessContent {
   id: string
   title: string
-  content: string
-  pdfUrl?: string | null
+  excerpt?: string | null
+  htmlContent: string
+  category: string
+  imageUrl?: string | null
+  videoUrl?: string | null
   displayOrder: number
 }
 
@@ -52,7 +55,7 @@ export default function WellnessPage() {
     try {
       const [tipsRes, articlesRes] = await Promise.all([
         fetch('/api/daily-tips'),
-        fetch('/api/wellness'),
+        fetch('/api/ramadan-articles'),
       ])
       if (tipsRes.ok) setDailyTips(await tipsRes.json())
       if (articlesRes.ok) setArticles(await articlesRes.json())
@@ -81,18 +84,20 @@ export default function WellnessPage() {
 
       {/* Hero Banner */}
       <section className="relative overflow-hidden bg-ramadan-dark px-4 pt-10 pb-6 lg:pt-16 lg:pb-10">
-        <div className="absolute top-6 right-8 text-eand-bright-green/10">
+        <div className="absolute top-6 right-8 text-eand-bright-green/10 animate-float-slow">
           <Moon className="h-32 w-32 lg:h-48 lg:w-48" />
         </div>
+        <div className="particle w-1.5 h-1.5 bg-eand-bright-green/20 top-1/4 left-[20%] animate-twinkle" />
+        <div className="particle w-1 h-1 bg-white/15 bottom-1/4 right-[25%] animate-twinkle delay-1000" />
 
         <div className="content-container text-center relative z-10">
-          <div className="w-20 h-20 bg-eand-dark-green/30 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-5 border border-eand-bright-green/20">
+          <div className="w-20 h-20 bg-eand-dark-green/30 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-5 border border-eand-bright-green/20 opacity-0 animate-scale-in">
             <Lightbulb className="h-10 w-10 text-eand-bright-green" />
           </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight opacity-0 animate-fade-in-up delay-200">
             Ramadan Tips
           </h1>
-          <p className="text-base text-white/60 leading-relaxed max-w-xs mx-auto">
+          <p className="text-base text-white/60 leading-relaxed max-w-xs mx-auto opacity-0 animate-fade-in-up delay-400">
             {totalCount > 0 ? `${totalCount} tips & articles for a healthier Ramadan` : 'Health advice & tips for a better Ramadan'}
           </p>
         </div>
@@ -104,26 +109,26 @@ export default function WellnessPage() {
           <div className="content-container flex">
             <button
               onClick={() => setActiveTab('daily')}
-              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${
+              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors duration-300 relative ${
                 activeTab === 'daily' ? 'text-eand-ocean' : 'text-gray-400'
               }`}
             >
               <Star className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
               Daily Tips ({dailyTips.length})
               {activeTab === 'daily' && (
-                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full" />
+                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full animate-scale-in" />
               )}
             </button>
             <button
               onClick={() => setActiveTab('articles')}
-              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${
+              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors duration-300 relative ${
                 activeTab === 'articles' ? 'text-eand-ocean' : 'text-gray-400'
               }`}
             >
               <BookOpen className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
               Articles ({articles.length})
               {activeTab === 'articles' && (
-                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full" />
+                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full animate-scale-in" />
               )}
             </button>
           </div>
@@ -178,10 +183,10 @@ export default function WellnessPage() {
           ) : activeTab === 'daily' ? (
             /* Daily Tips Tab */
             <div className="space-y-3">
-              {dailyTips.map((tip) => {
+              {dailyTips.map((tip, index) => {
                 const isOpen = expandedId === tip.id
                 return (
-                  <div key={tip.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div key={tip.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden opacity-0 animate-fade-in-up hover:shadow-md transition-shadow duration-300" style={{ animationDelay: `${100 + index * 80}ms` }}>
                     <button
                       onClick={() => setExpandedId(isOpen ? null : tip.id)}
                       className="w-full text-left p-4 flex items-center gap-3"
@@ -214,14 +219,15 @@ export default function WellnessPage() {
             /* Articles Tab */
             <div className="space-y-3">
               {articles.map((item, index) => (
-                <WellnessContentCard
-                  key={item.id}
-                  {...item}
-                  icon={tipIcons[index % tipIcons.length]}
-                  colorClass={tipColors[index % tipColors.length]}
-                  isExpanded={expandedId === item.id}
-                  onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                />
+                <div key={item.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${100 + index * 80}ms` }}>
+                  <WellnessContentCard
+                    {...item}
+                    icon={tipIcons[index % tipIcons.length]}
+                    colorClass={tipColors[index % tipColors.length]}
+                    isExpanded={expandedId === item.id}
+                    onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                  />
+                </div>
               ))}
             </div>
           )}

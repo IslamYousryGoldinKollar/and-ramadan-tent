@@ -24,19 +24,19 @@ export function EpisodeCard({
   createdAt,
 }: EpisodeCardProps) {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 border border-gray-100 rounded-2xl overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary">Episode {episodeNumber}</Badge>
               {isActive ? (
-                <Badge variant="success">Active</Badge>
+                <Badge variant="success" className="animate-fade-in">Active</Badge>
               ) : (
                 <Badge variant="outline">Inactive</Badge>
               )}
             </div>
-            <CardTitle className="text-xl">{title}</CardTitle>
+            <CardTitle className="text-xl group-hover:text-eand-ocean transition-colors duration-300">{title}</CardTitle>
           </div>
         </div>
         {description && (
@@ -49,8 +49,8 @@ export function EpisodeCard({
       </CardHeader>
       <CardContent>
         <Link href={`/riddles/${id}`}>
-          <Button className="w-full" disabled={!isActive}>
-            <PlayCircle className="h-4 w-4 mr-2" />
+          <Button className="w-full group-hover:shadow-md transition-all duration-300" disabled={!isActive}>
+            <PlayCircle className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
             {isActive ? 'Watch & Answer' : 'Coming Soon'}
           </Button>
         </Link>

@@ -55,13 +55,13 @@ export default function RiddlesPage() {
       <main className="flex-1 py-6 lg:py-10">
         <div className="content-container">
           <div className="text-center mb-6">
-            <div className="w-14 h-14 bg-eand-ocean/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <div className="w-14 h-14 bg-eand-ocean/10 rounded-2xl flex items-center justify-center mx-auto mb-3 opacity-0 animate-scale-in">
               <Brain className="h-7 w-7 text-eand-ocean" />
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 opacity-0 animate-fade-in-up delay-200">
               Ramadan Riddles
             </h1>
-            <p className="text-sm text-eand-grey">
+            <p className="text-sm text-eand-grey opacity-0 animate-fade-in-up delay-300">
               Watch episodes, answer questions & win prizes
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function RiddlesPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-eand-ocean"></div>
             </div>
           ) : episodes.length === 0 ? (
-            <Card className="border-0 shadow-md rounded-2xl">
+            <Card className="border-0 shadow-md rounded-2xl opacity-0 animate-fade-in-up delay-400">
               <CardContent className="py-12 text-center">
                 <Brain className="h-10 w-10 text-eand-light-grey mx-auto mb-3" />
                 <p className="text-eand-grey text-sm">No episodes available yet</p>
@@ -82,8 +82,10 @@ export default function RiddlesPage() {
             </Card>
           ) : (
             <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-              {episodes.map((episode) => (
-                <EpisodeCard key={episode.id} {...episode} createdAt={new Date(episode.createdAt)} />
+              {episodes.map((episode, index) => (
+                <div key={episode.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${300 + index * 100}ms` }}>
+                  <EpisodeCard {...episode} createdAt={new Date(episode.createdAt)} />
+                </div>
               ))}
             </div>
           )}

@@ -66,6 +66,28 @@
   .glow-gold {
     box-shadow: 0 0 30px rgba(201, 168, 76, 0.3), 0 0 60px rgba(201, 168, 76, 0.1);
   }
+  /* Staggered animation delays */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+  .delay-600 { animation-delay: 600ms; }
+  .delay-700 { animation-delay: 700ms; }
+  .delay-1000 { animation-delay: 1000ms; }
+  .delay-1500 { animation-delay: 1500ms; }
+  .delay-2000 { animation-delay: 2000ms; }
+  /* Shimmer gradient for loading / decorative */
+  .shimmer-gold {
+    background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.15) 50%, transparent 100%);
+    background-size: 200% 100%;
+  }
+  /* Particle dots */
+  .particle {
+    position: absolute;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
   /* Responsive container that works on both mobile and desktop */
   .content-container {
     @apply max-w-lg mx-auto w-full px-4;

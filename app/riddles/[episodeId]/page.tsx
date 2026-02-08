@@ -175,7 +175,7 @@ export default function EpisodePage() {
       <main className="flex-1 py-6 lg:py-10">
         <div className="content-container space-y-5">
         {/* Episode Info */}
-        <div>
+        <div className="opacity-0 animate-fade-in-up">
           <h1 className="text-xl font-bold text-gray-900 mb-1">
             Ep. {episode.episodeNumber}: {episode.title}
           </h1>
@@ -184,14 +184,14 @@ export default function EpisodePage() {
           )}
         </div>
 
-        <Card className="border border-gray-100 overflow-hidden">
+        <Card className="border border-gray-100 overflow-hidden opacity-0 animate-fade-in-up delay-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
           <CardContent className="p-0">
             <VideoEmbed url={episode.videoUrl} title={episode.title} />
           </CardContent>
         </Card>
 
         {/* User Info Form */}
-        <Card className="border border-gray-100">
+        <Card className="border border-gray-100 opacity-0 animate-fade-in-up delay-200 rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Your Information</CardTitle>
           </CardHeader>
@@ -204,8 +204,9 @@ export default function EpisodePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
+                className="transition-all duration-200 focus:ring-2 focus:ring-eand-ocean/20 focus:border-eand-ocean"
               />
-              {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
+              {errors.email && <p className="text-xs text-red-600 animate-fade-in">{errors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="idNumber">ID Number</Label>
@@ -214,8 +215,9 @@ export default function EpisodePage() {
                 value={idNumber}
                 onChange={(e) => setIdNumber(e.target.value)}
                 placeholder="Your ID number"
+                className="transition-all duration-200 focus:ring-2 focus:ring-eand-ocean/20 focus:border-eand-ocean"
               />
-              {errors.idNumber && <p className="text-xs text-red-600">{errors.idNumber}</p>}
+              {errors.idNumber && <p className="text-xs text-red-600 animate-fade-in">{errors.idNumber}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -225,15 +227,16 @@ export default function EpisodePage() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="Your phone number"
+                className="transition-all duration-200 focus:ring-2 focus:ring-eand-ocean/20 focus:border-eand-ocean"
               />
-              {errors.phoneNumber && <p className="text-xs text-red-600">{errors.phoneNumber}</p>}
+              {errors.phoneNumber && <p className="text-xs text-red-600 animate-fade-in">{errors.phoneNumber}</p>}
             </div>
           </CardContent>
         </Card>
 
         {/* Questions */}
         {episode.questions.length > 0 && (
-          <Card className="border border-gray-100">
+          <Card className="border border-gray-100 opacity-0 animate-fade-in-up delay-300 rounded-2xl">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Answer the Questions</CardTitle>
               <p className="text-xs text-gray-500">
@@ -242,7 +245,7 @@ export default function EpisodePage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {episode.questions.map((question, idx) => (
-                <div key={question.id} className="space-y-3">
+                <div key={question.id} className="space-y-3 opacity-0 animate-fade-in-up" style={{ animationDelay: `${400 + idx * 150}ms` }}>
                   <p className="font-medium text-sm">
                     {idx + 1}. {question.questionText}
                   </p>
@@ -255,10 +258,10 @@ export default function EpisodePage() {
                           key={option}
                           type="button"
                           onClick={() => handleAnswerChange(question.id, option)}
-                          className={`w-full text-left px-4 py-3 rounded-lg border transition-colors text-sm ${
+                          className={`w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 text-sm ${
                             isSelected
-                              ? 'border-eand-red bg-red-50 text-eand-red font-medium'
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              ? 'border-eand-red bg-red-50 text-eand-red font-medium shadow-sm scale-[1.01]'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]'
                           }`}
                         >
                           <span className="font-semibold mr-2">{option}.</span>
@@ -270,21 +273,23 @@ export default function EpisodePage() {
                 </div>
               ))}
               {errors.answers && (
-                <p className="text-sm text-red-600 mt-4">{errors.answers}</p>
+                <p className="text-sm text-red-600 mt-4 animate-fade-in">{errors.answers}</p>
               )}
             </CardContent>
           </Card>
         )}
 
         {/* Submit Button */}
-        <Button
-          onClick={handleSubmit}
-          disabled={submitting || !episode.isActive}
-          size="lg"
-          className="w-full py-6 text-base rounded-xl shadow-md active:scale-[0.98] transition-transform"
-        >
-          {submitting ? 'Submitting...' : 'Submit Answers'}
-        </Button>
+        <div className="opacity-0 animate-fade-in-up delay-500">
+          <Button
+            onClick={handleSubmit}
+            disabled={submitting || !episode.isActive}
+            size="lg"
+            className="w-full py-6 text-base rounded-xl shadow-md active:scale-[0.97] transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+          >
+            {submitting ? 'Submitting...' : 'Submit Answers'}
+          </Button>
+        </div>
         </div>
       </main>
 
