@@ -1,20 +1,28 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { RamadanCalendar } from '@/components/calendar/ramadan-calendar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/utils'
 import { isValidEgyptPhone } from '@/lib/sms'
-import { Calendar, ArrowLeft, CheckCircle2, User, Hash, ChevronRight, ChevronLeft, Minus, Plus } from 'lucide-react'
+import {
+  Calendar, ArrowLeft, CheckCircle2, User, Users, ChevronRight, ChevronLeft,
+  Minus, Plus, Mail, Phone, BadgeCheck, Hash, Sparkles, PartyPopper, Shield, AlertCircle,
+  CalendarCheck, UserCircle, Armchair
+} from 'lucide-react'
 import Image from 'next/image'
 import { EandLogo } from '@/components/ui/eand-logo'
 
-const STEPS = ['Date', 'Info', 'Seats', 'Confirm']
+const STEPS = [
+  { label: 'Date', icon: Calendar, emoji: '📅', desc: 'Pick a day' },
+  { label: 'Info', icon: User, emoji: '👤', desc: 'Your details' },
+  { label: 'Seats', icon: Users, emoji: '💺', desc: 'How many?' },
+  { label: 'Confirm', icon: CheckCircle2, emoji: '✅', desc: 'Review & book' },
+]
 
 export default function TentRegistrationPage() {
   const [step, setStep] = useState(0)
@@ -29,31 +37,24 @@ export default function TentRegistrationPage() {
   const [success, setSuccess] = useState<any>(null)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [direction, setDirection] = useState<'next' | 'prev'>('next')
 
-  const goNext = () => {
-    setDirection('next')
-    setStep((s) => Math.min(s + 1, STEPS.length - 1))
-  }
-  const goPrev = () => {
-    setDirection('prev')
-    setStep((s) => Math.max(s - 1, 0))
-  }
+  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  const goPrev = () => setStep((s) => Math.max(s - 1, 0))
 
   // Auto-advance when date selected
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
-    setTimeout(() => goNext(), 300)
+    setTimeout(() => goNext(), 400)
   }
 
   const validateInfo = () => {
     const e: Record<string, string> = {}
-    if (!employeeId.trim()) e.employeeId = 'Required'
-    if (!employeeName.trim()) e.employeeName = 'Required'
-    if (!email.trim()) e.email = 'Required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Enter a valid email'
-    if (!phoneNumber.trim()) e.phoneNumber = 'Required'
-    else if (!isValidEgyptPhone(phoneNumber)) e.phoneNumber = 'Enter a valid Egyptian mobile (e.g. 01012345678)'
+    if (!employeeId.trim()) e.employeeId = '⚠️ Please enter your Employee ID'
+    if (!employeeName.trim()) e.employeeName = '⚠️ Please enter your full name'
+    if (!email.trim()) e.email = '⚠️ Please enter your email'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = '⚠️ This doesn\'t look like a valid email'
+    if (!phoneNumber.trim()) e.phoneNumber = '⚠️ Please enter your mobile number'
+    else if (!isValidEgyptPhone(phoneNumber)) e.phoneNumber = '⚠️ Enter an Egyptian mobile like 01012345678'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -86,7 +87,6 @@ export default function TentRegistrationPage() {
 
       setSuccess(data)
       setShowSuccessDialog(true)
-      // Reset form
       setStep(0)
       setSeatCount(1)
       setEmployeeId('')
@@ -106,7 +106,7 @@ export default function TentRegistrationPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
         <div className="content-container py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold">
+          <Link href="/" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold transition-colors">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Home</span>
           </Link>
@@ -114,36 +114,69 @@ export default function TentRegistrationPage() {
         </div>
       </header>
 
-      {/* Step indicator */}
+      {/* Step indicator — visual with icons and numbers */}
       <div className="content-container pt-4 pb-2">
-        <div className="flex items-center gap-1">
-          {STEPS.map((label, i) => (
-            <div key={label} className="flex-1 flex flex-col items-center gap-1">
-              <div className={`h-1 w-full rounded-full transition-all duration-300 ${
-                i <= step ? 'bg-ramadan-gold' : 'bg-eand-light-grey'
-              }`} />
-              <span className={`text-[10px] font-medium transition-colors ${
-                i === step ? 'text-ramadan-gold' : i < step ? 'text-eand-grey' : 'text-eand-light-grey'
-              }`}>{label}</span>
-            </div>
-          ))}
+        <div className="flex items-start gap-1">
+          {STEPS.map((s, i) => {
+            const StepIcon = s.icon
+            const isActive = i === step
+            const isDone = i < step
+            return (
+              <div key={s.label} className="flex-1 flex flex-col items-center gap-1.5">
+                {/* Progress bar */}
+                <div className={`h-1.5 w-full rounded-full transition-all duration-500 ${
+                  isDone ? 'bg-emerald-400' : isActive ? 'bg-ramadan-gold' : 'bg-gray-200'
+                }`} />
+                {/* Step circle */}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isDone ? 'bg-emerald-100 text-emerald-600' :
+                  isActive ? 'bg-ramadan-gold/20 text-ramadan-gold ring-2 ring-ramadan-gold/30 scale-110' :
+                  'bg-gray-100 text-gray-300'
+                }`}>
+                  {isDone ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className="h-3.5 w-3.5" />}
+                </div>
+                <span className={`text-[10px] font-semibold transition-colors ${
+                  isActive ? 'text-ramadan-gold' : isDone ? 'text-emerald-600' : 'text-gray-300'
+                }`}>{s.label}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
 
-      {/* Slide container */}
+      {/* Main content */}
       <main className="flex-1 flex flex-col content-container overflow-hidden">
-        <div className="flex-1 flex flex-col justify-center py-4">
+        <div className="flex-1 flex flex-col py-4">
 
-          {/* Step 0: Choose Date */}
+          {/* ===== STEP 0: Choose Date ===== */}
           {step === 0 && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-eand-ocean/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <Calendar className="h-6 w-6 text-eand-ocean" />
+            <div className="space-y-4 opacity-0 animate-fade-in-up">
+              {/* Step header with big friendly icon */}
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto shadow-sm opacity-0 animate-scale-in">
+                  <CalendarCheck className="h-8 w-8 text-eand-ocean" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Choose a Date</h1>
-                <p className="text-sm text-gray-500 mt-1">Tap a day to select your Iftar date</p>
+                <h1 className="text-2xl font-bold text-gray-900 opacity-0 animate-fade-in-up delay-100">
+                  Step 1: Pick Your Iftar Date
+                </h1>
+                <p className="text-sm text-gray-500 opacity-0 animate-fade-in-up delay-200 max-w-xs mx-auto">
+                  Choose which day you&apos;d like to come for Iftar at the e& Ramadan Tent
+                </p>
               </div>
+
+              {/* Helpful instruction card */}
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-start gap-3 opacity-0 animate-fade-in-up delay-300">
+                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-base">👇</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-800">How to pick a date:</p>
+                  <p className="text-xs text-blue-600 leading-relaxed">
+                    Look at the cards below. <strong>Green</strong> = seats available, <strong>Yellow</strong> = almost full, <strong>Red</strong> = no seats left. Just tap a green or yellow card!
+                  </p>
+                </div>
+              </div>
+
               <RamadanCalendar
                 onDateSelect={handleDateSelect}
                 selectedDate={selectedDate}
@@ -151,168 +184,346 @@ export default function TentRegistrationPage() {
             </div>
           )}
 
-          {/* Step 1: Your Information */}
+          {/* ===== STEP 1: Your Information ===== */}
           {step === 1 && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-eand-burgundy/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <User className="h-6 w-6 text-eand-burgundy" />
+            <div className="space-y-4 opacity-0 animate-fade-in-up">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-50 to-fuchsia-100 rounded-3xl flex items-center justify-center mx-auto shadow-sm opacity-0 animate-scale-in">
+                  <UserCircle className="h-8 w-8 text-eand-burgundy" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Your Information</h1>
-                <p className="text-sm text-gray-500 mt-1">We&apos;ll send confirmation via email, SMS & WhatsApp</p>
+                <h1 className="text-2xl font-bold text-gray-900 opacity-0 animate-fade-in-up delay-100">
+                  Step 2: Tell Us About You
+                </h1>
+                <p className="text-sm text-gray-500 opacity-0 animate-fade-in-up delay-200 max-w-xs mx-auto">
+                  We need your info to confirm your booking and send you a ticket
+                </p>
               </div>
-              <Card className="border-0 shadow-md rounded-2xl bg-white">
-                <CardContent className="p-4 space-y-3">
+
+              {/* Selected date reminder */}
+              {selectedDate && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center gap-3 opacity-0 animate-fade-in-up delay-200">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Calendar className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-emerald-600 font-medium">Your chosen date</p>
+                    <p className="text-sm font-bold text-emerald-800">{formatDate(selectedDate)}</p>
+                  </div>
+                  <button onClick={() => { setStep(0) }} className="ml-auto text-[10px] text-emerald-600 underline">Change</button>
+                </div>
+              )}
+
+              {/* Form */}
+              <Card className="border-0 shadow-md rounded-2xl bg-white opacity-0 animate-fade-in-up delay-300">
+                <CardContent className="p-4 space-y-4">
+                  {/* Employee ID */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="employeeId" className="text-sm">Employee ID *</Label>
-                    <Input id="employeeId" inputMode="numeric" autoComplete="off" placeholder="e.g. 12345"
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 bg-indigo-50 rounded-lg flex items-center justify-center">
+                        <Hash className="h-3.5 w-3.5 text-indigo-500" />
+                      </div>
+                      <label htmlFor="employeeId" className="text-sm font-semibold text-gray-700">Employee ID</label>
+                    </div>
+                    <Input id="employeeId" inputMode="numeric" autoComplete="off" placeholder="Type your employee ID (e.g. 12345)"
+                      className="rounded-xl border-gray-200 focus:border-indigo-400 focus:ring-indigo-200 transition-all"
                       value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} />
-                    {errors.employeeId && <p className="text-xs text-red-500">{errors.employeeId}</p>}
+                    {errors.employeeId ? (
+                      <p className="text-xs text-red-500 flex items-center gap-1 animate-fade-in"><AlertCircle className="h-3 w-3" /> {errors.employeeId}</p>
+                    ) : (
+                      <p className="text-[11px] text-gray-400">💡 Your company ID number from your badge</p>
+                    )}
                   </div>
+
+                  {/* Full Name */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="employeeName" className="text-sm">Full Name *</Label>
-                    <Input id="employeeName" autoComplete="name" placeholder="e.g. Ahmed Mohamed"
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 bg-violet-50 rounded-lg flex items-center justify-center">
+                        <BadgeCheck className="h-3.5 w-3.5 text-violet-500" />
+                      </div>
+                      <label htmlFor="employeeName" className="text-sm font-semibold text-gray-700">Full Name</label>
+                    </div>
+                    <Input id="employeeName" autoComplete="name" placeholder="Type your full name (e.g. Ahmed Mohamed)"
+                      className="rounded-xl border-gray-200 focus:border-violet-400 focus:ring-violet-200 transition-all"
                       value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} />
-                    {errors.employeeName && <p className="text-xs text-red-500">{errors.employeeName}</p>}
+                    {errors.employeeName ? (
+                      <p className="text-xs text-red-500 flex items-center gap-1 animate-fade-in"><AlertCircle className="h-3 w-3" /> {errors.employeeName}</p>
+                    ) : (
+                      <p className="text-[11px] text-gray-400">💡 As it appears on your ID</p>
+                    )}
                   </div>
+
+                  {/* Email */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-sm">Email *</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 bg-sky-50 rounded-lg flex items-center justify-center">
+                        <Mail className="h-3.5 w-3.5 text-sky-500" />
+                      </div>
+                      <label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</label>
+                    </div>
                     <Input id="email" type="email" inputMode="email" autoComplete="email" placeholder="name@company.com"
+                      className="rounded-xl border-gray-200 focus:border-sky-400 focus:ring-sky-200 transition-all"
                       value={email} onChange={(e) => setEmail(e.target.value)} />
-                    {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+                    {errors.email ? (
+                      <p className="text-xs text-red-500 flex items-center gap-1 animate-fade-in"><AlertCircle className="h-3 w-3" /> {errors.email}</p>
+                    ) : (
+                      <p className="text-[11px] text-gray-400">📧 We&apos;ll send your ticket here</p>
+                    )}
                   </div>
+
+                  {/* Phone */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="phone" className="text-sm">Mobile Number *</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center">
+                        <Phone className="h-3.5 w-3.5 text-green-500" />
+                      </div>
+                      <label htmlFor="phone" className="text-sm font-semibold text-gray-700">Mobile Number</label>
+                    </div>
                     <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="01012345678" maxLength={11}
+                      className="rounded-xl border-gray-200 focus:border-green-400 focus:ring-green-200 transition-all"
                       value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
-                    {errors.phoneNumber && <p className="text-xs text-red-500">{errors.phoneNumber}</p>}
-                    <p className="text-[11px] text-gray-400">Egyptian mobile (e.g. 01012345678)</p>
+                    {errors.phoneNumber ? (
+                      <p className="text-xs text-red-500 flex items-center gap-1 animate-fade-in"><AlertCircle className="h-3 w-3" /> {errors.phoneNumber}</p>
+                    ) : (
+                      <p className="text-[11px] text-gray-400">📱 Egyptian number starting with 01 (11 digits)</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-eand-light-grey">
+
+              {/* Privacy note */}
+              <div className="flex items-center gap-2 justify-center opacity-0 animate-fade-in delay-500">
+                <Shield className="h-3.5 w-3.5 text-gray-300" />
+                <p className="text-[11px] text-gray-400">Your data is safe and only used for booking</p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 opacity-0 animate-fade-in-up delay-400">
+                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-gray-200 hover:bg-gray-50">
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
-                <Button onClick={handleInfoNext} className="flex-1 rounded-2xl py-5 bg-eand-ocean hover:bg-eand-ocean/90">
-                  Continue <ChevronRight className="h-4 w-4 ml-1" />
+                <Button onClick={handleInfoNext} className="flex-1 rounded-2xl py-5 bg-eand-ocean hover:bg-eand-ocean/90 text-base font-semibold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                  Continue to Seats <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Step 2: Number of Seats */}
+          {/* ===== STEP 2: Number of Seats ===== */}
           {step === 2 && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-eand-dark-green/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <Hash className="h-6 w-6 text-eand-dark-green" />
+            <div className="space-y-5 opacity-0 animate-fade-in-up">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-50 to-emerald-100 rounded-3xl flex items-center justify-center mx-auto shadow-sm opacity-0 animate-scale-in">
+                  <Armchair className="h-8 w-8 text-eand-dark-green" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Number of Seats</h1>
-                <p className="text-sm text-gray-500 mt-1">How many seats do you need?</p>
+                <h1 className="text-2xl font-bold text-gray-900 opacity-0 animate-fade-in-up delay-100">
+                  Step 3: How Many Seats?
+                </h1>
+                <p className="text-sm text-gray-500 opacity-0 animate-fade-in-up delay-200 max-w-xs mx-auto">
+                  Pick how many people will join you for Iftar (including yourself)
+                </p>
               </div>
-              <div className="flex items-center justify-center gap-6">
-                <button
-                  onClick={() => setSeatCount(Math.max(1, seatCount - 1))}
-                  className="w-14 h-14 rounded-2xl bg-eand-light-grey/50 flex items-center justify-center active:bg-eand-light-grey transition-colors"
-                >
-                  <Minus className="h-6 w-6 text-eand-ocean" />
-                </button>
-                <div className="text-center">
-                  <div className="text-5xl font-bold text-gray-900">{seatCount}</div>
-                  <div className="text-sm text-gray-400 mt-1">{seatCount === 1 ? 'seat' : 'seats'}</div>
-                </div>
-                <button
-                  onClick={() => setSeatCount(Math.min(10, seatCount + 1))}
-                  className="w-14 h-14 rounded-2xl bg-eand-light-grey/50 flex items-center justify-center active:bg-eand-light-grey transition-colors"
-                >
-                  <Plus className="h-6 w-6 text-eand-ocean" />
-                </button>
+
+              {/* Selected date + name reminder */}
+              <div className="bg-gray-50 rounded-2xl p-3 flex items-center gap-3 text-sm opacity-0 animate-fade-in delay-200">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <span className="text-gray-500">{selectedDate ? formatDate(selectedDate) : ''}</span>
+                <span className="text-gray-300">•</span>
+                <span className="text-gray-500 truncate">{employeeName}</span>
               </div>
-              <div className="flex justify-center gap-2 flex-wrap">
-                {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => (
+
+              {/* Visual seat counter */}
+              <div className="bg-white rounded-3xl shadow-md p-6 opacity-0 animate-fade-in-up delay-300">
+                {/* Big counter */}
+                <div className="flex items-center justify-center gap-5 mb-6">
                   <button
-                    key={n}
-                    onClick={() => setSeatCount(n)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      seatCount === n
-                        ? 'bg-ramadan-gold text-eand-ocean shadow-md'
-                        : 'bg-eand-light-grey/50 text-eand-grey active:bg-eand-light-grey'
-                    }`}
+                    onClick={() => setSeatCount(Math.max(1, seatCount - 1))}
+                    className="w-16 h-16 rounded-2xl bg-red-50 border-2 border-red-200 flex items-center justify-center active:scale-95 hover:bg-red-100 transition-all"
                   >
-                    {n}
+                    <Minus className="h-7 w-7 text-red-400" />
                   </button>
-                ))}
+                  <div className="text-center min-w-[80px]">
+                    <div className="text-6xl font-black text-eand-ocean leading-none animate-scale-in">{seatCount}</div>
+                    <div className="text-sm font-medium text-gray-400 mt-1">{seatCount === 1 ? 'seat' : 'seats'}</div>
+                  </div>
+                  <button
+                    onClick={() => setSeatCount(Math.min(10, seatCount + 1))}
+                    className="w-16 h-16 rounded-2xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center active:scale-95 hover:bg-emerald-100 transition-all"
+                  >
+                    <Plus className="h-7 w-7 text-emerald-500" />
+                  </button>
+                </div>
+
+                {/* Visual seat representation */}
+                <div className="flex justify-center gap-1.5 flex-wrap mb-4">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setSeatCount(i + 1)}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                        i < seatCount
+                          ? 'bg-eand-ocean text-white shadow-md scale-105'
+                          : 'bg-gray-100 text-gray-300 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Armchair className="h-4 w-4" />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-center text-gray-400">
+                  Tap a seat or use +/- buttons • Maximum 10 seats
+                </p>
               </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-eand-light-grey">
+
+              {/* Quick picks */}
+              <div className="opacity-0 animate-fade-in-up delay-400">
+                <p className="text-[11px] text-gray-400 text-center mb-2 font-semibold uppercase tracking-wider">Quick pick</p>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {[
+                    { n: 1, label: 'Just me', emoji: '🙋' },
+                    { n: 2, label: 'Pair', emoji: '👥' },
+                    { n: 4, label: 'Small group', emoji: '👨‍👩‍👧‍👦' },
+                    { n: 6, label: 'Team', emoji: '🏢' },
+                    { n: 10, label: 'Big group', emoji: '🎉' },
+                  ].map(({ n, label, emoji }) => (
+                    <button
+                      key={n}
+                      onClick={() => setSeatCount(n)}
+                      className={`px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                        seatCount === n
+                          ? 'bg-ramadan-gold text-eand-ocean shadow-md scale-105 ring-2 ring-ramadan-gold/30'
+                          : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50 active:scale-95'
+                      }`}
+                    >
+                      <span>{emoji}</span>
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 opacity-0 animate-fade-in-up delay-500">
+                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-gray-200 hover:bg-gray-50">
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
-                <Button onClick={goNext} className="flex-1 rounded-2xl py-5 bg-eand-ocean hover:bg-eand-ocean/90">
-                  Continue <ChevronRight className="h-4 w-4 ml-1" />
+                <Button onClick={goNext} className="flex-1 rounded-2xl py-5 bg-eand-ocean hover:bg-eand-ocean/90 text-base font-semibold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                  Review Booking <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Confirm */}
+          {/* ===== STEP 3: Confirm ===== */}
           {step === 3 && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-5">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-ramadan-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle2 className="h-6 w-6 text-ramadan-gold" />
+            <div className="space-y-5 opacity-0 animate-fade-in-up">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-amber-50 to-yellow-100 rounded-3xl flex items-center justify-center mx-auto shadow-sm opacity-0 animate-scale-in">
+                  <CheckCircle2 className="h-8 w-8 text-ramadan-gold" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Confirm Booking</h1>
-                <p className="text-sm text-gray-500 mt-1">Review your details and confirm</p>
+                <h1 className="text-2xl font-bold text-gray-900 opacity-0 animate-fade-in-up delay-100">
+                  Step 4: Review & Confirm
+                </h1>
+                <p className="text-sm text-gray-500 opacity-0 animate-fade-in-up delay-200 max-w-xs mx-auto">
+                  Please check everything is correct before confirming your booking
+                </p>
               </div>
-              <Card className="border-0 shadow-md rounded-2xl bg-white">
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-sm text-gray-500">Date</span>
-                    <span className="text-sm font-semibold">{selectedDate ? formatDate(selectedDate) : '—'}</span>
+
+              {/* Summary card */}
+              <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden opacity-0 animate-fade-in-up delay-300">
+                {/* Header accent */}
+                <div className="h-2 bg-gradient-to-r from-eand-ocean via-ramadan-gold to-eand-red" />
+                <CardContent className="p-5 space-y-4">
+                  {/* Date — prominent */}
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wider">Iftar Date</p>
+                      <p className="text-base font-bold text-blue-900">{selectedDate ? formatDate(selectedDate) : '—'}</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-sm text-gray-500">Name</span>
-                    <span className="text-sm font-semibold">{employeeName || '—'}</span>
+
+                  {/* Person info */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-gray-50 rounded-xl">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Name</p>
+                      <p className="text-sm font-bold text-gray-900 truncate">{employeeName || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-xl">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Employee ID</p>
+                      <p className="text-sm font-bold text-gray-900">{employeeId || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-xl">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Email</p>
+                      <p className="text-sm font-bold text-gray-900 truncate">{email || '—'}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-xl">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Mobile</p>
+                      <p className="text-sm font-bold text-gray-900">{phoneNumber || '—'}</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-sm text-gray-500">Employee ID</span>
-                    <span className="text-sm font-semibold">{employeeId || '—'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-sm text-gray-500">Email</span>
-                    <span className="text-sm font-semibold truncate ml-4">{email || '—'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-sm text-gray-500">Mobile</span>
-                    <span className="text-sm font-semibold">{phoneNumber || '—'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-sm text-gray-500">Seats</span>
-                    <span className="text-lg font-bold text-eand-red">{seatCount}</span>
+
+                  {/* Seats — big and prominent */}
+                  <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Users className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">Number of Seats</p>
+                      <p className="text-lg font-black text-emerald-800">{seatCount} {seatCount === 1 ? 'seat' : 'seats'}</p>
+                    </div>
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: Math.min(seatCount, 5) }).map((_, i) => (
+                        <Armchair key={i} className="h-4 w-4 text-emerald-400" />
+                      ))}
+                      {seatCount > 5 && <span className="text-xs text-emerald-400 font-bold ml-0.5">+{seatCount - 5}</span>}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Error message */}
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-2 animate-fade-in">
+                  <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-eand-light-grey">
+
+              {/* What happens next */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 opacity-0 animate-fade-in-up delay-400">
+                <p className="text-xs font-semibold text-amber-700 mb-1">📋 What happens after you confirm:</p>
+                <ul className="text-[11px] text-amber-600 space-y-0.5 ml-4 list-disc">
+                  <li>You&apos;ll get a <strong>QR code ticket</strong> right away</li>
+                  <li>Confirmation sent to your <strong>email & mobile</strong></li>
+                  <li>Show the QR code at the tent entrance</li>
+                </ul>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 opacity-0 animate-fade-in-up delay-500">
+                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-gray-200 hover:bg-gray-50">
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <Button
                   onClick={handleBooking}
                   disabled={loading}
-                  className="flex-1 rounded-2xl py-5 text-base font-semibold shadow-lg bg-ramadan-gold hover:bg-ramadan-gold/90 text-eand-ocean active:scale-[0.98] transition-transform"
+                  className="flex-1 rounded-2xl py-5 text-base font-bold shadow-lg bg-ramadan-gold hover:bg-ramadan-gold/90 text-eand-ocean active:scale-[0.97] transition-all hover:shadow-xl hover:-translate-y-0.5"
                 >
-                  {loading ? 'Processing...' : 'Confirm Booking'}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-eand-ocean/30 border-t-eand-ocean rounded-full animate-spin" />
+                      Processing...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <PartyPopper className="h-5 w-5" />
+                      Confirm My Booking!
+                    </span>
+                  )}
                 </Button>
               </div>
-              <p className="text-xs text-center text-eand-grey">
-                You&apos;ll receive confirmation via email & SMS
-              </p>
             </div>
           )}
         </div>
@@ -322,41 +533,46 @@ export default function TentRegistrationPage() {
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl">
           <DialogHeader>
-            <div className="flex justify-center mb-2">
-              <CheckCircle2 className="h-14 w-14 text-eand-bright-green" />
+            <div className="flex justify-center mb-3">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center animate-scale-in">
+                <PartyPopper className="h-8 w-8 text-emerald-600" />
+              </div>
             </div>
-            <DialogTitle className="text-center text-xl">Booking Confirmed!</DialogTitle>
-            <DialogDescription className="text-center">
-              Confirmation sent to your email & mobile
+            <DialogTitle className="text-center text-xl">🎉 Booking Confirmed!</DialogTitle>
+            <DialogDescription className="text-center text-sm">
+              Your seat is reserved! We sent a confirmation to your email and mobile.
             </DialogDescription>
           </DialogHeader>
           {success && (
             <div className="space-y-4">
-              <div className="p-4 bg-eand-bright-green/10 rounded-xl space-y-3">
-                <div>
-                  <span className="text-xs font-medium text-gray-500">Serial Number</span>
-                  <p className="text-2xl font-bold text-eand-red tracking-wide">{success.serialNumber}</p>
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 space-y-3">
+                <div className="text-center">
+                  <span className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">Your Booking Number</span>
+                  <p className="text-3xl font-black text-eand-ocean tracking-wider">{success.serialNumber}</p>
                 </div>
-                <div className="flex gap-4">
-                  <div>
-                    <span className="text-xs font-medium text-gray-500">Date</span>
-                    <p className="text-sm font-medium">{formatDate(new Date(success.reservationDate))}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white rounded-xl p-2.5 text-center">
+                    <span className="text-[10px] text-gray-400 font-medium block">📅 Date</span>
+                    <p className="text-sm font-bold text-gray-900">{formatDate(new Date(success.reservationDate))}</p>
                   </div>
-                  <div>
-                    <span className="text-xs font-medium text-gray-500">Seats</span>
-                    <p className="text-sm font-medium">{success.seatCount}</p>
+                  <div className="bg-white rounded-xl p-2.5 text-center">
+                    <span className="text-[10px] text-gray-400 font-medium block">💺 Seats</span>
+                    <p className="text-sm font-bold text-gray-900">{success.seatCount}</p>
                   </div>
                 </div>
               </div>
               {success.qrCodeString && (
-                <div className="flex justify-center">
-                  <Image
-                    src={success.qrCodeString}
-                    alt="QR Code"
-                    width={160}
-                    height={160}
-                    className="border rounded-xl"
-                  />
+                <div className="text-center space-y-2">
+                  <p className="text-xs font-semibold text-gray-500">📱 Show this QR code at the tent:</p>
+                  <div className="flex justify-center">
+                    <Image
+                      src={success.qrCodeString}
+                      alt="QR Code"
+                      width={180}
+                      height={180}
+                      className="border-2 border-gray-100 rounded-2xl shadow-sm"
+                    />
+                  </div>
                 </div>
               )}
               <div className="flex gap-3">
