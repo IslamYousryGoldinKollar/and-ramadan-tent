@@ -14,7 +14,7 @@ import {
   Minus, Plus, Mail, Phone, BadgeCheck, Hash, Sparkles, PartyPopper, Shield, AlertCircle,
   CalendarCheck, UserCircle, Armchair
 } from 'lucide-react'
-import Image from 'next/image'
+
 import { EandLogo } from '@/components/ui/eand-logo'
 
 const STEPS = [
@@ -514,9 +514,9 @@ export default function TentRegistrationPage() {
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 opacity-0 animate-fade-in-up delay-400">
                 <p className="text-xs font-semibold text-amber-700 mb-1">📋 What happens after you confirm:</p>
                 <ul className="text-[11px] text-amber-600 space-y-0.5 ml-4 list-disc">
-                  <li>You&apos;ll get a <strong>QR code ticket</strong> right away</li>
+                  <li>You&apos;ll get your <strong>booking number</strong> right away</li>
                   <li>Confirmation sent to your <strong>email & mobile</strong></li>
-                  <li>Show the QR code at the tent entrance</li>
+                  <li>The tent is open — just walk in!</li>
                 </ul>
               </div>
 
@@ -559,7 +559,7 @@ export default function TentRegistrationPage() {
             </div>
             <DialogTitle className="text-center text-xl">🎉 Booking Confirmed!</DialogTitle>
             <DialogDescription className="text-center text-sm">
-              Your seat is reserved! We sent a confirmation to your email and mobile.
+              Your seat is reserved! Save your booking number for reference.
             </DialogDescription>
           </DialogHeader>
           {success && (
@@ -580,20 +580,6 @@ export default function TentRegistrationPage() {
                   </div>
                 </div>
               </div>
-              {success.qrCodeString && (
-                <div className="text-center space-y-2">
-                  <p className="text-xs font-semibold text-gray-500">📱 Show this QR code at the tent:</p>
-                  <div className="flex justify-center">
-                    <Image
-                      src={success.qrCodeString}
-                      alt="QR Code"
-                      width={180}
-                      height={180}
-                      className="border-2 border-gray-100 rounded-2xl shadow-sm"
-                    />
-                  </div>
-                </div>
-              )}
               <div className="flex gap-3">
                 <Button
                   variant="outline"

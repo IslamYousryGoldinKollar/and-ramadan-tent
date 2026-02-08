@@ -93,7 +93,6 @@ export async function createPublicReservation(
     serialNumber,
     reservationDate,
     seatCount,
-    qrCodeUrl: qrCodeString,
     location: 'e& Egypt Corporate Ramadan Tent',
   })
 
@@ -162,7 +161,6 @@ export async function createReservation(
       serialNumber,
       reservationDate,
       seatCount,
-      qrCodeUrl: qrCodeString,
       location: 'e& Egypt Corporate Ramadan Tent',
     })
   }

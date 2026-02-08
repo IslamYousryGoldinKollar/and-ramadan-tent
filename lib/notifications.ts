@@ -4,7 +4,6 @@ interface BookingConfirmationData {
   serialNumber: string
   reservationDate: Date
   seatCount: number
-  qrCodeUrl: string
   location: string
 }
 
@@ -36,7 +35,7 @@ Reservation Details:
 - Seats: ${data.seatCount}
 - Location: ${data.location}
 
-Please present your QR code at the tent entrance.
+The tent is open — just walk in! No QR code needed.
 
 Thank you!
 e& Egypt HR Team`
@@ -122,7 +121,7 @@ This is a reminder that you have a reservation for the Ramadan Tent tomorrow.
 Date: ${reservationDate.toLocaleDateString()}
 Serial Number: ${serialNumber}
 
-Please don't forget to bring your QR code!
+The tent is open — just walk in!
 
 Thank you!
 e& Egypt HR Team`

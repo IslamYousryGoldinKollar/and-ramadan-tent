@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate } from '@/lib/utils'
 import { Calendar, Users } from 'lucide-react'
-import Image from 'next/image'
+
 
 interface BookingFormProps {
   selectedDate: Date | null
@@ -153,19 +153,8 @@ export function BookingForm({ selectedDate }: BookingFormProps) {
                   </div>
                 </div>
               </div>
-              {success.qrCodeString && (
-                <div className="flex justify-center">
-                  <Image
-                    src={success.qrCodeString}
-                    alt="QR Code"
-                    width={200}
-                    height={200}
-                    className="border rounded-lg"
-                  />
-                </div>
-              )}
               <p className="text-xs text-center text-gray-500">
-                A confirmation email has been sent to {session?.user?.email}
+                Booking confirmed. Save your serial number for reference.
               </p>
             </div>
           )}

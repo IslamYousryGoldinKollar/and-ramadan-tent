@@ -77,7 +77,7 @@ export async function sendBookingConfirmationWhatsApp(
 💺 *Seats:* ${seatCount}
 📍 *Location:* e& Egypt Corporate Ramadan Tent
 
-Please show your QR code at the entrance. Ramadan Kareem! 🌙`
+The tent is open — just walk in! Ramadan Kareem! 🌙`
 
   return sendWhatsApp(phone, body)
 }
