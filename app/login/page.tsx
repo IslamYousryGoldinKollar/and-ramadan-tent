@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { isValidEandEmail } from '@/lib/utils'
+import { EandLogo } from '@/components/ui/eand-logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -51,15 +52,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <div className="text-2xl font-bold text-eand-red">e&</div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-red-600 via-red-500 to-orange-400 p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0 rounded-2xl">
+        <CardHeader className="space-y-1 pt-8">
+          <div className="flex items-center justify-center mb-3">
+            <EandLogo size="lg" />
           </div>
-          <CardTitle className="text-2xl text-center">Ramadan Tent Reservation</CardTitle>
+          <CardTitle className="text-2xl text-center">Staff Sign In</CardTitle>
           <CardDescription className="text-center">
-            Sign in with your Employee ID and Corporate Email
+            Ramadan Tent Reservation System
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -102,7 +103,7 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full py-5 rounded-xl active:scale-[0.98] transition-transform" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>

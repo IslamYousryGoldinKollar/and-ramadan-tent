@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { WellnessContentCard } from '@/components/wellness/content-card'
 import { Card, CardContent } from '@/components/ui/card'
 import { Lightbulb, ArrowLeft } from 'lucide-react'
+import { EandLogo } from '@/components/ui/eand-logo'
 
 interface WellnessContent {
   id: string
@@ -45,10 +46,7 @@ export default function WellnessPage() {
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Home</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-eand-red">e&</span>
-            <span className="text-sm text-gray-500">Egypt</span>
-          </div>
+          <EandLogo size="sm" />
         </div>
       </header>
 

@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { formatDate, isValidEandEmail } from '@/lib/utils'
 import { Calendar, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import Image from 'next/image'
+import { EandLogo } from '@/components/ui/eand-logo'
 
 export default function TentRegistrationPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -109,10 +110,7 @@ export default function TentRegistrationPage() {
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Home</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-eand-red">e&</span>
-            <span className="text-sm text-gray-500">Egypt</span>
-          </div>
+          <EandLogo size="sm" />
         </div>
       </header>
 

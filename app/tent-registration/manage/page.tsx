@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { formatDate } from '@/lib/utils'
 import { ArrowLeft, X, RefreshCw, Search, CheckCircle2, XCircle } from 'lucide-react'
 import Image from 'next/image'
+import { EandLogo } from '@/components/ui/eand-logo'
 
 interface ReservationDetails {
   id: string
@@ -120,10 +121,7 @@ export default function ManageReservationPage() {
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Register</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-eand-red">e&</span>
-            <span className="text-sm text-gray-500">Egypt</span>
-          </div>
+          <EandLogo size="sm" />
         </div>
       </header>
 

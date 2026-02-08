@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { isValidEandEmail } from '@/lib/utils'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
+import { EandLogo } from '@/components/ui/eand-logo'
 
 interface Question {
   id: string
@@ -167,10 +168,7 @@ export default function EpisodePage() {
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Episodes</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-eand-red">e&</span>
-            <span className="text-sm text-gray-500">Egypt</span>
-          </div>
+          <EandLogo size="sm" />
         </div>
       </header>
 
