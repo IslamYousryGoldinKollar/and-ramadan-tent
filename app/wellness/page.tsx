@@ -1,89 +1,68 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { WellnessContentCard } from '@/components/wellness/content-card'
-import { Lightbulb, ArrowLeft, Heart, Moon, Droplets, Apple, Sparkles, BookOpen, ChevronDown, Star } from 'lucide-react'
+import { ArrowLeft, Moon, ChevronDown, ChevronRight, Sparkles, UtensilsCrossed } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
+import { WELLNESS_CATEGORIES, EGYPTIAN_MEALS, type WellnessCategory } from '@/lib/wellness-data'
 
-interface WellnessContent {
-  id: string
-  title: string
-  excerpt?: string | null
-  htmlContent: string
-  category: string
-  imageUrl?: string | null
-  videoUrl?: string | null
-  displayOrder: number
-}
-
-interface DailyTip {
-  id: string
-  title: string
-  shortTip: string
-  fullContent: string
-  tipNumber: number
-}
-
-const tipIcons = [Lightbulb, Heart, Moon, Droplets, Apple, Sparkles]
-const tipColors = [
-  { bg: 'from-amber-400 to-orange-500', shadow: 'shadow-amber-200' },
-  { bg: 'from-rose-400 to-pink-500', shadow: 'shadow-rose-200' },
-  { bg: 'from-indigo-400 to-purple-500', shadow: 'shadow-indigo-200' },
-  { bg: 'from-cyan-400 to-blue-500', shadow: 'shadow-cyan-200' },
-  { bg: 'from-emerald-400 to-green-500', shadow: 'shadow-emerald-200' },
-  { bg: 'from-fuchsia-400 to-violet-500', shadow: 'shadow-fuchsia-200' },
-]
-
-type Tab = 'daily' | 'articles'
+type View = 'home' | 'category' | 'topic' | 'meals'
 
 export default function WellnessPage() {
-  const [dailyTips, setDailyTips] = useState<DailyTip[]>([])
-  const [articles, setArticles] = useState<WellnessContent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<Tab>('daily')
+  const [view, setView] = useState<View>('home')
+  const [activeCategory, setActiveCategory] = useState<WellnessCategory | null>(null)
+  const [activeTopic, setActiveTopic] = useState<string | null>(null)
+  const [expandedMeal, setExpandedMeal] = useState<number | null>(null)
 
-  useEffect(() => {
-    fetchAll()
-  }, [])
+  const openCategory = (cat: WellnessCategory) => {
+    setActiveCategory(cat)
+    setView('category')
+    setActiveTopic(null)
+  }
 
-  const fetchAll = async () => {
-    setError(false)
-    setLoading(true)
-    try {
-      const [tipsRes, articlesRes] = await Promise.all([
-        fetch('/api/daily-tips'),
-        fetch('/api/ramadan-articles'),
-      ])
-      if (tipsRes.ok) setDailyTips(await tipsRes.json())
-      if (articlesRes.ok) setArticles(await articlesRes.json())
-    } catch (err) {
-      console.error('Error fetching content:', err)
-      setError(true)
-    } finally {
-      setLoading(false)
+  const openTopic = (topicId: string) => {
+    if (topicId === 'meals') {
+      setView('meals')
+    } else {
+      setActiveTopic(topicId)
+      setView('topic')
     }
   }
 
-  const totalCount = dailyTips.length + articles.length
+  const goBack = () => {
+    if (view === 'topic' || view === 'meals') {
+      setView('category')
+      setActiveTopic(null)
+    } else if (view === 'category') {
+      setView('home')
+      setActiveCategory(null)
+    }
+  }
+
+  const currentTopic = activeCategory?.topics.find(t => t.id === activeTopic)
 
   return (
     <div className="min-h-screen bg-ramadan-subtle flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
         <div className="content-container py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm font-medium">Home</span>
-          </Link>
+          {view === 'home' ? (
+            <Link href="/" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+              <span className="text-sm font-medium">Home</span>
+            </Link>
+          ) : (
+            <button onClick={goBack} className="flex items-center gap-2 text-white/70 active:text-ramadan-gold transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+              <span className="text-sm font-medium">Back</span>
+            </button>
+          )}
           <EandLogo size="sm" className="brightness-0 invert" />
         </div>
       </header>
 
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-ramadan-dark px-4 pt-10 pb-6 lg:pt-16 lg:pb-10">
+      <section className="relative overflow-hidden bg-ramadan-dark px-4 pt-8 pb-5 lg:pt-14 lg:pb-8">
         <div className="absolute top-6 right-8 text-eand-bright-green/10 animate-float-slow">
           <Moon className="h-32 w-32 lg:h-48 lg:w-48" />
         </div>
@@ -91,123 +70,187 @@ export default function WellnessPage() {
         <div className="particle w-1 h-1 bg-white/15 bottom-1/4 right-[25%] animate-twinkle delay-1000" />
 
         <div className="content-container text-center relative z-10">
-          <div className="w-20 h-20 bg-eand-dark-green/30 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-5 border border-eand-bright-green/20 opacity-0 animate-scale-in">
-            <Lightbulb className="h-10 w-10 text-eand-bright-green" />
+          <div className="w-16 h-16 bg-eand-dark-green/30 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 border border-eand-bright-green/20 opacity-0 animate-scale-in">
+            <Sparkles className="h-8 w-8 text-eand-bright-green" />
           </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight opacity-0 animate-fade-in-up delay-200">
-            Ramadan Tips
+          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight opacity-0 animate-fade-in-up delay-200">
+            {view === 'home' && 'Ramadan Wellness Guide'}
+            {view === 'category' && activeCategory && `${activeCategory.emoji} ${activeCategory.label} Wellness`}
+            {view === 'topic' && currentTopic && `${currentTopic.emoji} ${currentTopic.title}`}
+            {view === 'meals' && '🍽️ 30 Egyptian Ramadan Meals'}
           </h1>
-          <p className="text-base text-white/60 leading-relaxed max-w-xs mx-auto opacity-0 animate-fade-in-up delay-400">
-            {totalCount > 0 ? `${totalCount} tips & articles for a healthier Ramadan` : 'Health advice & tips for a better Ramadan'}
+          <p className="text-sm text-white/60 leading-relaxed max-w-xs mx-auto opacity-0 animate-fade-in-up delay-400">
+            {view === 'home' && 'Your complete guide for body, mind & soul during the holy month'}
+            {view === 'category' && activeCategory?.description}
+            {view === 'topic' && currentTopic?.content}
+            {view === 'meals' && 'One authentic Egyptian dish for each day of Ramadan'}
           </p>
         </div>
       </section>
 
-      {/* Tabs */}
-      {!loading && !error && totalCount > 0 && (
-        <div className="sticky top-[52px] z-40 bg-white/90 backdrop-blur-md border-b border-gray-200">
-          <div className="content-container flex">
-            <button
-              onClick={() => setActiveTab('daily')}
-              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors duration-300 relative ${
-                activeTab === 'daily' ? 'text-eand-ocean' : 'text-gray-400'
-              }`}
-            >
-              <Star className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
-              Daily Tips ({dailyTips.length})
-              {activeTab === 'daily' && (
-                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full animate-scale-in" />
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('articles')}
-              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors duration-300 relative ${
-                activeTab === 'articles' ? 'text-eand-ocean' : 'text-gray-400'
-              }`}
-            >
-              <BookOpen className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
-              Articles ({articles.length})
-              {activeTab === 'articles' && (
-                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full animate-scale-in" />
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Content */}
       <main className="flex-1 px-4 py-6 lg:py-10">
         <div className="content-container">
-          {loading ? (
+
+          {/* ===== HOME VIEW: 3 Category Cards ===== */}
+          {view === 'home' && (
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-2xl p-5 shadow-sm animate-pulse">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-gray-200" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                      <div className="h-3 bg-gray-100 rounded w-1/2" />
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-center mb-2">Choose a category</p>
+              {WELLNESS_CATEGORIES.map((cat, i) => (
+                <button
+                  key={cat.id}
+                  onClick={() => openCategory(cat)}
+                  className={`w-full text-left rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 active:scale-[0.98] opacity-0 animate-fade-in-up border ${cat.borderColor}`}
+                  style={{ animationDelay: `${150 + i * 120}ms` }}
+                >
+                  <div className={`bg-gradient-to-r ${cat.gradient} p-5 flex items-center gap-4`}>
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-3xl">{cat.emoji}</span>
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-xl font-bold text-white mb-0.5">{cat.label}</h2>
+                      <p className="text-sm text-white/80">{cat.description}</p>
+                      <p className="text-xs text-white/60 mt-1">{cat.topics.length} topics inside</p>
+                    </div>
+                    <ChevronRight className="h-6 w-6 text-white/60 flex-shrink-0" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-100 rounded w-full" />
-                    <div className="h-3 bg-gray-100 rounded w-5/6" />
+                </button>
+              ))}
+
+              {/* Quick stats */}
+              <div className="grid grid-cols-3 gap-3 mt-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+                <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
+                  <p className="text-2xl font-black text-emerald-500">11</p>
+                  <p className="text-[10px] text-gray-400 font-semibold uppercase">Topics</p>
+                </div>
+                <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
+                  <p className="text-2xl font-black text-indigo-500">55+</p>
+                  <p className="text-[10px] text-gray-400 font-semibold uppercase">Tips</p>
+                </div>
+                <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
+                  <p className="text-2xl font-black text-amber-500">30</p>
+                  <p className="text-[10px] text-gray-400 font-semibold uppercase">Meals</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ===== CATEGORY VIEW: Topic Cards ===== */}
+          {view === 'category' && activeCategory && (
+            <div className="space-y-3">
+              {activeCategory.topics.map((topic, i) => (
+                <button
+                  key={topic.id}
+                  onClick={() => openTopic(topic.id)}
+                  className={`w-full text-left bg-white rounded-2xl shadow-sm border ${activeCategory.borderColor} hover:shadow-lg transition-all duration-300 active:scale-[0.98] overflow-hidden opacity-0 animate-fade-in-up group`}
+                  style={{ animationDelay: `${100 + i * 100}ms` }}
+                >
+                  <div className="p-4 flex items-center gap-4">
+                    <div className={`w-14 h-14 ${activeCategory.iconBg} rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                      <span className="text-2xl">{topic.emoji}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 text-base leading-snug">{topic.title}</h3>
+                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{topic.content}</p>
+                      {topic.id === 'meals' && (
+                        <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                          <UtensilsCrossed className="h-3 w-3" /> 30 Egyptian dishes
+                        </span>
+                      )}
+                      {topic.items && topic.items.length > 0 && topic.id !== 'meals' && (
+                        <span className={`inline-block mt-1.5 text-[10px] font-bold ${activeCategory.textColor} ${activeCategory.bgLight} px-2 py-0.5 rounded-full`}>
+                          {topic.items.length} tips
+                        </span>
+                      )}
+                    </div>
+                    <ChevronRight className={`h-5 w-5 text-gray-300 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-200`} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ===== TOPIC VIEW: Expanded Tips ===== */}
+          {view === 'topic' && currentTopic && activeCategory && (
+            <div className="space-y-3">
+              {/* Intro card */}
+              <div className={`${activeCategory.bgLight} border ${activeCategory.borderColor} rounded-2xl p-4 opacity-0 animate-fade-in-up`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{currentTopic.emoji}</span>
+                  <p className={`text-sm ${activeCategory.textColor} leading-relaxed`}>{currentTopic.content}</p>
+                </div>
+              </div>
+
+              {/* Tip cards */}
+              {currentTopic.items?.map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 opacity-0 animate-fade-in-up hover:shadow-md transition-all duration-300"
+                  style={{ animationDelay: `${150 + i * 80}ms` }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`w-8 h-8 ${activeCategory.iconBg} rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                      <span className={`text-sm font-black ${activeCategory.textColor}`}>{i + 1}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 text-sm leading-snug">{item.title}</h4>
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-          ) : error ? (
-            <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
-              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-8 w-8 text-red-300" />
-              </div>
-              <p className="text-gray-700 font-medium mb-1">Unable to load tips</p>
-              <p className="text-sm text-gray-400 mb-4">Please check your connection and try again</p>
-              <button
-                onClick={fetchAll}
-                className="text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors"
-              >
-                Tap to retry
-              </button>
-            </div>
-          ) : totalCount === 0 ? (
-            <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
-              <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Moon className="h-8 w-8 text-amber-300" />
-              </div>
-              <p className="text-gray-700 font-medium mb-1">Tips coming soon!</p>
-              <p className="text-sm text-gray-400">
-                Ramadan tips will be shared throughout the month. Check back soon!
-              </p>
-            </div>
-          ) : activeTab === 'daily' ? (
-            /* Daily Tips Tab */
+          )}
+
+          {/* ===== MEALS VIEW: 30 Egyptian Meals ===== */}
+          {view === 'meals' && (
             <div className="space-y-3">
-              {dailyTips.map((tip, index) => {
-                const isOpen = expandedId === tip.id
+              {/* Intro */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 opacity-0 animate-fade-in-up">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🇪🇬</span>
+                  <div>
+                    <p className="text-sm font-bold text-amber-800">Authentic Egyptian Ramadan Kitchen</p>
+                    <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
+                      30 beloved Egyptian dishes — one for each day of Ramadan. From classic street food to grandma&apos;s recipes, these are the flavors that make Egyptian Ramadan special.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Meal cards */}
+              {EGYPTIAN_MEALS.map((meal, i) => {
+                const isOpen = expandedMeal === meal.day
                 return (
-                  <div key={tip.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden opacity-0 animate-fade-in-up hover:shadow-md transition-shadow duration-300" style={{ animationDelay: `${100 + index * 80}ms` }}>
+                  <div
+                    key={meal.day}
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden opacity-0 animate-fade-in-up hover:shadow-md transition-all duration-300"
+                    style={{ animationDelay: `${100 + Math.min(i * 50, 800)}ms` }}
+                  >
                     <button
-                      onClick={() => setExpandedId(isOpen ? null : tip.id)}
+                      onClick={() => setExpandedMeal(isOpen ? null : meal.day)}
                       className="w-full text-left p-4 flex items-center gap-3"
                     >
-                      <div className="w-10 h-10 bg-gradient-to-br from-eand-ocean to-ramadan-deep rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-                        <span className="text-white font-bold text-sm">{tip.tipNumber}</span>
+                      <div className="w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-amber-200/50">
+                        <span className="text-white font-black text-sm">{meal.day}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-[15px] leading-snug">{tip.title}</h3>
-                        {!isOpen && (
-                          <p className="text-sm text-gray-400 mt-0.5 line-clamp-1">{tip.shortTip}</p>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-gray-900 text-[15px] leading-snug">{meal.name}</h3>
+                        </div>
+                        <p className="text-xs text-amber-600 font-medium mt-0.5" dir="rtl">{meal.nameAr}</p>
                       </div>
                       <ChevronDown className={`h-5 w-5 text-gray-300 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
 
-                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'}`}>
                       <div className="px-4 pb-4 pt-0">
                         <div className="border-t border-gray-100 pt-3">
-                          <p className="text-sm font-medium text-eand-ocean mb-2">{tip.shortTip}</p>
-                          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{tip.fullContent}</p>
+                          <p className="text-sm text-gray-600 leading-relaxed">{meal.desc}</p>
+                          <div className="flex items-center gap-2 mt-3">
+                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Day {meal.day}</span>
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Egyptian 🇪🇬</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -215,22 +258,8 @@ export default function WellnessPage() {
                 )
               })}
             </div>
-          ) : (
-            /* Articles Tab */
-            <div className="space-y-3">
-              {articles.map((item, index) => (
-                <div key={item.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${100 + index * 80}ms` }}>
-                  <WellnessContentCard
-                    {...item}
-                    icon={tipIcons[index % tipIcons.length]}
-                    colorClass={tipColors[index % tipColors.length]}
-                    isExpanded={expandedId === item.id}
-                    onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                  />
-                </div>
-              ))}
-            </div>
           )}
+
         </div>
       </main>
 

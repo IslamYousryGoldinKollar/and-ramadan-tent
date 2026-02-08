@@ -334,7 +334,7 @@ export default function TentRegistrationPage() {
               {/* Visual seat counter */}
               <div className="bg-white rounded-3xl shadow-md p-6 opacity-0 animate-fade-in-up delay-300">
                 {/* Big counter */}
-                <div className="flex items-center justify-center gap-5 mb-6">
+                <div className="flex items-center justify-center gap-5 mb-4">
                   <button
                     onClick={() => setSeatCount(Math.max(1, seatCount - 1))}
                     className="w-16 h-16 rounded-2xl bg-red-50 border-2 border-red-200 flex items-center justify-center active:scale-95 hover:bg-red-100 transition-all"
@@ -351,6 +351,25 @@ export default function TentRegistrationPage() {
                   >
                     <Plus className="h-7 w-7 text-emerald-500" />
                   </button>
+                </div>
+
+                {/* Custom number entry */}
+                <div className="flex items-center justify-center gap-2 mb-5">
+                  <span className="text-xs text-gray-400 font-medium">or type:</span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={10}
+                    value={seatCount}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value)
+                      if (!isNaN(v) && v >= 1 && v <= 10) setSeatCount(v)
+                      else if (e.target.value === '') setSeatCount(1)
+                    }}
+                    className="w-16 text-center text-lg font-bold border-2 border-gray-200 rounded-xl py-1.5 focus:border-eand-ocean focus:ring-2 focus:ring-eand-ocean/20 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="text-xs text-gray-400">(1–10)</span>
                 </div>
 
                 {/* Visual seat representation */}
@@ -370,7 +389,7 @@ export default function TentRegistrationPage() {
                   ))}
                 </div>
                 <p className="text-[11px] text-center text-gray-400">
-                  Tap a seat or use +/- buttons • Maximum 10 seats
+                  Tap a seat, use +/- buttons, or type a number • Maximum 10 seats
                 </p>
               </div>
 
