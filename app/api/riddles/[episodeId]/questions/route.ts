@@ -9,8 +9,7 @@ const createQuestionSchema = z.object({
   optionA: z.string().min(1),
   optionB: z.string().min(1),
   optionC: z.string().min(1),
-  optionD: z.string().min(1),
-  correctAnswer: z.enum(['A', 'B', 'C', 'D']),
+  correctAnswer: z.enum(['A', 'B', 'C']),
 })
 
 export async function POST(

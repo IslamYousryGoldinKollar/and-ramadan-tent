@@ -3,16 +3,15 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { submitRiddleAnswers, getEpisodeAnswers } from '@/lib/riddles'
 import { z } from 'zod'
-import { isValidEandEmail } from '@/lib/utils'
 
 const submitAnswersSchema = z.object({
-  employeeId: z.string().min(1),
-  employeeName: z.string().min(1),
   email: z.string().email(),
+  idNumber: z.string().min(1),
+  phoneNumber: z.string().min(1),
   answers: z.array(
     z.object({
       questionId: z.string(),
-      selectedAnswer: z.enum(['A', 'B', 'C', 'D']),
+      selectedAnswer: z.enum(['A', 'B', 'C']),
     })
   ),
 })
@@ -24,14 +23,6 @@ export async function POST(
   try {
     const body = await request.json()
     const validated = submitAnswersSchema.parse(body)
-
-    // Validate email domain
-    if (!isValidEandEmail(validated.email)) {
-      return NextResponse.json(
-        { error: 'Email must be from @eand.com domain' },
-        { status: 400 }
-      )
-    }
 
     const answers = await submitRiddleAnswers({
       episodeId: params.episodeId,

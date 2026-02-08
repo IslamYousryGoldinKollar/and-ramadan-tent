@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { PageTracker } from '@/components/tracking/page-tracker'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -39,7 +40,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <PageTracker />
+          {children}
+        </Providers>
       </body>
     </html>
   )

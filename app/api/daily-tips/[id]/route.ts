@@ -1,43 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { getEpisodeById, updateRiddleEpisode, deleteRiddleEpisode, toggleEpisodeStatus } from '@/lib/riddles'
+import { getDailyTipById, updateDailyTip, deleteDailyTip, toggleDailyTipStatus } from '@/lib/daily-tips'
 import { z } from 'zod'
 
-const updateEpisodeSchema = z.object({
+const updateTipSchema = z.object({
   title: z.string().min(1).optional(),
-  description: z.string().optional(),
-  videoUrl: z.string().min(1).optional(),
-  episodeNumber: z.number().int().positive().optional(),
+  shortTip: z.string().min(1).optional(),
+  fullContent: z.string().min(1).optional(),
+  tipNumber: z.number().int().positive().optional(),
 })
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { episodeId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const episode = await getEpisodeById(params.episodeId)
-
-    if (!episode) {
-      return NextResponse.json(
-        { error: 'Episode not found' },
-        { status: 404 }
-      )
+    const tip = await getDailyTipById(params.id)
+    if (!tip) {
+      return NextResponse.json({ error: 'Tip not found' }, { status: 404 })
     }
-
-    return NextResponse.json(episode)
+    return NextResponse.json(tip)
   } catch (error) {
-    console.error('Error fetching episode:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('Error fetching daily tip:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { episodeId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -46,14 +38,14 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const validated = updateEpisodeSchema.parse(body)
-    const episode = await updateRiddleEpisode(params.episodeId, validated)
-    return NextResponse.json(episode)
+    const validated = updateTipSchema.parse(body)
+    const tip = await updateDailyTip(params.id, validated)
+    return NextResponse.json(tip)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 })
     }
-    console.error('Error updating episode:', error)
+    console.error('Error updating daily tip:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
@@ -63,7 +55,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { episodeId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -71,10 +63,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await deleteRiddleEpisode(params.episodeId)
+    await deleteDailyTip(params.id)
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting episode:', error)
+    console.error('Error deleting daily tip:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
@@ -84,7 +76,7 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { episodeId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -92,10 +84,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const episode = await toggleEpisodeStatus(params.episodeId)
-    return NextResponse.json(episode)
+    const tip = await toggleDailyTipStatus(params.id)
+    return NextResponse.json(tip)
   } catch (error) {
-    console.error('Error toggling episode status:', error)
+    console.error('Error toggling daily tip status:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

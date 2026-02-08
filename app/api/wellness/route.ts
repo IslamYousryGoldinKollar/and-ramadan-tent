@@ -29,7 +29,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const content = await getActiveWellnessContent()
+    const articles = await getActiveWellnessContent()
+    const content = articles.map((a: any) => ({
+      id: a.id,
+      title: a.title,
+      content: a.htmlContent || a.content || '',
+      pdfUrl: a.imageUrl || null,
+      displayOrder: a.displayOrder,
+    }))
     return NextResponse.json(content)
   } catch (error) {
     console.error('Error fetching wellness content:', error)

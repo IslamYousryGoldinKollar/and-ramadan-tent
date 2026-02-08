@@ -1,18 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { getActiveEpisodes, createRiddleEpisode } from '@/lib/riddles'
+import { getActiveEpisodes, getAllEpisodes, createRiddleEpisode } from '@/lib/riddles'
 import { z } from 'zod'
 
 const createEpisodeSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
-  youtubeUrl: z.string().url(),
+  videoUrl: z.string().min(1),
   episodeNumber: z.number().int().positive(),
 })
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const admin = searchParams.get('admin') === 'true'
+
+    if (admin) {
+      const session = await getServerSession(authOptions)
+      if (session?.user && (session.user as any).role === 'ADMIN') {
+        const episodes = await getAllEpisodes()
+        return NextResponse.json(episodes)
+      }
+    }
+
     const episodes = await getActiveEpisodes()
     return NextResponse.json(episodes)
   } catch (error) {

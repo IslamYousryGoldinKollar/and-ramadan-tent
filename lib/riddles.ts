@@ -3,8 +3,15 @@ import { prisma } from './prisma'
 export interface CreateRiddleEpisodeData {
   title: string
   description?: string
-  youtubeUrl: string
+  videoUrl: string
   episodeNumber: number
+}
+
+export interface UpdateRiddleEpisodeData {
+  title?: string
+  description?: string
+  videoUrl?: string
+  episodeNumber?: number
 }
 
 export interface CreateQuestionData {
@@ -13,18 +20,25 @@ export interface CreateQuestionData {
   optionA: string
   optionB: string
   optionC: string
-  optionD: string
-  correctAnswer: 'A' | 'B' | 'C' | 'D'
+  correctAnswer: 'A' | 'B' | 'C'
+}
+
+export interface UpdateQuestionData {
+  questionText?: string
+  optionA?: string
+  optionB?: string
+  optionC?: string
+  correctAnswer?: 'A' | 'B' | 'C'
 }
 
 export interface SubmitAnswersData {
   episodeId: string
-  employeeId: string
-  employeeName: string
   email: string
+  idNumber: string
+  phoneNumber: string
   answers: Array<{
     questionId: string
-    selectedAnswer: 'A' | 'B' | 'C' | 'D'
+    selectedAnswer: 'A' | 'B' | 'C'
   }>
 }
 
@@ -36,13 +50,45 @@ export async function createRiddleEpisode(data: CreateRiddleEpisodeData) {
     data: {
       title: data.title,
       description: data.description,
-      youtubeUrl: data.youtubeUrl,
+      videoUrl: data.videoUrl,
       episodeNumber: data.episodeNumber,
       isActive: true,
     },
     include: {
       questions: true,
     },
+  })
+}
+
+/**
+ * Update a riddle episode
+ */
+export async function updateRiddleEpisode(episodeId: string, data: UpdateRiddleEpisodeData) {
+  return prisma.riddleEpisode.update({
+    where: { id: episodeId },
+    data,
+    include: { questions: true },
+  })
+}
+
+/**
+ * Delete a riddle episode
+ */
+export async function deleteRiddleEpisode(episodeId: string) {
+  return prisma.riddleEpisode.delete({
+    where: { id: episodeId },
+  })
+}
+
+/**
+ * Toggle episode active status
+ */
+export async function toggleEpisodeStatus(episodeId: string) {
+  const episode = await prisma.riddleEpisode.findUnique({ where: { id: episodeId } })
+  if (!episode) throw new Error('Episode not found')
+  return prisma.riddleEpisode.update({
+    where: { id: episodeId },
+    data: { isActive: !episode.isActive },
   })
 }
 
@@ -57,14 +103,45 @@ export async function addQuestionToEpisode(data: CreateQuestionData) {
       optionA: data.optionA,
       optionB: data.optionB,
       optionC: data.optionC,
-      optionD: data.optionD,
       correctAnswer: data.correctAnswer,
     },
   })
 }
 
 /**
- * Get all active episodes
+ * Update a question
+ */
+export async function updateQuestion(questionId: string, data: UpdateQuestionData) {
+  return prisma.riddleQuestion.update({
+    where: { id: questionId },
+    data,
+  })
+}
+
+/**
+ * Delete a question
+ */
+export async function deleteQuestion(questionId: string) {
+  return prisma.riddleQuestion.delete({
+    where: { id: questionId },
+  })
+}
+
+/**
+ * Get all episodes (admin — includes inactive)
+ */
+export async function getAllEpisodes() {
+  return prisma.riddleEpisode.findMany({
+    orderBy: { episodeNumber: 'desc' },
+    include: {
+      questions: { orderBy: { createdAt: 'asc' } },
+      _count: { select: { answers: true } },
+    },
+  })
+}
+
+/**
+ * Get all active episodes (public)
  */
 export async function getActiveEpisodes() {
   return prisma.riddleEpisode.findMany({
@@ -88,15 +165,45 @@ export async function getEpisodeById(episodeId: string) {
       questions: {
         orderBy: { createdAt: 'asc' },
       },
+      _count: { select: { answers: true } },
     },
   })
+}
+
+/**
+ * Get episode stats (answer counts, correct rates)
+ */
+export async function getEpisodeStats(episodeId: string) {
+  const [episode, totalAnswers, correctAnswers] = await Promise.all([
+    prisma.riddleEpisode.findUnique({
+      where: { id: episodeId },
+      include: { questions: true, _count: { select: { answers: true, raffleWinners: true } } },
+    }),
+    prisma.riddleAnswer.count({ where: { episodeId } }),
+    prisma.riddleAnswer.count({ where: { episodeId, isCorrect: true } }),
+  ])
+
+  if (!episode) throw new Error('Episode not found')
+
+  const totalQuestions = episode.questions.length
+  const uniqueSubmitters = totalQuestions > 0
+    ? Math.floor(totalAnswers / totalQuestions)
+    : 0
+
+  return {
+    totalQuestions,
+    totalAnswers,
+    correctAnswers,
+    correctRate: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
+    uniqueSubmitters,
+    winnersCount: episode._count.raffleWinners,
+  }
 }
 
 /**
  * Submit answers for an episode
  */
 export async function submitRiddleAnswers(data: SubmitAnswersData) {
-  // Get episode and questions to verify answers
   const episode = await prisma.riddleEpisode.findUnique({
     where: { id: data.episodeId },
     include: { questions: true },
@@ -114,8 +221,8 @@ export async function submitRiddleAnswers(data: SubmitAnswersData) {
   const existingAnswers = await prisma.riddleAnswer.findFirst({
     where: {
       episodeId: data.episodeId,
-      employeeId: data.employeeId,
       email: data.email,
+      idNumber: data.idNumber,
     },
   })
 
@@ -137,9 +244,9 @@ export async function submitRiddleAnswers(data: SubmitAnswersData) {
         data: {
           episodeId: data.episodeId,
           questionId: answer.questionId,
-          employeeId: data.employeeId,
-          employeeName: data.employeeName,
           email: data.email,
+          idNumber: data.idNumber,
+          phoneNumber: data.phoneNumber,
           selectedAnswer: answer.selectedAnswer,
           isCorrect,
         },
@@ -181,38 +288,36 @@ export async function getCorrectAnswerers(episodeId: string) {
     return []
   }
 
-  // Get all answers grouped by employee
   const allAnswers = await prisma.riddleAnswer.findMany({
     where: { episodeId },
   })
 
-  // Group by employee
-  const answersByEmployee = new Map<string, typeof allAnswers>()
+  // Group by user (idNumber + email)
+  const answersByUser = new Map<string, typeof allAnswers>()
   for (const answer of allAnswers) {
-    const key = `${answer.employeeId}-${answer.email}`
-    if (!answersByEmployee.has(key)) {
-      answersByEmployee.set(key, [])
+    const key = `${answer.idNumber}-${answer.email}`
+    if (!answersByUser.has(key)) {
+      answersByUser.set(key, [])
     }
-    answersByEmployee.get(key)!.push(answer)
+    answersByUser.get(key)!.push(answer)
   }
 
-  // Find employees who answered all questions correctly
   const correctAnswerers: Array<{
-    employeeId: string
-    employeeName: string
     email: string
+    idNumber: string
+    phoneNumber: string
     correctCount: number
     totalQuestions: number
   }> = []
 
-  for (const [key, answers] of answersByEmployee.entries()) {
+  for (const [, answers] of answersByUser.entries()) {
     const correctCount = answers.filter((a) => a.isCorrect).length
     if (correctCount === totalQuestions) {
       const firstAnswer = answers[0]
       correctAnswerers.push({
-        employeeId: firstAnswer.employeeId,
-        employeeName: firstAnswer.employeeName,
         email: firstAnswer.email,
+        idNumber: firstAnswer.idNumber,
+        phoneNumber: firstAnswer.phoneNumber,
         correctCount,
         totalQuestions,
       })
@@ -247,7 +352,6 @@ export async function runRaffle(episodeId: string, numberOfWinners: number) {
 
   const winners = shuffled.slice(0, numberOfWinners)
 
-  // Create raffle settings if not exists
   await prisma.raffleSettings.upsert({
     where: { episodeId },
     create: {
@@ -263,21 +367,31 @@ export async function runRaffle(episodeId: string, numberOfWinners: number) {
     },
   })
 
-  // Create winner records
   const winnerRecords = await Promise.all(
     winners.map((winner) =>
       prisma.raffleWinner.create({
         data: {
           episodeId,
-          employeeId: winner.employeeId,
-          employeeName: winner.employeeName,
           email: winner.email,
+          idNumber: winner.idNumber,
+          phoneNumber: winner.phoneNumber,
         },
       })
     )
   )
 
   return winnerRecords
+}
+
+/**
+ * Clear raffle winners for re-running
+ */
+export async function clearRaffleWinners(episodeId: string) {
+  await prisma.raffleWinner.deleteMany({ where: { episodeId } })
+  await prisma.raffleSettings.update({
+    where: { episodeId },
+    data: { isActive: false, raffleDate: null },
+  })
 }
 
 /**

@@ -129,7 +129,7 @@ model RiddleEpisode {
   id              String    @id @default(cuid())
   title           String
   description     String?
-  youtubeUrl      String
+  videoUrl        String    // YouTube, Vimeo, Canva, MP4, or uploaded file
   episodeNumber   Int       @unique
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
@@ -151,8 +151,7 @@ model RiddleQuestion {
   optionA         String
   optionB         String
   optionC         String
-  optionD         String
-  correctAnswer   String    // "A", "B", "C", or "D"
+  correctAnswer   String    // "A", "B", or "C"
   createdAt       DateTime  @default(now())
 
   episode         RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
@@ -165,10 +164,10 @@ model RiddleAnswer {
   id              String    @id @default(cuid())
   episodeId       String
   questionId      String
-  employeeId      String
-  employeeName    String
   email           String
-  selectedAnswer  String    // "A", "B", "C", or "D"
+  idNumber        String
+  phoneNumber     String
+  selectedAnswer  String    // "A", "B", or "C"
   isCorrect       Boolean
   submittedAt     DateTime  @default(now())
 
@@ -177,7 +176,7 @@ model RiddleAnswer {
 
   @@index([episodeId])
   @@index([questionId])
-  @@index([employeeId])
+  @@index([idNumber])
   @@index([email])
 }
 
@@ -199,16 +198,16 @@ model RaffleWinner {
   id              String    @id @default(cuid())
   episodeId       String
   answerId        String?   // Reference to a correct answer submission
-  employeeId      String
-  employeeName    String
   email           String
+  idNumber        String
+  phoneNumber     String
   selectedAt      DateTime  @default(now())
   createdAt       DateTime  @default(now())
 
   episode         RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
 
   @@index([episodeId])
-  @@index([employeeId])
+  @@index([idNumber])
   @@index([email])
 }
 
@@ -226,16 +225,66 @@ model DailyTip {
   @@index([isActive])
 }
 
-model WellnessContent {
+model RamadanArticle {
   id              String    @id @default(cuid())
   title           String
-  content         String    @db.Text
-  pdfUrl          String?
+  excerpt         String?
+  htmlContent     String    @db.Text    // Rich text / raw HTML
+  category        String    @default("General") // Health, Nutrition, Spiritual, Lifestyle, Fitness, General
+  imageUrl        String?
+  videoUrl        String?
   displayOrder    Int       @default(0)
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  @@index([category])
   @@index([displayOrder])
   @@index([isActive])
+}
+
+model PageView {
+  id          String   @id @default(cuid())
+  sessionId   String
+  path        String
+  referrer    String?
+  userAgent   String?
+  ip          String?
+  country     String?
+  device      String?    // "mobile", "desktop", "tablet"
+  browser     String?
+  os          String?
+  duration    Int        @default(0)  // seconds spent on page
+  scrollDepth Int        @default(0)  // percentage 0-100
+  createdAt   DateTime   @default(now())
+
+  @@index([sessionId])
+  @@index([path])
+  @@index([createdAt])
+  @@index([device])
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  sessionId   String
+  eventName   String    // "video_play", "riddle_submit", "tip_expand", etc.
+  eventData   String?   @db.Text  // JSON payload
+  path        String
+  createdAt   DateTime  @default(now())
+
+  @@index([sessionId])
+  @@index([eventName])
+  @@index([createdAt])
+}
+
+model Upload {
+  id          String   @id @default(cuid())
+  filename    String
+  mimeType    String
+  size        Int
+  url         String    // stored file path or CDN URL
+  uploadedBy  String?   // admin user ID
+  createdAt   DateTime  @default(now())
+
+  @@index([mimeType])
 }

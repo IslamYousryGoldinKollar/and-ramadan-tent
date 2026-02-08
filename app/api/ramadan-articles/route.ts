@@ -1,37 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { getActiveDailyTips, getAllDailyTips, createDailyTip } from '@/lib/daily-tips'
+import { getActiveArticles, getAllArticles, createArticle, ARTICLE_CATEGORIES } from '@/lib/ramadan-tips'
 import { z } from 'zod'
 
-const createTipSchema = z.object({
+const createArticleSchema = z.object({
   title: z.string().min(1),
-  shortTip: z.string().min(1),
-  fullContent: z.string().min(1),
-  tipNumber: z.number().int().positive(),
+  excerpt: z.string().optional(),
+  htmlContent: z.string().min(1),
+  category: z.string().default('General'),
+  imageUrl: z.string().optional(),
+  videoUrl: z.string().optional(),
+  displayOrder: z.number().int().optional(),
 })
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const admin = searchParams.get('admin') === 'true'
+    const category = searchParams.get('category') || undefined
+    const search = searchParams.get('search') || undefined
 
     if (admin) {
       const session = await getServerSession(authOptions)
       if (session?.user && (session.user as any).role === 'ADMIN') {
-        const tips = await getAllDailyTips()
-        return NextResponse.json(tips)
+        const articles = await getAllArticles({ category, search })
+        return NextResponse.json(articles)
       }
     }
 
-    const tips = await getActiveDailyTips()
-    return NextResponse.json(tips)
+    const articles = await getActiveArticles(category)
+    return NextResponse.json(articles)
   } catch (error) {
-    console.error('Error fetching daily tips:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('Error fetching articles:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -43,14 +45,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const validated = createTipSchema.parse(body)
-    const tip = await createDailyTip(validated)
-    return NextResponse.json(tip, { status: 201 })
+    const validated = createArticleSchema.parse(body)
+    const article = await createArticle(validated)
+    return NextResponse.json(article, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 })
     }
-    console.error('Error creating daily tip:', error)
+    console.error('Error creating article:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

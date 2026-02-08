@@ -14,6 +14,8 @@ import {
   Lightbulb,
   Brain,
   ClipboardList,
+  FileText,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -30,8 +32,10 @@ const adminNavItems = [
   { href: '/admin/reservations', label: 'Reservations', icon: ClipboardList },
   { href: '/admin/calendar', label: 'Calendar View', icon: Calendar },
   { href: '/admin/checkin', label: 'Check-in', icon: Settings },
-  { href: '/admin/riddles', label: 'Riddles Management', icon: Brain },
-  { href: '/admin/wellness', label: 'Ramadan Tips', icon: Lightbulb },
+  { href: '/admin/riddles', label: 'Riddles', icon: Brain },
+  { href: '/admin/tips/daily', label: 'Daily Tips', icon: Lightbulb },
+  { href: '/admin/tips/articles', label: 'Articles', icon: FileText },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
 export function Sidebar() {

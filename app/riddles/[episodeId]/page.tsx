@@ -3,15 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { YouTubeEmbed } from '@/components/riddles/youtube-embed'
-import { QuestionForm } from '@/components/riddles/question-form'
-import { UserInfoForm } from '@/components/public/user-info-form'
+import { VideoEmbed } from '@/components/riddles/video-embed'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { isValidEandEmail } from '@/lib/utils'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
+import { trackAnalyticsEvent } from '@/components/tracking/page-tracker'
 
 interface Question {
   id: string
@@ -19,14 +19,13 @@ interface Question {
   optionA: string
   optionB: string
   optionC: string
-  optionD: string
 }
 
 interface Episode {
   id: string
   title: string
   description?: string
-  youtubeUrl: string
+  videoUrl: string
   episodeNumber: number
   isActive: boolean
   questions: Question[]
@@ -41,14 +40,14 @@ export default function EpisodePage() {
   const [showSuccess, setShowSuccess] = useState(false)
 
   // Form state
-  const [employeeId, setEmployeeId] = useState('')
-  const [employeeName, setEmployeeName] = useState('')
   const [email, setEmail] = useState('')
+  const [idNumber, setIdNumber] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<{
-    employeeId?: string
-    employeeName?: string
     email?: string
+    idNumber?: string
+    phoneNumber?: string
     answers?: string
   }>({})
 
@@ -82,16 +81,16 @@ export default function EpisodePage() {
   const validateForm = () => {
     const newErrors: typeof errors = {}
 
-    if (!employeeId.trim()) {
-      newErrors.employeeId = 'Employee ID is required'
-    }
-    if (!employeeName.trim()) {
-      newErrors.employeeName = 'Full name is required'
-    }
     if (!email.trim()) {
       newErrors.email = 'Email is required'
-    } else if (!isValidEandEmail(email)) {
-      newErrors.email = 'Email must be from @eand.com domain'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Please enter a valid email'
+    }
+    if (!idNumber.trim()) {
+      newErrors.idNumber = 'ID number is required'
+    }
+    if (!phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Phone number is required'
     }
 
     if (!episode || episode.questions.length === 0) {
@@ -119,16 +118,16 @@ export default function EpisodePage() {
     try {
       const answerArray = episode.questions.map((q) => ({
         questionId: q.id,
-        selectedAnswer: answers[q.id] as 'A' | 'B' | 'C' | 'D',
+        selectedAnswer: answers[q.id] as 'A' | 'B' | 'C',
       }))
 
       const response = await fetch(`/api/riddles/${episode.id}/answers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          employeeId,
-          employeeName,
           email: email.toLowerCase(),
+          idNumber,
+          phoneNumber,
           answers: answerArray,
         }),
       })
@@ -139,6 +138,7 @@ export default function EpisodePage() {
         throw new Error(data.error || 'Failed to submit answers')
       }
 
+      trackAnalyticsEvent('riddle_submit', { episodeId: episode.id, episodeNumber: episode.episodeNumber })
       setShowSuccess(true)
     } catch (error: any) {
       setErrors({ answers: error.message || 'An error occurred' })
@@ -186,7 +186,7 @@ export default function EpisodePage() {
 
         <Card className="border border-gray-100 overflow-hidden">
           <CardContent className="p-0">
-            <YouTubeEmbed url={episode.youtubeUrl} title={episode.title} />
+            <VideoEmbed url={episode.videoUrl} title={episode.title} />
           </CardContent>
         </Card>
 
@@ -195,16 +195,39 @@ export default function EpisodePage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Your Information</CardTitle>
           </CardHeader>
-          <CardContent>
-            <UserInfoForm
-              employeeId={employeeId}
-              employeeName={employeeName}
-              email={email}
-              onEmployeeIdChange={setEmployeeId}
-              onEmployeeNameChange={setEmployeeName}
-              onEmailChange={setEmail}
-              errors={errors}
-            />
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+              />
+              {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="idNumber">ID Number</Label>
+              <Input
+                id="idNumber"
+                value={idNumber}
+                onChange={(e) => setIdNumber(e.target.value)}
+                placeholder="Your ID number"
+              />
+              {errors.idNumber && <p className="text-xs text-red-600">{errors.idNumber}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Your phone number"
+              />
+              {errors.phoneNumber && <p className="text-xs text-red-600">{errors.phoneNumber}</p>}
+            </div>
           </CardContent>
         </Card>
 
@@ -217,12 +240,35 @@ export default function EpisodePage() {
                 Watch the video above then answer below
               </p>
             </CardHeader>
-            <CardContent>
-              <QuestionForm
-                questions={episode.questions}
-                answers={answers}
-                onAnswerChange={handleAnswerChange}
-              />
+            <CardContent className="space-y-6">
+              {episode.questions.map((question, idx) => (
+                <div key={question.id} className="space-y-3">
+                  <p className="font-medium text-sm">
+                    {idx + 1}. {question.questionText}
+                  </p>
+                  <div className="space-y-2">
+                    {(['A', 'B', 'C'] as const).map((option) => {
+                      const optionText = question[`option${option}` as keyof Question] as string
+                      const isSelected = answers[question.id] === option
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => handleAnswerChange(question.id, option)}
+                          className={`w-full text-left px-4 py-3 rounded-lg border transition-colors text-sm ${
+                            isSelected
+                              ? 'border-eand-red bg-red-50 text-eand-red font-medium'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="font-semibold mr-2">{option}.</span>
+                          {optionText}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
               {errors.answers && (
                 <p className="text-sm text-red-600 mt-4">{errors.answers}</p>
               )}

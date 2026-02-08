@@ -8,14 +8,13 @@ export interface CreateWellnessContentData {
 }
 
 /**
- * Create wellness content
+ * Create wellness content (now backed by RamadanArticle)
  */
 export async function createWellnessContent(data: CreateWellnessContentData) {
-  return prisma.wellnessContent.create({
+  return prisma.ramadanArticle.create({
     data: {
       title: data.title,
-      content: data.content,
-      pdfUrl: data.pdfUrl,
+      htmlContent: data.content,
       displayOrder: data.displayOrder || 0,
       isActive: true,
     },
@@ -26,7 +25,7 @@ export async function createWellnessContent(data: CreateWellnessContentData) {
  * Get all active wellness content
  */
 export async function getActiveWellnessContent() {
-  return prisma.wellnessContent.findMany({
+  return prisma.ramadanArticle.findMany({
     where: { isActive: true },
     orderBy: { displayOrder: 'asc' },
   })
@@ -36,7 +35,7 @@ export async function getActiveWellnessContent() {
  * Get all wellness content (admin)
  */
 export async function getAllWellnessContent() {
-  return prisma.wellnessContent.findMany({
+  return prisma.ramadanArticle.findMany({
     orderBy: { displayOrder: 'asc' },
   })
 }
@@ -45,7 +44,7 @@ export async function getAllWellnessContent() {
  * Get wellness content by ID
  */
 export async function getWellnessContentById(id: string) {
-  return prisma.wellnessContent.findUnique({
+  return prisma.ramadanArticle.findUnique({
     where: { id },
   })
 }
@@ -57,12 +56,15 @@ export async function updateWellnessContent(
   id: string,
   data: Partial<CreateWellnessContentData>
 ) {
-  return prisma.wellnessContent.update({
+  const updateData: any = { ...data }
+  if (data.content) {
+    updateData.htmlContent = data.content
+    delete updateData.content
+  }
+  delete updateData.pdfUrl
+  return prisma.ramadanArticle.update({
     where: { id },
-    data: {
-      ...data,
-      updatedAt: new Date(),
-    },
+    data: updateData,
   })
 }
 
@@ -70,7 +72,7 @@ export async function updateWellnessContent(
  * Delete wellness content
  */
 export async function deleteWellnessContent(id: string) {
-  return prisma.wellnessContent.delete({
+  return prisma.ramadanArticle.delete({
     where: { id },
   })
 }
@@ -79,7 +81,7 @@ export async function deleteWellnessContent(id: string) {
  * Toggle wellness content active status
  */
 export async function toggleWellnessContentStatus(id: string) {
-  const content = await prisma.wellnessContent.findUnique({
+  const content = await prisma.ramadanArticle.findUnique({
     where: { id },
   })
 
@@ -87,7 +89,7 @@ export async function toggleWellnessContentStatus(id: string) {
     throw new Error('Content not found')
   }
 
-  return prisma.wellnessContent.update({
+  return prisma.ramadanArticle.update({
     where: { id },
     data: {
       isActive: !content.isActive,
