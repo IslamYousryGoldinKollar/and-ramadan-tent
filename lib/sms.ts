@@ -98,12 +98,8 @@ export async function sendBookingConfirmationSms(
   date: Date,
   seatCount: number
 ): Promise<SmsResult> {
-  const body = `e& Ramadan Tent ✅
-Your reservation is confirmed!
-Serial: ${serialNumber}
-Date: ${date.toLocaleDateString('en-EG')}
-Seats: ${seatCount}
-Show your QR code at the entrance.`
+  const dateStr = date.toLocaleDateString('en-EG')
+  const body = `eand Ramadan Tent - Confirmed! Serial: ${serialNumber} Date: ${dateStr} Seats: ${seatCount}. Show QR at entrance.`
 
   return sendSms(phone, body)
 }
