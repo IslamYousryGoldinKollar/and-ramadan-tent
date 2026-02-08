@@ -52,41 +52,40 @@ export default function WellnessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-ramadan-subtle flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 safe-top">
-        <div className="px-4 py-3 flex items-center justify-between max-w-lg mx-auto w-full">
-          <Link href="/" className="flex items-center gap-2 text-gray-600 active:text-eand-red transition-colors">
+      <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
+        <div className="content-container py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold transition-colors">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm font-medium">Home</span>
           </Link>
-          <EandLogo size="sm" />
+          <EandLogo size="sm" className="brightness-0 invert" />
         </div>
       </header>
 
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 px-4 pt-10 pb-8">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/4" />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+      <section className="relative overflow-hidden bg-ramadan-dark px-4 pt-10 pb-8 lg:pt-16 lg:pb-12">
+        <div className="absolute top-6 right-8 text-eand-bright-green/10">
+          <Moon className="h-32 w-32 lg:h-48 lg:w-48" />
+        </div>
 
-        <div className="max-w-lg mx-auto text-center relative z-10">
-          <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl">
-            <Lightbulb className="h-10 w-10 text-amber-500" />
+        <div className="content-container text-center relative z-10">
+          <div className="w-20 h-20 bg-eand-dark-green/30 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-5 border border-eand-bright-green/20">
+            <Lightbulb className="h-10 w-10 text-eand-bright-green" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-3 leading-tight drop-shadow-sm">
-            Ramadan Wellness<br />Tips
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+            Ramadan Tips
           </h1>
-          <p className="text-base text-white/90 leading-relaxed max-w-xs mx-auto">
-            Health advice & wellness tips for a better, more energized Ramadan
+          <p className="text-base text-white/60 leading-relaxed max-w-xs mx-auto">
+            Health advice & tips for a better, more energized Ramadan
           </p>
         </div>
       </section>
 
       {/* Content */}
-      <main className="flex-1 px-4 py-6 -mt-2">
-        <div className="max-w-lg mx-auto">
+      <main className="flex-1 px-4 py-6 lg:py-10">
+        <div className="content-container">
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
@@ -126,7 +125,7 @@ export default function WellnessPage() {
               </div>
               <p className="text-gray-700 font-medium mb-1">Tips coming soon!</p>
               <p className="text-sm text-gray-400">
-                Wellness tips will be shared throughout Ramadan. Check back soon!
+                Ramadan tips will be shared throughout the month. Check back soon!
               </p>
             </div>
           ) : (
@@ -152,9 +151,9 @@ export default function WellnessPage() {
       </main>
 
       {/* Footer */}
-      <footer className="px-4 py-5 text-center safe-bottom">
-        <EandLogo size="sm" className="mx-auto mb-2 opacity-30" />
-        <p className="text-gray-400 text-xs">© 2026 e& Egypt. All rights reserved.</p>
+      <footer className="bg-eand-ocean px-4 py-6 text-center safe-bottom">
+        <EandLogo size="sm" className="mx-auto mb-2 brightness-0 invert opacity-40" />
+        <p className="text-white/30 text-xs">© 2026 e& Egypt. All rights reserved.</p>
       </footer>
     </div>
   )

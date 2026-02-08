@@ -39,53 +39,55 @@ export default function RiddlesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-ramadan-subtle flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 safe-top">
-        <div className="px-4 py-3 flex items-center justify-between max-w-lg mx-auto w-full">
-          <Link href="/" className="flex items-center gap-2 text-gray-600 active:text-eand-red">
+      <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
+        <div className="content-container py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Home</span>
           </Link>
-          <EandLogo size="sm" />
+          <EandLogo size="sm" className="brightness-0 invert" />
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 px-4 py-6 max-w-lg mx-auto w-full">
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <Brain className="h-7 w-7 text-purple-600" />
+      <main className="flex-1 py-6 lg:py-10">
+        <div className="content-container">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 bg-eand-ocean/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Brain className="h-7 w-7 text-eand-ocean" />
+            </div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
+              Ramadan Riddles
+            </h1>
+            <p className="text-sm text-eand-grey">
+              Watch episodes, answer questions & win prizes
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            Ramadan Riddles
-          </h1>
-          <p className="text-sm text-gray-500">
-            Watch episodes, answer questions & win prizes
-          </p>
-        </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-          </div>
-        ) : episodes.length === 0 ? (
-          <Card className="border border-gray-100">
-            <CardContent className="py-12 text-center">
-              <Brain className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600 text-sm">No episodes available yet</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Check back soon!
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {episodes.map((episode) => (
-              <EpisodeCard key={episode.id} {...episode} createdAt={new Date(episode.createdAt)} />
-            ))}
-          </div>
-        )}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-eand-ocean"></div>
+            </div>
+          ) : episodes.length === 0 ? (
+            <Card className="border-0 shadow-md rounded-2xl">
+              <CardContent className="py-12 text-center">
+                <Brain className="h-10 w-10 text-eand-light-grey mx-auto mb-3" />
+                <p className="text-eand-grey text-sm">No episodes available yet</p>
+                <p className="text-xs text-eand-med-grey mt-1">
+                  Check back soon!
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+              {episodes.map((episode) => (
+                <EpisodeCard key={episode.id} {...episode} createdAt={new Date(episode.createdAt)} />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   )

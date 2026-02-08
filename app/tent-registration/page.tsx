@@ -101,28 +101,28 @@ export default function TentRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-ramadan-subtle flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 safe-top">
-        <div className="px-4 py-3 flex items-center justify-between max-w-lg mx-auto w-full">
-          <Link href="/" className="flex items-center gap-2 text-gray-600 active:text-eand-red">
+      <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
+        <div className="content-container py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Home</span>
           </Link>
-          <EandLogo size="sm" />
+          <EandLogo size="sm" className="brightness-0 invert" />
         </div>
       </header>
 
       {/* Step indicator */}
-      <div className="px-4 pt-4 pb-2 max-w-lg mx-auto w-full">
+      <div className="content-container pt-4 pb-2">
         <div className="flex items-center gap-1">
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1 flex flex-col items-center gap-1">
               <div className={`h-1 w-full rounded-full transition-all duration-300 ${
-                i <= step ? 'bg-eand-red' : 'bg-gray-200'
+                i <= step ? 'bg-ramadan-gold' : 'bg-eand-light-grey'
               }`} />
               <span className={`text-[10px] font-medium transition-colors ${
-                i === step ? 'text-eand-red' : i < step ? 'text-gray-500' : 'text-gray-300'
+                i === step ? 'text-ramadan-gold' : i < step ? 'text-eand-grey' : 'text-eand-light-grey'
               }`}>{label}</span>
             </div>
           ))}
@@ -130,15 +130,15 @@ export default function TentRegistrationPage() {
       </div>
 
       {/* Slide container */}
-      <main className="flex-1 flex flex-col px-4 max-w-lg mx-auto w-full overflow-hidden">
+      <main className="flex-1 flex flex-col content-container overflow-hidden">
         <div className="flex-1 flex flex-col justify-center py-4">
 
           {/* Step 0: Choose Date */}
           {step === 0 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4">
               <div className="text-center">
-                <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <Calendar className="h-6 w-6 text-eand-red" />
+                <div className="w-12 h-12 bg-eand-ocean/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="h-6 w-6 text-eand-ocean" />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Choose a Date</h1>
                 <p className="text-sm text-gray-500 mt-1">Tap a day to select your Iftar date</p>
@@ -154,13 +154,13 @@ export default function TentRegistrationPage() {
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4">
               <div className="text-center">
-                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <User className="h-6 w-6 text-blue-600" />
+                <div className="w-12 h-12 bg-eand-burgundy/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <User className="h-6 w-6 text-eand-burgundy" />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Your Information</h1>
                 <p className="text-sm text-gray-500 mt-1">We&apos;ll send confirmation via email & SMS</p>
               </div>
-              <Card className="border border-gray-100">
+              <Card className="border-0 shadow-md rounded-2xl bg-white">
                 <CardContent className="p-4 space-y-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="employeeId" className="text-sm">Employee ID *</Label>
@@ -190,10 +190,10 @@ export default function TentRegistrationPage() {
                 </CardContent>
               </Card>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={goPrev} className="rounded-xl px-5">
+                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-eand-light-grey">
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
-                <Button onClick={handleInfoNext} className="flex-1 rounded-xl py-5">
+                <Button onClick={handleInfoNext} className="flex-1 rounded-2xl py-5 bg-eand-ocean hover:bg-eand-ocean/90">
                   Continue <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -204,8 +204,8 @@ export default function TentRegistrationPage() {
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <Hash className="h-6 w-6 text-green-600" />
+                <div className="w-12 h-12 bg-eand-dark-green/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Hash className="h-6 w-6 text-eand-dark-green" />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Number of Seats</h1>
                 <p className="text-sm text-gray-500 mt-1">How many seats do you need?</p>
@@ -213,9 +213,9 @@ export default function TentRegistrationPage() {
               <div className="flex items-center justify-center gap-6">
                 <button
                   onClick={() => setSeatCount(Math.max(1, seatCount - 1))}
-                  className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center active:bg-gray-200 transition-colors"
+                  className="w-14 h-14 rounded-2xl bg-eand-light-grey/50 flex items-center justify-center active:bg-eand-light-grey transition-colors"
                 >
-                  <Minus className="h-6 w-6 text-gray-600" />
+                  <Minus className="h-6 w-6 text-eand-ocean" />
                 </button>
                 <div className="text-center">
                   <div className="text-5xl font-bold text-gray-900">{seatCount}</div>
@@ -223,9 +223,9 @@ export default function TentRegistrationPage() {
                 </div>
                 <button
                   onClick={() => setSeatCount(Math.min(10, seatCount + 1))}
-                  className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center active:bg-gray-200 transition-colors"
+                  className="w-14 h-14 rounded-2xl bg-eand-light-grey/50 flex items-center justify-center active:bg-eand-light-grey transition-colors"
                 >
-                  <Plus className="h-6 w-6 text-gray-600" />
+                  <Plus className="h-6 w-6 text-eand-ocean" />
                 </button>
               </div>
               <div className="flex justify-center gap-2 flex-wrap">
@@ -235,8 +235,8 @@ export default function TentRegistrationPage() {
                     onClick={() => setSeatCount(n)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                       seatCount === n
-                        ? 'bg-eand-red text-white shadow-md'
-                        : 'bg-gray-100 text-gray-600 active:bg-gray-200'
+                        ? 'bg-ramadan-gold text-eand-ocean shadow-md'
+                        : 'bg-eand-light-grey/50 text-eand-grey active:bg-eand-light-grey'
                     }`}
                   >
                     {n}
@@ -244,10 +244,10 @@ export default function TentRegistrationPage() {
                 ))}
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={goPrev} className="rounded-xl px-5">
+                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-eand-light-grey">
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
-                <Button onClick={goNext} className="flex-1 rounded-xl py-5">
+                <Button onClick={goNext} className="flex-1 rounded-2xl py-5 bg-eand-ocean hover:bg-eand-ocean/90">
                   Continue <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -258,13 +258,13 @@ export default function TentRegistrationPage() {
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-5">
               <div className="text-center">
-                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle2 className="h-6 w-6 text-amber-600" />
+                <div className="w-12 h-12 bg-ramadan-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle2 className="h-6 w-6 text-ramadan-gold" />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Confirm Booking</h1>
                 <p className="text-sm text-gray-500 mt-1">Review your details and confirm</p>
               </div>
-              <Card className="border border-gray-100">
+              <Card className="border-0 shadow-md rounded-2xl bg-white">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex justify-between items-center py-2 border-b border-gray-50">
                     <span className="text-sm text-gray-500">Date</span>
@@ -298,18 +298,18 @@ export default function TentRegistrationPage() {
                 </div>
               )}
               <div className="flex gap-3">
-                <Button variant="outline" onClick={goPrev} className="rounded-xl px-5">
+                <Button variant="outline" onClick={goPrev} className="rounded-2xl px-5 border-eand-light-grey">
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <Button
                   onClick={handleBooking}
                   disabled={loading}
-                  className="flex-1 rounded-xl py-5 text-base font-semibold shadow-md active:scale-[0.98] transition-transform"
+                  className="flex-1 rounded-2xl py-5 text-base font-semibold shadow-lg bg-ramadan-gold hover:bg-ramadan-gold/90 text-eand-ocean active:scale-[0.98] transition-transform"
                 >
                   {loading ? 'Processing...' : 'Confirm Booking'}
                 </Button>
               </div>
-              <p className="text-xs text-center text-gray-400">
+              <p className="text-xs text-center text-eand-grey">
                 You&apos;ll receive confirmation via email & SMS
               </p>
             </div>
@@ -322,7 +322,7 @@ export default function TentRegistrationPage() {
         <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl">
           <DialogHeader>
             <div className="flex justify-center mb-2">
-              <CheckCircle2 className="h-14 w-14 text-green-500" />
+              <CheckCircle2 className="h-14 w-14 text-eand-bright-green" />
             </div>
             <DialogTitle className="text-center text-xl">Booking Confirmed!</DialogTitle>
             <DialogDescription className="text-center">
@@ -331,7 +331,7 @@ export default function TentRegistrationPage() {
           </DialogHeader>
           {success && (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 rounded-xl space-y-3">
+              <div className="p-4 bg-eand-bright-green/10 rounded-xl space-y-3">
                 <div>
                   <span className="text-xs font-medium text-gray-500">Serial Number</span>
                   <p className="text-2xl font-bold text-eand-red tracking-wide">{success.serialNumber}</p>

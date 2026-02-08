@@ -52,10 +52,21 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // e& Egypt brand colors
-        "eand-red": "#E31E24",
-        "eand-dark": "#1A1A1A",
-        "eand-gray": "#6B7280",
+        // e& Egypt brand colors (from Brand Guidelines v3.0)
+        "eand-red": "#E00800",
+        "eand-ocean": "#18114B",
+        "eand-burgundy": "#7C0124",
+        "eand-dark-green": "#16363A",
+        "eand-mauve": "#631C46",
+        "eand-bright-green": "#47CB6C",
+        "eand-sand": "#D18D86",
+        "eand-beige": "#E2E2D7",
+        "eand-grey": "#71716F",
+        "eand-med-grey": "#9C9C99",
+        "eand-light-grey": "#DADAD7",
+        // Ramadan accent
+        "ramadan-gold": "#C9A84C",
+        "ramadan-deep": "#1A0A2E",
       },
       borderRadius: {
         lg: "var(--radius)",

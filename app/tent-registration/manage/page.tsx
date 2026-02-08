@@ -113,19 +113,20 @@ export default function ManageReservationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-ramadan-subtle flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 safe-top">
-        <div className="px-4 py-3 flex items-center justify-between max-w-lg mx-auto w-full">
-          <Link href="/tent-registration" className="flex items-center gap-2 text-gray-600 active:text-eand-red">
+      <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
+        <div className="content-container py-3 flex items-center justify-between">
+          <Link href="/tent-registration" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Register</span>
           </Link>
-          <EandLogo size="sm" />
+          <EandLogo size="sm" className="brightness-0 invert" />
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 max-w-lg mx-auto w-full space-y-5">
+      <main className="flex-1 py-6 lg:py-10">
+        <div className="content-container space-y-5">
         {/* Title */}
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Manage Booking</h1>
@@ -141,7 +142,7 @@ export default function ManageReservationPage() {
         )}
 
         {/* Lookup Form */}
-        <Card className="border border-gray-100">
+        <Card className="border-0 shadow-md rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Search className="h-4 w-4" />
@@ -184,7 +185,7 @@ export default function ManageReservationPage() {
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
-              <Button type="submit" className="w-full rounded-xl py-5 active:scale-[0.98] transition-transform" disabled={loading}>
+              <Button type="submit" className="w-full rounded-2xl py-5 bg-eand-ocean hover:bg-eand-ocean/90 active:scale-[0.98] transition-transform" disabled={loading}>
                 {loading ? 'Looking up...' : 'Find Reservation'}
               </Button>
             </form>
@@ -193,7 +194,7 @@ export default function ManageReservationPage() {
 
         {/* Reservation Details */}
         {reservation && (
-          <Card className="border border-gray-100">
+          <Card className="border-0 shadow-md rounded-2xl">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Your Reservation</CardTitle>
@@ -258,6 +259,7 @@ export default function ManageReservationPage() {
             </CardContent>
           </Card>
         )}
+        </div>
       </main>
 
       {/* Cancel Dialog */}

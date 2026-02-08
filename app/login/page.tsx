@@ -52,7 +52,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-red-600 via-red-500 to-orange-400 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-ramadan-hero p-4">
       <Card className="w-full max-w-md shadow-2xl border-0 rounded-2xl">
         <CardHeader className="space-y-1 pt-8">
           <div className="flex items-center justify-center mb-3">
@@ -70,6 +70,7 @@ export default function LoginPage() {
               <Input
                 id="employeeId"
                 type="text"
+                inputMode="numeric"
                 placeholder="Enter your Employee ID"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
@@ -81,6 +82,8 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 placeholder="your.name@eand.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -92,6 +95,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -99,15 +103,15 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-xl">
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full py-5 rounded-xl active:scale-[0.98] transition-transform" disabled={loading}>
+            <Button type="submit" className="w-full py-5 rounded-2xl bg-eand-ocean hover:bg-eand-ocean/90 active:scale-[0.98] transition-transform" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          <p className="text-xs text-center text-gray-500 mt-4">
+          <p className="text-xs text-center text-eand-grey mt-4">
             Only @eand.com email addresses are allowed
           </p>
         </CardContent>

@@ -83,11 +83,11 @@ export function RamadanCalendar({
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   return (
-    <Card className="border border-gray-100 overflow-hidden">
+    <Card className="border-0 shadow-md rounded-2xl overflow-hidden bg-white">
       <CardContent className="p-3">
         {loading ? (
           <div className="flex items-center justify-center py-10">
-            <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-eand-red"></div>
+            <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-eand-ocean"></div>
           </div>
         ) : (
           <>
@@ -104,9 +104,9 @@ export function RamadanCalendar({
                 const pct = Math.round((booked / TOTAL_SEATS) * 100)
                 const isLimited = available > 0 && available <= 20
 
-                // Colors
-                const barColor = isFull ? 'bg-red-500' : isLimited ? 'bg-amber-400' : 'bg-green-400'
-                const textColor = isFull ? 'text-red-500' : isLimited ? 'text-amber-600' : 'text-green-600'
+                // Brand colors
+                const barColor = isFull ? 'bg-eand-red' : isLimited ? 'bg-ramadan-gold' : 'bg-eand-bright-green'
+                const textColor = isFull ? 'text-eand-red' : isLimited ? 'text-ramadan-gold' : 'text-eand-bright-green'
 
                 return (
                   <button
@@ -117,24 +117,24 @@ export function RamadanCalendar({
                       relative p-2 rounded-xl text-center transition-all min-h-[5rem]
                       ${past ? 'opacity-30 cursor-not-allowed' : 'active:scale-95'}
                       ${!past && !isFull ? 'cursor-pointer hover:shadow-md' : ''}
-                      ${isFull && !past ? 'bg-red-50 border border-red-200 cursor-not-allowed' : ''}
-                      ${!isFull && !past ? 'bg-white border border-gray-200' : ''}
-                      ${past ? 'bg-gray-50 border border-gray-100' : ''}
-                      ${isSelected ? 'ring-2 ring-eand-red ring-offset-1 !border-eand-red shadow-md' : ''}
-                      ${todayDate && !isSelected ? 'ring-1 ring-red-300' : ''}
+                      ${isFull && !past ? 'bg-red-50/50 border border-eand-red/20 cursor-not-allowed' : ''}
+                      ${!isFull && !past ? 'bg-white border border-eand-light-grey' : ''}
+                      ${past ? 'bg-eand-light-grey/30 border border-eand-light-grey/50' : ''}
+                      ${isSelected ? 'ring-2 ring-ramadan-gold ring-offset-1 !border-ramadan-gold shadow-md' : ''}
+                      ${todayDate && !isSelected ? 'ring-1 ring-eand-ocean/40' : ''}
                     `}
                   >
                     {todayDate && (
-                      <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[8px] font-bold text-white bg-eand-red px-1.5 py-0.5 rounded-full">
+                      <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[8px] font-bold text-white bg-eand-ocean px-1.5 py-0.5 rounded-full">
                         TODAY
                       </span>
                     )}
                     <div className="text-base font-bold leading-tight">{date.getDate()}</div>
-                    <div className="text-[10px] text-gray-400 leading-tight">{dayNames[date.getDay()]}</div>
+                    <div className="text-[10px] text-eand-med-grey leading-tight">{dayNames[date.getDay()]}</div>
                     {!past && (
                       <>
                         {/* Progress bar */}
-                        <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="mt-1 h-1.5 bg-eand-light-grey/50 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${barColor}`}
                             style={{ width: `${pct}%` }}
@@ -150,17 +150,17 @@ export function RamadanCalendar({
               })}
             </div>
             {/* Legend */}
-            <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-gray-400">
+            <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-eand-grey">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
+                <span className="w-2 h-2 rounded-full bg-eand-bright-green inline-block" />
                 Available
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-                Limited (&le;20)
+                <span className="w-2 h-2 rounded-full bg-ramadan-gold inline-block" />
+                Limited
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+                <span className="w-2 h-2 rounded-full bg-eand-red inline-block" />
                 Full
               </span>
             </div>

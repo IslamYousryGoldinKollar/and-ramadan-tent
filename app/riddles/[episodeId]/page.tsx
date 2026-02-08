@@ -160,19 +160,20 @@ export default function EpisodePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-ramadan-subtle flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 safe-top">
-        <div className="px-4 py-3 flex items-center justify-between max-w-lg mx-auto w-full">
-          <Link href="/riddles" className="flex items-center gap-2 text-gray-600 active:text-eand-red">
+      <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
+        <div className="content-container py-3 flex items-center justify-between">
+          <Link href="/riddles" className="flex items-center gap-2 text-white/70 active:text-ramadan-gold">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Episodes</span>
           </Link>
-          <EandLogo size="sm" />
+          <EandLogo size="sm" className="brightness-0 invert" />
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 max-w-lg mx-auto w-full space-y-5">
+      <main className="flex-1 py-6 lg:py-10">
+        <div className="content-container space-y-5">
         {/* Episode Info */}
         <div>
           <h1 className="text-xl font-bold text-gray-900 mb-1">
@@ -238,6 +239,7 @@ export default function EpisodePage() {
         >
           {submitting ? 'Submitting...' : 'Submit Answers'}
         </Button>
+        </div>
       </main>
 
       {/* Success Dialog */}
