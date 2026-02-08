@@ -8,10 +8,11 @@ interface SmsResult {
 
 const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID
 const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN
-const TWILIO_FROM = process.env.TWILIO_PHONE_NUMBER // Must be a Twilio number or verified sender
+const TWILIO_MESSAGING_SERVICE_SID = process.env.TWILIO_MESSAGING_SERVICE_SID
+const TWILIO_FROM = process.env.TWILIO_PHONE_NUMBER // Fallback if no Messaging Service
 
 function isSmsConfigured(): boolean {
-  return !!(TWILIO_SID && TWILIO_TOKEN && TWILIO_FROM)
+  return !!(TWILIO_SID && TWILIO_TOKEN && (TWILIO_MESSAGING_SERVICE_SID || TWILIO_FROM))
 }
 
 /**
@@ -67,7 +68,9 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
       },
       body: new URLSearchParams({
         To: normalizedTo,
-        From: TWILIO_FROM!,
+        ...(TWILIO_MESSAGING_SERVICE_SID
+          ? { MessagingServiceSid: TWILIO_MESSAGING_SERVICE_SID }
+          : { From: TWILIO_FROM! }),
         Body: body,
       }),
     })
