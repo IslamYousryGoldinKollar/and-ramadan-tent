@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -62,5 +63,8 @@
     "prisma": "^5.7.1",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.3"
+  },
+  "prisma": {
+    "seed": "node scripts/setup-admin.js"
   }
 }

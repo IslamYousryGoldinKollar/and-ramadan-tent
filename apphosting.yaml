@@ -1,0 +1,29 @@
+# Firebase App Hosting configuration
+# Env vars available at both build time and runtime
+
+runConfig:
+  minInstances: 0
+  maxInstances: 100
+  concurrency: 80
+
+env:
+  - variable: DATABASE_URL
+    value: "postgres://f7abd7f13763a3c6e897b220926d321d2e28477c1e523b709682d229b3744ace:sk_-ncbry7FxrmP_jw_8vuy1@db.prisma.io:5432/postgres?sslmode=require"
+  - variable: NEXTAUTH_URL
+    value: "https://and-ramadan-tent--kedup-9rc91.us-east4.hosted.app"
+  - variable: NEXTAUTH_SECRET
+    value: "fOUQacJv4AeRWX4gFeA3BSitluY59IWHhMcH2s5fJCY="
+  - variable: APP_URL
+    value: "https://and-ramadan-tent--kedup-9rc91.us-east4.hosted.app"
+  - variable: RESEND_API_KEY
+    value: "re_G9M3N6GT_BqiUZXLum7XpHroEa16e55sc"
+  - variable: EMAIL_FROM
+    value: "e& Ramadan <noreply@people-of-eand.goldinkollar.com>"
+  - variable: TWILIO_PHONE_NUMBER
+    value: "+18044305569"
+  - variable: TWILIO_MESSAGING_SERVICE_SID
+    value: "MG7edaf66dcde516b0831d45da9d042976"
+  - variable: TWILIO_WHATSAPP_FROM
+    value: "+14155238886"
+  # Twilio secrets - these are set in Cloud Run env vars directly
+  # TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are managed via Cloud Run console
