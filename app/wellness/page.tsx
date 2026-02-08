@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WellnessContentCard } from '@/components/wellness/content-card'
-import { Lightbulb, ArrowLeft, Heart, Moon, Droplets, Apple, Sparkles } from 'lucide-react'
+import { Lightbulb, ArrowLeft, Heart, Moon, Droplets, Apple, Sparkles, BookOpen, ChevronDown, Star } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
 
 interface WellnessContent {
@@ -12,6 +12,14 @@ interface WellnessContent {
   content: string
   pdfUrl?: string | null
   displayOrder: number
+}
+
+interface DailyTip {
+  id: string
+  title: string
+  shortTip: string
+  fullContent: string
+  tipNumber: number
 }
 
 const tipIcons = [Lightbulb, Heart, Moon, Droplets, Apple, Sparkles]
@@ -24,25 +32,30 @@ const tipColors = [
   { bg: 'from-fuchsia-400 to-violet-500', shadow: 'shadow-fuchsia-200' },
 ]
 
+type Tab = 'daily' | 'articles'
+
 export default function WellnessPage() {
-  const [content, setContent] = useState<WellnessContent[]>([])
+  const [dailyTips, setDailyTips] = useState<DailyTip[]>([])
+  const [articles, setArticles] = useState<WellnessContent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<Tab>('daily')
 
   useEffect(() => {
-    fetchContent()
+    fetchAll()
   }, [])
 
-  const fetchContent = async () => {
+  const fetchAll = async () => {
+    setError(false)
+    setLoading(true)
     try {
-      const response = await fetch('/api/wellness')
-      if (response.ok) {
-        const data = await response.json()
-        setContent(data)
-      } else {
-        setError(true)
-      }
+      const [tipsRes, articlesRes] = await Promise.all([
+        fetch('/api/daily-tips'),
+        fetch('/api/wellness'),
+      ])
+      if (tipsRes.ok) setDailyTips(await tipsRes.json())
+      if (articlesRes.ok) setArticles(await articlesRes.json())
     } catch (err) {
       console.error('Error fetching content:', err)
       setError(true)
@@ -50,6 +63,8 @@ export default function WellnessPage() {
       setLoading(false)
     }
   }
+
+  const totalCount = dailyTips.length + articles.length
 
   return (
     <div className="min-h-screen bg-ramadan-subtle flex flex-col">
@@ -65,7 +80,7 @@ export default function WellnessPage() {
       </header>
 
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-ramadan-dark px-4 pt-10 pb-8 lg:pt-16 lg:pb-12">
+      <section className="relative overflow-hidden bg-ramadan-dark px-4 pt-10 pb-6 lg:pt-16 lg:pb-10">
         <div className="absolute top-6 right-8 text-eand-bright-green/10">
           <Moon className="h-32 w-32 lg:h-48 lg:w-48" />
         </div>
@@ -78,10 +93,42 @@ export default function WellnessPage() {
             Ramadan Tips
           </h1>
           <p className="text-base text-white/60 leading-relaxed max-w-xs mx-auto">
-            Health advice & tips for a better, more energized Ramadan
+            {totalCount > 0 ? `${totalCount} tips & articles for a healthier Ramadan` : 'Health advice & tips for a better Ramadan'}
           </p>
         </div>
       </section>
+
+      {/* Tabs */}
+      {!loading && !error && totalCount > 0 && (
+        <div className="sticky top-[52px] z-40 bg-white/90 backdrop-blur-md border-b border-gray-200">
+          <div className="content-container flex">
+            <button
+              onClick={() => setActiveTab('daily')}
+              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${
+                activeTab === 'daily' ? 'text-eand-ocean' : 'text-gray-400'
+              }`}
+            >
+              <Star className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
+              Daily Tips ({dailyTips.length})
+              {activeTab === 'daily' && (
+                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('articles')}
+              className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${
+                activeTab === 'articles' ? 'text-eand-ocean' : 'text-gray-400'
+              }`}
+            >
+              <BookOpen className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
+              Articles ({articles.length})
+              {activeTab === 'articles' && (
+                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-eand-ocean rounded-full" />
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <main className="flex-1 px-4 py-6 lg:py-10">
@@ -112,13 +159,13 @@ export default function WellnessPage() {
               <p className="text-gray-700 font-medium mb-1">Unable to load tips</p>
               <p className="text-sm text-gray-400 mb-4">Please check your connection and try again</p>
               <button
-                onClick={() => { setError(false); setLoading(true); fetchContent() }}
+                onClick={fetchAll}
                 className="text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors"
               >
                 Tap to retry
               </button>
             </div>
-          ) : content.length === 0 ? (
+          ) : totalCount === 0 ? (
             <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
               <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Moon className="h-8 w-8 text-amber-300" />
@@ -128,24 +175,55 @@ export default function WellnessPage() {
                 Ramadan tips will be shared throughout the month. Check back soon!
               </p>
             </div>
+          ) : activeTab === 'daily' ? (
+            /* Daily Tips Tab */
+            <div className="space-y-3">
+              {dailyTips.map((tip) => {
+                const isOpen = expandedId === tip.id
+                return (
+                  <div key={tip.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <button
+                      onClick={() => setExpandedId(isOpen ? null : tip.id)}
+                      className="w-full text-left p-4 flex items-center gap-3"
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-eand-ocean to-ramadan-deep rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                        <span className="text-white font-bold text-sm">{tip.tipNumber}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-[15px] leading-snug">{tip.title}</h3>
+                        {!isOpen && (
+                          <p className="text-sm text-gray-400 mt-0.5 line-clamp-1">{tip.shortTip}</p>
+                        )}
+                      </div>
+                      <ChevronDown className={`h-5 w-5 text-gray-300 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                      <div className="px-4 pb-4 pt-0">
+                        <div className="border-t border-gray-100 pt-3">
+                          <p className="text-sm font-medium text-eand-ocean mb-2">{tip.shortTip}</p>
+                          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{tip.fullContent}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           ) : (
-            <>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 mb-3">
-                {content.length} {content.length === 1 ? 'tip' : 'tips'} available
-              </p>
-              <div className="space-y-3">
-                {content.map((item, index) => (
-                  <WellnessContentCard
-                    key={item.id}
-                    {...item}
-                    icon={tipIcons[index % tipIcons.length]}
-                    colorClass={tipColors[index % tipColors.length]}
-                    isExpanded={expandedId === item.id}
-                    onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                  />
-                ))}
-              </div>
-            </>
+            /* Articles Tab */
+            <div className="space-y-3">
+              {articles.map((item, index) => (
+                <WellnessContentCard
+                  key={item.id}
+                  {...item}
+                  icon={tipIcons[index % tipIcons.length]}
+                  colorClass={tipColors[index % tipColors.length]}
+                  isExpanded={expandedId === item.id}
+                  onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                />
+              ))}
+            </div>
           )}
         </div>
       </main>
