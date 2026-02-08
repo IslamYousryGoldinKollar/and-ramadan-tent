@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,247 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  employeeId   String        @unique
+  fullName     String
+  email        String        @unique
+  password     String?
+  department   String?
+  phoneNumber  String?
+  role         UserRole      @default(EMPLOYEE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  auditLogs    AuditLog[]
+  reservations Reservation[]
+  waitingList  WaitingList[]
+
+  @@index([employeeId])
+  @@index([email])
+}
+
+model Reservation {
+  id              String            @id @default(cuid())
+  userId          String?
+  employeeId      String?
+  employeeName    String?
+  email           String?
+  phoneNumber     String?
+  reservationDate DateTime
+  seatCount       Int
+  status          ReservationStatus @default(CONFIRMED)
+  serialNumber    String            @unique
+  qrCodeString    String
+  creditsUsed     Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  auditLogs       AuditLog[]
+  user            User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([employeeId])
+  @@index([email])
+  @@index([reservationDate])
+  @@index([serialNumber])
+  @@index([status])
+}
+
+model WaitingList {
+  id                   String            @id @default(cuid())
+  userId               String
+  targetDate           DateTime
+  requestedSeats       Int
+  priorityScore        Int               @default(0)
+  status               WaitingListStatus @default(PENDING)
+  isNotified           Boolean           @default(false)
+  notificationSentAt   DateTime?
+  confirmationDeadline DateTime?
+  confirmationToken    String?           @unique
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([targetDate])
+  @@index([priorityScore])
+  @@index([status])
+}
+
+model AuditLog {
+  id            String          @id @default(cuid())
+  reservationId String?
+  userId        String
+  actionType    AuditActionType
+  metadata      String?
+  timestamp     DateTime        @default(now())
+  reservation   Reservation?    @relation(fields: [reservationId], references: [id])
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([reservationId])
+  @@index([actionType])
+  @@index([timestamp])
+}
+
+model RiddleEpisode {
+  id             String           @id @default(cuid())
+  title          String
+  description    String?
+  episodeNumber  Int              @unique
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  videoUrl       String
+  raffleSettings RaffleSettings?
+  raffleWinners  RaffleWinner[]
+  answers        RiddleAnswer[]
+  questions      RiddleQuestion[]
+
+  @@index([episodeNumber])
+  @@index([isActive])
+}
+
+model RiddleQuestion {
+  id            String         @id @default(cuid())
+  episodeId     String
+  questionText  String
+  optionA       String
+  optionB       String
+  optionC       String
+  correctAnswer String
+  createdAt     DateTime       @default(now())
+  answers       RiddleAnswer[]
+  episode       RiddleEpisode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@index([episodeId])
+}
+
+model RiddleAnswer {
+  id             String         @id @default(cuid())
+  episodeId      String
+  questionId     String
+  email          String
+  selectedAnswer String
+  isCorrect      Boolean
+  submittedAt    DateTime       @default(now())
+  idNumber       String
+  phoneNumber    String
+  episode        RiddleEpisode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  question       RiddleQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([episodeId])
+  @@index([questionId])
+  @@index([idNumber])
+  @@index([email])
+}
+
+model RaffleSettings {
+  id              String        @id @default(cuid())
+  episodeId       String        @unique
+  numberOfWinners Int           @default(1)
+  isActive        Boolean       @default(false)
+  raffleDate      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  episode         RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@index([episodeId])
+}
+
+model RaffleWinner {
+  id          String        @id @default(cuid())
+  episodeId   String
+  answerId    String?
+  email       String
+  selectedAt  DateTime      @default(now())
+  createdAt   DateTime      @default(now())
+  idNumber    String
+  phoneNumber String
+  episode     RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@index([episodeId])
+  @@index([idNumber])
+  @@index([email])
+}
+
+model DailyTip {
+  id          String   @id @default(cuid())
+  title       String
+  shortTip    String
+  fullContent String
+  tipNumber   Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tipNumber])
+  @@index([isActive])
+}
+
+model RamadanArticle {
+  id           String   @id @default(cuid())
+  title        String
+  excerpt      String?
+  htmlContent  String
+  category     String   @default("General")
+  imageUrl     String?
+  videoUrl     String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([displayOrder])
+  @@index([isActive])
+}
+
+model PageView {
+  id          String   @id @default(cuid())
+  sessionId   String
+  path        String
+  referrer    String?
+  userAgent   String?
+  ip          String?
+  country     String?
+  device      String?
+  browser     String?
+  os          String?
+  duration    Int      @default(0)
+  scrollDepth Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([path])
+  @@index([createdAt])
+  @@index([device])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  eventName String
+  eventData String?
+  path      String
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([eventName])
+  @@index([createdAt])
+}
+
+model Upload {
+  id         String   @id @default(cuid())
+  filename   String
+  mimeType   String
+  size       Int
+  url        String
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+
+  @@index([mimeType])
 }
 
 enum UserRole {
@@ -37,254 +275,4 @@ enum WaitingListStatus {
   CONFIRMED
   EXPIRED
   CANCELLED
-}
-
-model User {
-  id            String    @id @default(cuid())
-  employeeId   String    @unique
-  fullName      String
-  email         String    @unique
-  password      String?   // bcrypt hashed; optional during migration
-  department    String?
-  phoneNumber   String?
-  role          UserRole  @default(EMPLOYEE)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  reservations  Reservation[]
-  waitingList   WaitingList[]
-  auditLogs     AuditLog[]
-
-  @@index([employeeId])
-  @@index([email])
-}
-
-model Reservation {
-  id              String            @id @default(cuid())
-  userId          String?
-  employeeId      String?           // For public reservations
-  employeeName    String?           // For public reservations
-  email           String?           // For public reservations
-  phoneNumber     String?           // Mobile number for SMS confirmation
-  reservationDate DateTime
-  seatCount       Int
-  status          ReservationStatus @default(CONFIRMED)
-  serialNumber    String            @unique
-  qrCodeString    String
-  creditsUsed     Int               @default(0)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-
-  user            User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  auditLogs       AuditLog[]
-
-  @@index([userId])
-  @@index([employeeId])
-  @@index([email])
-  @@index([reservationDate])
-  @@index([serialNumber])
-  @@index([status])
-}
-
-model WaitingList {
-  id                  String            @id @default(cuid())
-  userId              String
-  targetDate          DateTime
-  requestedSeats      Int
-  priorityScore       Int               @default(0)
-  status              WaitingListStatus @default(PENDING)
-  isNotified          Boolean           @default(false)
-  notificationSentAt  DateTime?
-  confirmationDeadline DateTime?
-  confirmationToken    String?           @unique
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-
-  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([targetDate])
-  @@index([priorityScore])
-  @@index([status])
-}
-
-model AuditLog {
-  id              String          @id @default(cuid())
-  reservationId   String?
-  userId          String
-  actionType      AuditActionType
-  metadata        String?         // JSON string for additional data
-  timestamp       DateTime        @default(now())
-
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reservation     Reservation?    @relation(fields: [reservationId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([reservationId])
-  @@index([actionType])
-  @@index([timestamp])
-}
-
-model RiddleEpisode {
-  id              String    @id @default(cuid())
-  title           String
-  description     String?
-  videoUrl        String    // YouTube, Vimeo, Canva, MP4, or uploaded file
-  episodeNumber   Int       @unique
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  questions       RiddleQuestion[]
-  answers         RiddleAnswer[]
-  raffleSettings  RaffleSettings?
-  raffleWinners   RaffleWinner[]
-
-  @@index([episodeNumber])
-  @@index([isActive])
-}
-
-model RiddleQuestion {
-  id              String    @id @default(cuid())
-  episodeId       String
-  questionText    String
-  optionA         String
-  optionB         String
-  optionC         String
-  correctAnswer   String    // "A", "B", or "C"
-  createdAt       DateTime  @default(now())
-
-  episode         RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  answers         RiddleAnswer[]
-
-  @@index([episodeId])
-}
-
-model RiddleAnswer {
-  id              String    @id @default(cuid())
-  episodeId       String
-  questionId      String
-  email           String
-  idNumber        String
-  phoneNumber     String
-  selectedAnswer  String    // "A", "B", or "C"
-  isCorrect       Boolean
-  submittedAt     DateTime  @default(now())
-
-  episode         RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  question        RiddleQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@index([episodeId])
-  @@index([questionId])
-  @@index([idNumber])
-  @@index([email])
-}
-
-model RaffleSettings {
-  id              String    @id @default(cuid())
-  episodeId       String    @unique
-  numberOfWinners  Int       @default(1)
-  isActive         Boolean   @default(false)
-  raffleDate       DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  episode         RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-
-  @@index([episodeId])
-}
-
-model RaffleWinner {
-  id              String    @id @default(cuid())
-  episodeId       String
-  answerId        String?   // Reference to a correct answer submission
-  email           String
-  idNumber        String
-  phoneNumber     String
-  selectedAt      DateTime  @default(now())
-  createdAt       DateTime  @default(now())
-
-  episode         RiddleEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-
-  @@index([episodeId])
-  @@index([idNumber])
-  @@index([email])
-}
-
-model DailyTip {
-  id              String    @id @default(cuid())
-  title           String
-  shortTip        String
-  fullContent     String    @db.Text
-  tipNumber       Int
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@index([tipNumber])
-  @@index([isActive])
-}
-
-model RamadanArticle {
-  id              String    @id @default(cuid())
-  title           String
-  excerpt         String?
-  htmlContent     String    @db.Text    // Rich text / raw HTML
-  category        String    @default("General") // Health, Nutrition, Spiritual, Lifestyle, Fitness, General
-  imageUrl        String?
-  videoUrl        String?
-  displayOrder    Int       @default(0)
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@index([category])
-  @@index([displayOrder])
-  @@index([isActive])
-}
-
-model PageView {
-  id          String   @id @default(cuid())
-  sessionId   String
-  path        String
-  referrer    String?
-  userAgent   String?
-  ip          String?
-  country     String?
-  device      String?    // "mobile", "desktop", "tablet"
-  browser     String?
-  os          String?
-  duration    Int        @default(0)  // seconds spent on page
-  scrollDepth Int        @default(0)  // percentage 0-100
-  createdAt   DateTime   @default(now())
-
-  @@index([sessionId])
-  @@index([path])
-  @@index([createdAt])
-  @@index([device])
-}
-
-model AnalyticsEvent {
-  id          String   @id @default(cuid())
-  sessionId   String
-  eventName   String    // "video_play", "riddle_submit", "tip_expand", etc.
-  eventData   String?   @db.Text  // JSON payload
-  path        String
-  createdAt   DateTime  @default(now())
-
-  @@index([sessionId])
-  @@index([eventName])
-  @@index([createdAt])
-}
-
-model Upload {
-  id          String   @id @default(cuid())
-  filename    String
-  mimeType    String
-  size        Int
-  url         String    // stored file path or CDN URL
-  uploadedBy  String?   // admin user ID
-  createdAt   DateTime  @default(now())
-
-  @@index([mimeType])
 }
