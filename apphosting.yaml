@@ -18,7 +18,7 @@ env:
   - variable: RESEND_API_KEY
     value: "re_G9M3N6GT_BqiUZXLum7XpHroEa16e55sc"
   - variable: EMAIL_FROM
-    value: "Eand Ramadan Tent <ramadan@theoffsight.com>"
+    value: "Ramadan Tent <ramadan@theoffsight.com>"
   - variable: TWILIO_PHONE_NUMBER
     value: "+18044305569"
   - variable: TWILIO_MESSAGING_SERVICE_SID

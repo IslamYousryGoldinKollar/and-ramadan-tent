@@ -2,7 +2,7 @@
 // Uses HTTP API — no SMTP needed, bypasses corporate email security
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const DEFAULT_FROM = process.env.EMAIL_FROM || 'Eand Ramadan Tent <ramadan@theoffsight.com>'
+const DEFAULT_FROM = process.env.EMAIL_FROM || 'Ramadan Tent <ramadan@theoffsight.com>'
 
 function isConfigured(): boolean {
   return !!RESEND_API_KEY
