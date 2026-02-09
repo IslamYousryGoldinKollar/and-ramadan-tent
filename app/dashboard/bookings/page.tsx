@@ -67,8 +67,8 @@ export default function MyBookingsPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-eand-red"></div>
           </div>
         ) : reservations.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
+          <Card className="text-center">
+            <CardContent className="py-12">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">No reservations found</p>
               <p className="text-sm text-gray-500 mt-2">
@@ -79,7 +79,7 @@ export default function MyBookingsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reservations.map((reservation) => (
-              <Card key={reservation.id}>
+              <Card key={reservation.id} className="modern-card-hover group">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{reservation.serialNumber}</CardTitle>

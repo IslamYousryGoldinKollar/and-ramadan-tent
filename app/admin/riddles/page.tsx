@@ -188,9 +188,9 @@ export default function AdminRiddlesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((episode) => (
-              <Card key={episode.id} className={!episode.isActive ? 'opacity-60' : ''}>
+              <Card key={episode.id} className={`modern-card-hover group ${!episode.isActive ? 'opacity-75' : ''}`}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="secondary">Ep. {episode.episodeNumber}</Badge>

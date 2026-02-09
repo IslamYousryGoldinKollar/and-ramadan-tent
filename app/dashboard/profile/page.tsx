@@ -19,7 +19,7 @@ export default function ProfilePage() {
           <p className="text-gray-600 mt-2">Your account information</p>
         </div>
 
-        <Card>
+        <Card className="modern-card">
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>

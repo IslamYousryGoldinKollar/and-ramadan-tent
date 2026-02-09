@@ -110,7 +110,7 @@ export function RamadanCalendar({
       </div>
 
       {/* Calendar Grid */}
-      <Card className="border-0 shadow-md rounded-2xl overflow-hidden bg-white">
+      <Card className="overflow-hidden">
         <CardContent className="p-3">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">

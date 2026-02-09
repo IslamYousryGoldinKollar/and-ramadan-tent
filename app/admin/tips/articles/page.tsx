@@ -94,10 +94,10 @@ export default function AdminArticlesPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold">{articles.length}</p><p className="text-xs text-gray-500">Total Articles</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold text-green-600">{articles.filter(a => a.isActive).length}</p><p className="text-xs text-gray-500">Published</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold text-gray-400">{articles.filter(a => !a.isActive).length}</p><p className="text-xs text-gray-500">Drafts</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold">{new Set(articles.map(a => a.category)).size}</p><p className="text-xs text-gray-500">Categories Used</p></CardContent></Card>
+          <Card className="modern-card"><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold">{articles.length}</p><p className="text-xs text-gray-500">Total Articles</p></CardContent></Card>
+          <Card className="modern-card"><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold text-green-600">{articles.filter(a => a.isActive).length}</p><p className="text-xs text-gray-500">Published</p></CardContent></Card>
+          <Card className="modern-card"><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold text-gray-400">{articles.filter(a => !a.isActive).length}</p><p className="text-xs text-gray-500">Drafts</p></CardContent></Card>
+          <Card className="modern-card"><CardContent className="pt-4 pb-4"><p className="text-2xl font-bold">{new Set(articles.map(a => a.category)).size}</p><p className="text-xs text-gray-500">Categories Used</p></CardContent></Card>
         </div>
 
         {/* Filters */}
@@ -142,7 +142,7 @@ export default function AdminArticlesPage() {
         ) : (
           <div className="space-y-3">
             {articles.map((article) => (
-              <Card key={article.id} className={!article.isActive ? 'opacity-60' : ''}>
+              <Card key={article.id} className={`modern-card-hover group ${!article.isActive ? 'opacity-60' : ''}`}>
                 <CardContent className="flex items-center gap-4 py-4">
                   {article.imageUrl ? (
                     <img src={article.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0" />

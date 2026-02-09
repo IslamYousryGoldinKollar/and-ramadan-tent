@@ -278,7 +278,7 @@ export default function AdminReservationsPage() {
         </div>
 
         {showFilters && (
-          <Card className="border border-gray-100">
+          <Card className="modern-card">
             <CardContent className="p-3 flex flex-wrap gap-3 items-end">
               <div className="space-y-1">
                 <label className="text-xs font-medium text-gray-500">Status</label>
@@ -321,7 +321,7 @@ export default function AdminReservationsPage() {
       )}
 
       {/* Table */}
-      <Card className="border border-gray-100 overflow-hidden">
+      <Card className="modern-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -398,19 +398,23 @@ export default function AdminReservationsPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">
-            Page {page} of {totalPages} ({total} results)
-          </span>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <Card className="modern-card">
+          <CardHeader>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <span className="text-sm text-gray-500">
+                Page {page} of {totalPages} ({total} results)
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
       )}
 
       {/* Edit Status Dialog */}

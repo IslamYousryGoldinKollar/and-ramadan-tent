@@ -87,7 +87,7 @@ export default function AnswersPage() {
         </div>
 
         {Object.keys(answersByEmployee).length === 0 ? (
-          <Card>
+          <Card className="modern-card">
             <CardContent className="py-12 text-center">
               <p className="text-gray-500">No answers submitted yet</p>
             </CardContent>
@@ -100,7 +100,7 @@ export default function AnswersPage() {
               const allCorrect = correctCount === totalQuestions
 
               return (
-                <Card key={index}>
+                <Card key={index} className="modern-card">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>

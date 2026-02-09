@@ -97,6 +97,9 @@ A comprehensive web application for managing reservations at the e& Egypt Corpor
 
 ## Project Structure
 
+- **Production URL**: https://peopleofeand.goldinkollar.com
+- **Capacity**: 120 seats per day (configurable in `lib/utils.ts`)
+
 ```
 eand/
 ├── app/                    # Next.js app directory

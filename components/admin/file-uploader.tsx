@@ -81,8 +81,10 @@ export function FileUploader({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-          dragOver ? 'border-eand-red bg-red-50' : 'border-gray-300 hover:border-gray-400'
+        className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 ${
+          dragOver 
+            ? 'border-eand-red bg-red-50 scale-[1.02]' 
+            : 'border-gray-200 hover:border-eand-ocean/30 hover:bg-gray-50'
         } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
       >
         <input

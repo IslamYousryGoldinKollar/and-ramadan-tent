@@ -194,7 +194,7 @@ export default function ManageReservationPage() {
 
         {/* Reservation Details */}
         {reservation && (
-          <Card className="border-0 shadow-md rounded-2xl">
+          <Card className="modern-card animate-fade-in-up">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Your Reservation</CardTitle>

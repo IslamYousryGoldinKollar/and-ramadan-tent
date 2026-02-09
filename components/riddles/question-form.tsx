@@ -27,7 +27,7 @@ export function QuestionForm({
   return (
     <div className="space-y-6">
       {questions.map((question, index) => (
-        <Card key={question.id}>
+        <Card key={question.id} className="modern-card">
           <CardHeader>
             <CardTitle className="text-lg">
               Question {index + 1}

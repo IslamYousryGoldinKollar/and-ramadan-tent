@@ -134,7 +134,7 @@ export default function EpisodeManagementPage() {
         </div>
 
         {/* Video Preview */}
-        <Card>
+        <Card className="modern-card">
           <CardHeader>
             <CardTitle>Video Preview</CardTitle>
           </CardHeader>
@@ -144,7 +144,7 @@ export default function EpisodeManagementPage() {
         </Card>
 
         {/* Questions List */}
-        <Card>
+        <Card className="modern-card">
           <CardHeader>
             <CardTitle>Questions ({episode.questions.length})</CardTitle>
           </CardHeader>
@@ -154,7 +154,7 @@ export default function EpisodeManagementPage() {
             ) : (
               <div className="space-y-4">
                 {episode.questions.map((question, index) => (
-                  <Card key={question.id}>
+                  <Card key={question.id} className="modern-card border border-gray-100 shadow-sm">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">Question {index + 1}</CardTitle>
@@ -178,7 +178,7 @@ export default function EpisodeManagementPage() {
         </Card>
 
         {/* View Answers */}
-        <Card>
+        <Card className="modern-card">
           <CardHeader>
             <CardTitle>Submissions</CardTitle>
           </CardHeader>

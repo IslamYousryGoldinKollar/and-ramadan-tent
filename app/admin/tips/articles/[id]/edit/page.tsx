@@ -104,7 +104,7 @@ export default function ArticleEditorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="modern-card">
               <CardContent className="pt-6 space-y-4">
                 <div className="space-y-2">
                   <Label>Title</Label>
@@ -124,7 +124,7 @@ export default function ArticleEditorPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card>
+            <Card className="modern-card">
               <CardContent className="pt-6 space-y-4">
                 <div className="space-y-2">
                   <Label>Category</Label>
@@ -145,7 +145,7 @@ export default function ArticleEditorPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="modern-card">
               <CardContent className="pt-6 space-y-4">
                 <div className="space-y-2">
                   <Label>Cover Image</Label>
@@ -158,7 +158,7 @@ export default function ArticleEditorPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="modern-card">
               <CardContent className="pt-6 space-y-4">
                 <div className="space-y-2">
                   <Label>Video</Label>

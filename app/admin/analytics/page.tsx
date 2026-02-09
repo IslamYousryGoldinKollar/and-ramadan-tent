@@ -100,7 +100,7 @@ export default function AdminAnalyticsPage() {
           <>
             {/* Overview Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
+              <Card className="animate-fade-in-up delay-100">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 mb-1">
                     <Eye className="h-4 w-4 text-blue-500" />
@@ -109,7 +109,7 @@ export default function AdminAnalyticsPage() {
                   <p className="text-2xl font-bold">{data.overview.totalPageViews.toLocaleString()}</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="animate-fade-in-up delay-200">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="h-4 w-4 text-green-500" />
@@ -118,7 +118,7 @@ export default function AdminAnalyticsPage() {
                   <p className="text-2xl font-bold">{data.overview.uniqueSessions.toLocaleString()}</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="animate-fade-in-up delay-300">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="h-4 w-4 text-purple-500" />
@@ -127,7 +127,7 @@ export default function AdminAnalyticsPage() {
                   <p className="text-2xl font-bold">{formatDuration(data.overview.avgDuration)}</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="animate-fade-in-up delay-400">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 mb-1">
                     <MousePointer className="h-4 w-4 text-orange-500" />
@@ -140,7 +140,7 @@ export default function AdminAnalyticsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top Pages */}
-              <Card>
+              <Card className="animate-fade-in-up delay-500">
                 <CardHeader>
                   <CardTitle className="text-base">Top Pages</CardTitle>
                 </CardHeader>
@@ -161,7 +161,7 @@ export default function AdminAnalyticsPage() {
               </Card>
 
               {/* Events */}
-              <Card>
+              <Card className="animate-fade-in-up delay-500">
                 <CardHeader>
                   <CardTitle className="text-base">Custom Events</CardTitle>
                 </CardHeader>
@@ -182,7 +182,7 @@ export default function AdminAnalyticsPage() {
               </Card>
 
               {/* Device Breakdown */}
-              <Card>
+              <Card className="animate-fade-in-up delay-600">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <Monitor className="h-4 w-4" /> Device Breakdown
@@ -217,7 +217,7 @@ export default function AdminAnalyticsPage() {
               </Card>
 
               {/* Browser Breakdown */}
-              <Card>
+              <Card className="animate-fade-in-up delay-600">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <Globe className="h-4 w-4" /> Browser Breakdown
@@ -249,7 +249,7 @@ export default function AdminAnalyticsPage() {
               </Card>
 
               {/* Top Referrers */}
-              <Card>
+              <Card className="animate-fade-in-up delay-700">
                 <CardHeader>
                   <CardTitle className="text-base">Top Referrers</CardTitle>
                 </CardHeader>
@@ -270,7 +270,7 @@ export default function AdminAnalyticsPage() {
               </Card>
 
               {/* Hourly Traffic */}
-              <Card>
+              <Card className="animate-fade-in-up delay-700">
                 <CardHeader>
                   <CardTitle className="text-base">Hourly Traffic</CardTitle>
                 </CardHeader>
@@ -304,7 +304,7 @@ export default function AdminAnalyticsPage() {
             </div>
 
             {/* Recent Sessions */}
-            <Card>
+            <Card className="animate-fade-in-up delay-1000">
               <CardHeader>
                 <CardTitle className="text-base">Recent Sessions</CardTitle>
               </CardHeader>

@@ -169,7 +169,7 @@ export default function ManageReservationPage() {
         </Card>
 
         {reservation && (
-          <Card>
+          <Card className="modern-card animate-fade-in-up">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Reservation Details</CardTitle>

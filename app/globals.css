@@ -23,7 +23,7 @@
     --border: 240 10% 90%;
     --input: 240 10% 90%;
     --ring: 1 100% 44%;
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 }
 
@@ -52,6 +52,23 @@
 }
 
 @layer utilities {
+  /* Modern Card & Glassmorphism Styles */
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/40 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .modern-card {
+    @apply bg-white rounded-3xl border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300;
+  }
+
+  .modern-card-hover {
+    @apply hover:-translate-y-1 transition-transform duration-300;
+  }
+
   /* Ramadan-themed gradient backgrounds */
   .bg-ramadan-hero {
     background: linear-gradient(135deg, #18114B 0%, #7C0124 50%, #E00800 100%);

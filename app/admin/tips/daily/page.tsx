@@ -127,7 +127,7 @@ export default function AdminDailyTipsPage() {
         ) : (
           <div className="space-y-3">
             {tips.map((tip) => (
-              <Card key={tip.id} className={!tip.isActive ? 'opacity-60' : ''}>
+              <Card key={tip.id} className={`modern-card-hover group ${!tip.isActive ? 'opacity-60' : ''}`}>
                 <CardContent className="flex items-center gap-4 py-4">
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold text-sm shrink-0">
                     {tip.tipNumber}

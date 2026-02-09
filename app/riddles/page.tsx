@@ -71,7 +71,7 @@ export default function RiddlesPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-eand-ocean"></div>
             </div>
           ) : episodes.length === 0 ? (
-            <Card className="border-0 shadow-md rounded-2xl opacity-0 animate-fade-in-up delay-400">
+            <Card className="opacity-0 animate-fade-in-up delay-400">
               <CardContent className="py-12 text-center">
                 <Brain className="h-10 w-10 text-eand-light-grey mx-auto mb-3" />
                 <p className="text-eand-grey text-sm">No episodes available yet</p>

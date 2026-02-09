@@ -62,9 +62,9 @@ export function RichTextEditor({ content, onChange, placeholder = 'Start writing
   if (!editor) return null
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-2xl overflow-hidden shadow-sm transition-all focus-within:ring-2 focus-within:ring-eand-red/20 focus-within:border-eand-red">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b bg-gray-50">
+      <div className="flex flex-wrap items-center gap-1 p-2 border-b bg-gray-50/50">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}

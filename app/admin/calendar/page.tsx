@@ -123,8 +123,8 @@ export default function AdminCalendarPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-eand-red"></div>
             </div>
           ) : Object.keys(reservationsByDate).length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
+            <Card className="modern-card text-center">
+              <CardContent className="py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">No reservations found</p>
               </CardContent>
@@ -133,7 +133,7 @@ export default function AdminCalendarPage() {
             Object.entries(reservationsByDate)
               .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
               .map(([date, dateReservations]) => (
-                <Card key={date}>
+                <Card key={date} className="modern-card">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle>{formatDate(new Date(date))}</CardTitle>

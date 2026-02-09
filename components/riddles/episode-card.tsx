@@ -24,7 +24,7 @@ export function EpisodeCard({
   createdAt,
 }: EpisodeCardProps) {
   return (
-    <Card className="hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 border border-gray-100 rounded-2xl overflow-hidden">
+    <Card className="modern-card-hover overflow-hidden group">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">

@@ -514,7 +514,7 @@ export default function TentRegistrationPage() {
               </div>
 
               {/* Summary card */}
-              <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden opacity-0 animate-fade-in-up delay-300">
+              <Card className="overflow-hidden opacity-0 animate-fade-in-up delay-300">
                 {/* Header accent */}
                 <div className="h-2 bg-gradient-to-r from-eand-ocean via-ramadan-gold to-eand-red" />
                 <CardContent className="p-5 space-y-4">

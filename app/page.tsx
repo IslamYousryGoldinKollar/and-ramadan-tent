@@ -72,7 +72,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Ramadan Riddles */}
             <Link href="/riddles" className="block opacity-0 animate-fade-in-up delay-400">
-              <Card className="border-0 shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-300 bg-white rounded-2xl overflow-hidden group hover:-translate-y-1">
+              <Card className="group modern-card-hover overflow-hidden">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="w-14 h-14 bg-eand-ocean rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                     <Brain className="h-7 w-7 text-ramadan-gold" />
@@ -90,7 +90,7 @@ export default function HomePage() {
 
             {/* Ramadan Tips */}
             <Link href="/wellness" className="block opacity-0 animate-fade-in-up delay-500">
-              <Card className="border-0 shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-300 bg-white rounded-2xl overflow-hidden group hover:-translate-y-1">
+              <Card className="group modern-card-hover overflow-hidden">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="w-14 h-14 bg-eand-dark-green rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                     <Lightbulb className="h-7 w-7 text-eand-bright-green" />

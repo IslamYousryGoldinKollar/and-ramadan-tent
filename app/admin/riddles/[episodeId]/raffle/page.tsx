@@ -148,7 +148,7 @@ export default function RafflePage() {
 
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+          <Card className="modern-card">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Correct Answerers</CardTitle>
             </CardHeader>
@@ -157,7 +157,7 @@ export default function RafflePage() {
               <p className="text-sm text-gray-600">Employees who answered all questions correctly</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="modern-card">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Winners Selected</CardTitle>
             </CardHeader>
@@ -166,7 +166,7 @@ export default function RafflePage() {
               <p className="text-sm text-gray-600">Randomly selected winners</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="modern-card">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Raffle Status</CardTitle>
             </CardHeader>
@@ -218,7 +218,7 @@ export default function RafflePage() {
 
         {/* Winners */}
         {raffleData.winners.length > 0 && (
-          <Card>
+          <Card className="modern-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">

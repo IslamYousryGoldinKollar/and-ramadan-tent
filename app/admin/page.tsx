@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
+            <Card className="modern-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Reservations</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="modern-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Today&apos;s Reservations</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -95,7 +95,7 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="modern-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Seats Booked</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -106,7 +106,7 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="modern-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Waiting List</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -119,7 +119,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        <Card>
+        <Card className="modern-card">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>

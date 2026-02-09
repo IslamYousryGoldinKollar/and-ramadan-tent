@@ -236,7 +236,7 @@ export default function EpisodePage() {
 
         {/* Questions */}
         {episode.questions.length > 0 && (
-          <Card className="border border-gray-100 opacity-0 animate-fade-in-up delay-300 rounded-2xl">
+          <Card className="opacity-0 animate-fade-in-up delay-300">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Answer the Questions</CardTitle>
               <p className="text-xs text-gray-500">

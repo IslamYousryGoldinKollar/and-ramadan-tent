@@ -53,7 +53,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-ramadan-hero p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 rounded-2xl">
+      <Card className="w-full max-w-md glass-panel border-0">
         <CardHeader className="space-y-1 pt-8">
           <div className="flex items-center justify-center mb-3">
             <EandLogo size="lg" />

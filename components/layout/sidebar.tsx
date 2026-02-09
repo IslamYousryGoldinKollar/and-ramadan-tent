@@ -46,8 +46,8 @@ export function Sidebar() {
   const navItems = isAdmin ? adminNavItems : employeeNavItems
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col">
-      <div className="p-6 border-b border-gray-200">
+    <div className="w-64 bg-white/80 backdrop-blur-xl border-r border-gray-200/50 h-screen fixed left-0 top-0 flex flex-col z-40 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <div className="p-6 border-b border-gray-100/50">
         <div className="flex items-center gap-2">
           <div className="text-2xl font-bold text-eand-red">e&</div>
           <span className="text-sm text-gray-600">Ramadan Tent</span>
@@ -63,13 +63,13 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                'flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group',
                 isActive
-                  ? 'bg-eand-red text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-eand-red text-white shadow-md shadow-eand-red/20 translate-x-1'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1'
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className={cn("h-5 w-5 transition-transform duration-200", isActive ? "" : "group-hover:scale-110")} />
               <span className="font-medium">{item.label}</span>
             </Link>
           )
