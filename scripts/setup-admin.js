@@ -24,14 +24,15 @@ async function setupAdmin() {
   try {
     console.log('=== e& Egypt Ramadan Tent - Admin User Setup ===\n')
 
-    const employeeId = await question('Employee ID: ')
-    const fullName = await question('Full Name: ')
-    const email = await question('Email (@eand.com): ')
-    const password = await question('Password: ')
-    const department = await question('Department (optional): ')
+    // Create admin account directly
+    const employeeId = 'ADMIN001'
+    const fullName = 'Islam Yousry'
+    const email = 'islam.yousry@goldinkollar.com'
+    const password = 'EandRamadan@GK'
+    const department = 'IT'
 
-    if (!email.endsWith('@eand.com')) {
-      console.error('\n❌ Error: Email must be from @eand.com domain')
+    if (!email.endsWith('@eand.com') && !email.endsWith('@goldinkollar.com')) {
+      console.error('\n❌ Error: Email must be from @eand.com or @goldinkollar.com domain')
       process.exit(1)
     }
 

@@ -33,7 +33,8 @@ export async function generateUniqueSerialNumber(
 }
 
 export function isValidEandEmail(email: string): boolean {
-  return email.toLowerCase().endsWith('@eand.com')
+  const emailLower = email.toLowerCase()
+  return emailLower.endsWith('@eand.com') || emailLower.endsWith('@goldinkollar.com')
 }
 
 export const MAX_CAPACITY = 120

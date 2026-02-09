@@ -20,7 +20,7 @@ export const authOptions: NextAuthOptions = {
 
         // Validate e& email domain
         if (!isValidEandEmail(credentials.email)) {
-          throw new Error('Invalid email domain. Must be @eand.com')
+          throw new Error('Invalid email domain. Must be @eand.com or @goldinkollar.com')
         }
 
         // Find user by employee ID and email
