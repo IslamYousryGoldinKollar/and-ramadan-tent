@@ -106,7 +106,7 @@ export default function AdminAnalyticsPage() {
                     <Eye className="h-4 w-4 text-blue-500" />
                     <span className="text-xs text-gray-500">Page Views</span>
                   </div>
-                  <p className="text-2xl font-bold">{data.overview.totalPageViews.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">{(data.overview.totalPageViews ?? 0).toLocaleString()}</p>
                 </CardContent>
               </Card>
               <Card className="animate-fade-in-up delay-200">
@@ -115,7 +115,7 @@ export default function AdminAnalyticsPage() {
                     <Users className="h-4 w-4 text-green-500" />
                     <span className="text-xs text-gray-500">Unique Sessions</span>
                   </div>
-                  <p className="text-2xl font-bold">{data.overview.uniqueSessions.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">{(data.overview.uniqueSessions ?? 0).toLocaleString()}</p>
                 </CardContent>
               </Card>
               <Card className="animate-fade-in-up delay-300">
@@ -124,7 +124,7 @@ export default function AdminAnalyticsPage() {
                     <Clock className="h-4 w-4 text-purple-500" />
                     <span className="text-xs text-gray-500">Avg. Duration</span>
                   </div>
-                  <p className="text-2xl font-bold">{formatDuration(data.overview.avgDuration)}</p>
+                  <p className="text-2xl font-bold">{formatDuration(data.overview.avgDuration ?? 0)}</p>
                 </CardContent>
               </Card>
               <Card className="animate-fade-in-up delay-400">
@@ -133,7 +133,7 @@ export default function AdminAnalyticsPage() {
                     <MousePointer className="h-4 w-4 text-orange-500" />
                     <span className="text-xs text-gray-500">Avg. Scroll Depth</span>
                   </div>
-                  <p className="text-2xl font-bold">{Math.round(data.overview.avgScrollDepth)}%</p>
+                  <p className="text-2xl font-bold">{Math.round(data.overview.avgScrollDepth ?? 0)}%</p>
                 </CardContent>
               </Card>
             </div>

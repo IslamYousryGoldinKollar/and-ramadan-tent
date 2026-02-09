@@ -13,18 +13,18 @@ import { Trophy, ArrowLeft, Download, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface CorrectAnswerer {
-  employeeId: string
-  employeeName: string
   email: string
+  idNumber: string
+  phoneNumber: string
   correctCount: number
   totalQuestions: number
 }
 
 interface Winner {
   id: string
-  employeeId: string
-  employeeName: string
   email: string
+  idNumber: string
+  phoneNumber: string
   createdAt: string
 }
 
@@ -46,6 +46,7 @@ export default function RafflePage() {
   const [runningRaffle, setRunningRaffle] = useState(false)
   const [numberOfWinners, setNumberOfWinners] = useState(1)
   const [showRaffleDialog, setShowRaffleDialog] = useState(false)
+  const [clearingRaffle, setClearingRaffle] = useState(false)
 
   useEffect(() => {
     if (params.episodeId) {
@@ -92,14 +93,27 @@ export default function RafflePage() {
     }
   }
 
+  const handleClearRaffle = async () => {
+    if (!params.episodeId) return
+    setClearingRaffle(true)
+    try {
+      await fetch(`/api/riddles/${params.episodeId}/raffle`, { method: 'DELETE' })
+      fetchRaffleData()
+    } catch (error) {
+      console.error('Error clearing raffle:', error)
+    } finally {
+      setClearingRaffle(false)
+    }
+  }
+
   const handleExportWinners = () => {
     if (!raffleData?.winners.length) return
 
     const csv = [
-      ['Employee ID', 'Name', 'Email'],
-      ...raffleData.winners.map((w) => [w.employeeId, w.employeeName, w.email]),
+      ['Email', 'ID Number', 'Phone Number'],
+      ...raffleData.winners.map((w) => [w.email, w.idNumber, w.phoneNumber]),
     ]
-      .map((row) => row.join(','))
+      .map((row) => row.map((c) => `"${c}"`).join(','))
       .join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -107,6 +121,24 @@ export default function RafflePage() {
     const a = document.createElement('a')
     a.href = url
     a.download = `raffle-winners-episode-${params.episodeId}.csv`
+    a.click()
+  }
+
+  const handleExportAllParticipants = () => {
+    if (!raffleData?.correctAnswerers.length) return
+
+    const csv = [
+      ['Email', 'ID Number', 'Phone Number', 'Correct', 'Total'],
+      ...raffleData.correctAnswerers.map((a) => [a.email, a.idNumber, a.phoneNumber, String(a.correctCount), String(a.totalQuestions)]),
+    ]
+      .map((row) => row.map((c) => `"${c}"`).join(','))
+      .join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `correct-answerers-episode-${params.episodeId}.csv`
     a.click()
   }
 
@@ -129,21 +161,28 @@ export default function RafflePage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <Link href="/admin/riddles" className="text-sm text-gray-600 hover:text-eand-red flex items-center gap-1 mb-2">
+            <Link href={`/admin/riddles/${params.episodeId}`} className="text-sm text-gray-600 hover:text-eand-red flex items-center gap-1 mb-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Episodes
+              Back to Episode
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
               <Trophy className="h-8 w-8" />
               Raffle Management
             </h1>
           </div>
-          {raffleData.correctAnswerers.length > 0 && (
-            <Button onClick={() => setShowRaffleDialog(true)}>
-              <Trophy className="h-4 w-4 mr-2" />
-              Run Raffle
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {raffleData.winners.length > 0 && (
+              <Button variant="outline" onClick={handleClearRaffle} disabled={clearingRaffle} className="text-red-600 hover:bg-red-50">
+                {clearingRaffle ? 'Clearing...' : 'Clear & Re-run'}
+              </Button>
+            )}
+            {raffleData.correctAnswerers.length > 0 && (
+              <Button onClick={() => setShowRaffleDialog(true)}>
+                <Trophy className="h-4 w-4 mr-2" />
+                Run Raffle
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Statistics */}
@@ -194,23 +233,31 @@ export default function RafflePage() {
             {raffleData.correctAnswerers.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No correct answerers yet</p>
             ) : (
-              <div className="space-y-2">
-                {raffleData.correctAnswerers.map((answerer, index) => (
-                  <div
-                    key={`${answerer.employeeId}-${answerer.email}`}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-semibold">{answerer.employeeName}</p>
-                      <p className="text-sm text-gray-600">
-                        {answerer.employeeId} • {answerer.email}
-                      </p>
+              <div>
+                <div className="flex justify-end mb-4">
+                  <Button variant="outline" size="sm" onClick={handleExportAllParticipants} disabled={raffleData.correctAnswerers.length === 0}>
+                    <Download className="h-3 w-3 mr-1" />
+                    Export Participants
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {raffleData.correctAnswerers.map((answerer, index) => (
+                    <div
+                      key={`${answerer.idNumber}-${answerer.email}`}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-semibold">{answerer.email}</p>
+                        <p className="text-sm text-gray-600">
+                          ID: {answerer.idNumber} • Phone: {answerer.phoneNumber}
+                        </p>
+                      </div>
+                      <Badge variant="success">
+                        {answerer.correctCount}/{answerer.totalQuestions} Correct
+                      </Badge>
                     </div>
-                    <Badge variant="success">
-                      {answerer.correctCount}/{answerer.totalQuestions} Correct
-                    </Badge>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
@@ -241,9 +288,9 @@ export default function RafflePage() {
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-yellow-600" />
                       <div>
-                        <p className="font-bold text-lg">{winner.employeeName}</p>
+                        <p className="font-bold text-lg">{winner.email}</p>
                         <p className="text-sm text-gray-600">
-                          {winner.employeeId} • {winner.email}
+                          ID: {winner.idNumber} • Phone: {winner.phoneNumber}
                         </p>
                       </div>
                     </div>

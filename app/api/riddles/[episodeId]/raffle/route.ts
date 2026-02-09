@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth-options'
 import {
   getCorrectAnswerers,
   runRaffle,
+  clearRaffleWinners,
   getRaffleWinners,
   getRaffleSettings,
 } from '@/lib/riddles'
@@ -68,6 +69,27 @@ export async function POST(
     }
 
     console.error('Error running raffle:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { episodeId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    await clearRaffleWinners(params.episodeId)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error clearing raffle:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

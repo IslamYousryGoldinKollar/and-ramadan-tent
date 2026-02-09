@@ -25,7 +25,7 @@ export default function LoginPage() {
 
     // Validate email domain
     if (!isValidEandEmail(email)) {
-      setError('Email must be from @eand.com domain')
+      setError('Email must be from @eand.com or @goldinkollar.com domain')
       setLoading(false)
       return
     }
@@ -84,7 +84,7 @@ export default function LoginPage() {
                 type="email"
                 inputMode="email"
                 autoComplete="email"
-                placeholder="your.name@eand.com"
+                placeholder="your.name@eand.com or @goldinkollar.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -112,7 +112,7 @@ export default function LoginPage() {
             </Button>
           </form>
           <p className="text-xs text-center text-eand-grey mt-4">
-            Only @eand.com email addresses are allowed
+            @eand.com and @goldinkollar.com email addresses are allowed
           </p>
         </CardContent>
       </Card>

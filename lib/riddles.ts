@@ -388,9 +388,10 @@ export async function runRaffle(episodeId: string, numberOfWinners: number) {
  */
 export async function clearRaffleWinners(episodeId: string) {
   await prisma.raffleWinner.deleteMany({ where: { episodeId } })
-  await prisma.raffleSettings.update({
+  await prisma.raffleSettings.upsert({
     where: { episodeId },
-    data: { isActive: false, raffleDate: null },
+    create: { episodeId, numberOfWinners: 0, isActive: false },
+    update: { isActive: false, raffleDate: null },
   })
 }
 

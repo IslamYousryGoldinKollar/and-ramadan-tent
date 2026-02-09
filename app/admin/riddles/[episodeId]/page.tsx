@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { YouTubeEmbed } from '@/components/riddles/youtube-embed'
-import { Plus, ArrowLeft, Eye } from 'lucide-react'
+import { ConfirmDialog } from '@/components/admin/confirm-dialog'
+import { VideoEmbed } from '@/components/riddles/video-embed'
+import { Plus, ArrowLeft, Eye, Trophy, Trash2, Edit, Download } from 'lucide-react'
 import Link from 'next/link'
 
 interface Question {
@@ -19,7 +20,6 @@ interface Question {
   optionA: string
   optionB: string
   optionC: string
-  optionD: string
   correctAnswer: string
 }
 
@@ -27,10 +27,11 @@ interface Episode {
   id: string
   title: string
   description?: string
-  youtubeUrl: string
+  videoUrl: string
   episodeNumber: number
   isActive: boolean
   questions: Question[]
+  _count?: { answers: number }
 }
 
 export default function EpisodeManagementPage() {
@@ -39,14 +40,15 @@ export default function EpisodeManagementPage() {
   const [episode, setEpisode] = useState<Episode | null>(null)
   const [loading, setLoading] = useState(true)
   const [showQuestionDialog, setShowQuestionDialog] = useState(false)
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
+  const [deleteQuestionId, setDeleteQuestionId] = useState<string | null>(null)
 
   // Question form state
   const [questionText, setQuestionText] = useState('')
   const [optionA, setOptionA] = useState('')
   const [optionB, setOptionB] = useState('')
   const [optionC, setOptionC] = useState('')
-  const [optionD, setOptionD] = useState('')
-  const [correctAnswer, setCorrectAnswer] = useState<'A' | 'B' | 'C' | 'D'>('A')
+  const [correctAnswer, setCorrectAnswer] = useState<'A' | 'B' | 'C'>('A')
 
   useEffect(() => {
     if (params.episodeId) {
@@ -68,35 +70,95 @@ export default function EpisodeManagementPage() {
     }
   }
 
-  const handleAddQuestion = async () => {
+  const resetForm = () => {
+    setQuestionText('')
+    setOptionA('')
+    setOptionB('')
+    setOptionC('')
+    setCorrectAnswer('A')
+    setEditingQuestion(null)
+  }
+
+  const openEditQuestion = (q: Question) => {
+    setEditingQuestion(q)
+    setQuestionText(q.questionText)
+    setOptionA(q.optionA)
+    setOptionB(q.optionB)
+    setOptionC(q.optionC)
+    setCorrectAnswer(q.correctAnswer as 'A' | 'B' | 'C')
+    setShowQuestionDialog(true)
+  }
+
+  const handleSaveQuestion = async () => {
     if (!episode) return
 
     try {
-      const response = await fetch(`/api/riddles/${episode.id}/questions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          questionText,
-          optionA,
-          optionB,
-          optionC,
-          optionD,
-          correctAnswer,
-        }),
-      })
+      const payload = { questionText, optionA, optionB, optionC, correctAnswer }
 
-      if (response.ok) {
-        setShowQuestionDialog(false)
-        setQuestionText('')
-        setOptionA('')
-        setOptionB('')
-        setOptionC('')
-        setOptionD('')
-        setCorrectAnswer('A')
-        fetchEpisode()
+      if (editingQuestion) {
+        // Update existing question
+        const response = await fetch(`/api/riddles/${episode.id}/questions/${editingQuestion.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (response.ok) {
+          setShowQuestionDialog(false)
+          resetForm()
+          fetchEpisode()
+        }
+      } else {
+        // Create new question
+        const response = await fetch(`/api/riddles/${episode.id}/questions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (response.ok) {
+          setShowQuestionDialog(false)
+          resetForm()
+          fetchEpisode()
+        }
       }
     } catch (error) {
-      console.error('Error adding question:', error)
+      console.error('Error saving question:', error)
+    }
+  }
+
+  const handleDeleteQuestion = async () => {
+    if (!deleteQuestionId || !episode) return
+    try {
+      await fetch(`/api/riddles/${episode.id}/questions/${deleteQuestionId}`, { method: 'DELETE' })
+      setDeleteQuestionId(null)
+      fetchEpisode()
+    } catch (error) {
+      console.error('Error deleting question:', error)
+    }
+  }
+
+  const handleExportAnswers = async () => {
+    if (!episode) return
+    try {
+      const response = await fetch(`/api/riddles/${episode.id}/answers`)
+      if (!response.ok) return
+      const answers = await response.json()
+      const csv = [
+        ['Email', 'ID Number', 'Phone', 'Question', 'Selected', 'Correct Answer', 'Is Correct', 'Submitted At'],
+        ...answers.map((a: any) => [
+          a.email, a.idNumber, a.phoneNumber,
+          a.question?.questionText || '', a.selectedAnswer,
+          a.question?.correctAnswer || '', a.isCorrect ? 'Yes' : 'No',
+          new Date(a.submittedAt).toLocaleString(),
+        ]),
+      ].map((row) => row.map((c: string) => `"${c}"`).join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `answers-episode-${episode.episodeNumber}.csv`
+      a.click()
+    } catch (error) {
+      console.error('Error exporting answers:', error)
     }
   }
 
@@ -127,7 +189,7 @@ export default function EpisodeManagementPage() {
               Episode {episode.episodeNumber}: {episode.title}
             </h1>
           </div>
-          <Button onClick={() => setShowQuestionDialog(true)}>
+          <Button onClick={() => { resetForm(); setShowQuestionDialog(true) }}>
             <Plus className="h-4 w-4 mr-2" />
             Add Question
           </Button>
@@ -139,7 +201,7 @@ export default function EpisodeManagementPage() {
             <CardTitle>Video Preview</CardTitle>
           </CardHeader>
           <CardContent>
-            <YouTubeEmbed url={episode.youtubeUrl} title={episode.title} />
+            <VideoEmbed url={episode.videoUrl} title={episode.title} />
           </CardContent>
         </Card>
 
@@ -158,16 +220,23 @@ export default function EpisodeManagementPage() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">Question {index + 1}</CardTitle>
-                        <Badge variant="success">Correct: {question.correctAnswer}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="success">Correct: {question.correctAnswer}</Badge>
+                          <Button variant="outline" size="sm" onClick={() => openEditQuestion(question)}>
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => setDeleteQuestionId(question.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <p className="font-medium mb-4">{question.questionText}</p>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>A. {question.optionA}</div>
-                        <div>B. {question.optionB}</div>
-                        <div>C. {question.optionC}</div>
-                        <div>D. {question.optionD}</div>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div className={question.correctAnswer === 'A' ? 'font-bold text-green-700 bg-green-50 p-2 rounded' : 'p-2'}>A. {question.optionA}</div>
+                        <div className={question.correctAnswer === 'B' ? 'font-bold text-green-700 bg-green-50 p-2 rounded' : 'p-2'}>B. {question.optionB}</div>
+                        <div className={question.correctAnswer === 'C' ? 'font-bold text-green-700 bg-green-50 p-2 rounded' : 'p-2'}>C. {question.optionC}</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -177,29 +246,46 @@ export default function EpisodeManagementPage() {
           </CardContent>
         </Card>
 
-        {/* View Answers */}
-        <Card className="modern-card">
-          <CardHeader>
-            <CardTitle>Submissions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href={`/admin/riddles/${episode.id}/answers`}>
-              <Button variant="outline" className="w-full">
-                <Eye className="h-4 w-4 mr-2" />
-                View All Answers
+        {/* Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="modern-card">
+            <CardContent className="pt-6">
+              <Link href={`/admin/riddles/${episode.id}/answers`}>
+                <Button variant="outline" className="w-full">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View All Answers ({episode._count?.answers || 0})
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+          <Card className="modern-card">
+            <CardContent className="pt-6">
+              <Link href={`/admin/riddles/${episode.id}/raffle`}>
+                <Button variant="outline" className="w-full">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Raffle Management
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+          <Card className="modern-card">
+            <CardContent className="pt-6">
+              <Button variant="outline" className="w-full" onClick={handleExportAnswers}>
+                <Download className="h-4 w-4 mr-2" />
+                Export Answers CSV
               </Button>
-            </Link>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Add Question Dialog */}
-      <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
+      {/* Add/Edit Question Dialog */}
+      <Dialog open={showQuestionDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowQuestionDialog(open) }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Add Question</DialogTitle>
+            <DialogTitle>{editingQuestion ? 'Edit Question' : 'Add Question'}</DialogTitle>
             <DialogDescription>
-              Add a multiple choice question for this episode
+              {editingQuestion ? 'Update the question details' : 'Add a multiple choice question for this episode'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -212,7 +298,7 @@ export default function EpisodeManagementPage() {
                 placeholder="Enter the question"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="optionA">Option A</Label>
                 <Input
@@ -240,41 +326,42 @@ export default function EpisodeManagementPage() {
                   placeholder="Option C"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="optionD">Option D</Label>
-                <Input
-                  id="optionD"
-                  value={optionD}
-                  onChange={(e) => setOptionD(e.target.value)}
-                  placeholder="Option D"
-                />
-              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="correctAnswer">Correct Answer</Label>
               <select
                 id="correctAnswer"
                 value={correctAnswer}
-                onChange={(e) => setCorrectAnswer(e.target.value as 'A' | 'B' | 'C' | 'D')}
+                onChange={(e) => setCorrectAnswer(e.target.value as 'A' | 'B' | 'C')}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
               >
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
-                <option value="D">D</option>
               </select>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowQuestionDialog(false)} className="flex-1">
+              <Button variant="outline" onClick={() => { resetForm(); setShowQuestionDialog(false) }} className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={handleAddQuestion} className="flex-1">
-                Add Question
+              <Button onClick={handleSaveQuestion} className="flex-1" disabled={!questionText || !optionA || !optionB || !optionC}>
+                {editingQuestion ? 'Save Changes' : 'Add Question'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Question Confirmation */}
+      <ConfirmDialog
+        open={!!deleteQuestionId}
+        onOpenChange={(open) => !open && setDeleteQuestionId(null)}
+        title="Delete Question"
+        description="This will permanently delete this question and all its answers. This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={handleDeleteQuestion}
+      />
     </DashboardLayout>
   )
 }
