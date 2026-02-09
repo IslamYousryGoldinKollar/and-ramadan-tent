@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   ArrowLeft, Moon, ChevronDown, ChevronRight, Sparkles, UtensilsCrossed,
   Activity, Droplets, Dumbbell, Sun, BookOpen, HeartHandshake, Shield,
-  Brain, CloudSun, Target, Users, Flower2
+  Brain, CloudSun, Target, Users, Flower2, Lightbulb, FileText, Calendar
 } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
 import { WELLNESS_CATEGORIES, EGYPTIAN_MEALS, type WellnessCategory } from '@/lib/wellness-data'
@@ -17,13 +17,64 @@ const Icons: Record<string, any> = {
   Brain, CloudSun, Target, Users, Flower2
 }
 
-type View = 'home' | 'category' | 'topic' | 'meals'
+type View = 'home' | 'category' | 'topic' | 'meals' | 'daily-tips' | 'articles'
+
+interface DailyTip {
+  id: string
+  title: string
+  shortTip: string
+  fullContent: string
+  tipNumber: number
+}
+
+interface Article {
+  id: string
+  title: string
+  excerpt?: string
+  htmlContent: string
+  category: string
+  imageUrl?: string
+  videoUrl?: string
+  displayOrder: number
+}
 
 export default function WellnessPage() {
   const [view, setView] = useState<View>('home')
   const [activeCategory, setActiveCategory] = useState<WellnessCategory | null>(null)
   const [activeTopic, setActiveTopic] = useState<string | null>(null)
   const [expandedMeal, setExpandedMeal] = useState<number | null>(null)
+  
+  const [dailyTips, setDailyTips] = useState<DailyTip[]>([])
+  const [articles, setArticles] = useState<Article[]>([])
+  const [loading, setLoading] = useState(false)
+  const [expandedTip, setExpandedTip] = useState<string | null>(null)
+  const [expandedArticle, setExpandedArticle] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (view === 'daily-tips' && dailyTips.length === 0) {
+      fetchDailyTips()
+    } else if (view === 'articles' && articles.length === 0) {
+      fetchArticles()
+    }
+  }, [view])
+
+  const fetchDailyTips = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/daily-tips')
+      if (res.ok) setDailyTips(await res.json())
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }
+
+  const fetchArticles = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/ramadan-articles')
+      if (res.ok) setArticles(await res.json())
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }
 
   const openCategory = (cat: WellnessCategory) => {
     setActiveCategory(cat)
@@ -44,7 +95,7 @@ export default function WellnessPage() {
     if (view === 'topic' || view === 'meals') {
       setView('category')
       setActiveTopic(null)
-    } else if (view === 'category') {
+    } else if (view === 'category' || view === 'daily-tips' || view === 'articles') {
       setView('home')
       setActiveCategory(null)
     }
@@ -88,18 +139,24 @@ export default function WellnessPage() {
             {view === 'category' && CategoryIcon && <CategoryIcon className="h-8 w-8 text-eand-bright-green" />}
             {view === 'topic' && TopicIcon && <TopicIcon className="h-8 w-8 text-eand-bright-green" />}
             {view === 'meals' && <UtensilsCrossed className="h-8 w-8 text-eand-bright-green" />}
+            {view === 'daily-tips' && <Lightbulb className="h-8 w-8 text-eand-bright-green" />}
+            {view === 'articles' && <FileText className="h-8 w-8 text-eand-bright-green" />}
           </div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight opacity-0 animate-fade-in-up delay-200">
             {view === 'home' && 'Ramadan Tips'}
             {view === 'category' && activeCategory && `${activeCategory.label} Tips`}
             {view === 'topic' && currentTopic && `${currentTopic.title}`}
             {view === 'meals' && '30 Egyptian Ramadan Meals'}
+            {view === 'daily-tips' && 'Daily Ramadan Tips'}
+            {view === 'articles' && 'Ramadan Articles'}
           </h1>
           <p className="text-sm text-white/60 leading-relaxed max-w-xs mx-auto opacity-0 animate-fade-in-up delay-400">
             {view === 'home' && 'Practical tips for body, mind & worship throughout the holy month'}
             {view === 'category' && activeCategory?.description}
             {view === 'topic' && currentTopic?.content}
             {view === 'meals' && 'One authentic Egyptian dish for each day of Ramadan'}
+            {view === 'daily-tips' && 'Small, actionable advice for every day of Ramadan'}
+            {view === 'articles' && 'In-depth guides for a healthier, more spiritual month'}
           </p>
         </div>
       </section>
@@ -108,33 +165,60 @@ export default function WellnessPage() {
       <main className="flex-1 px-4 py-6 lg:py-10">
         <div className="content-container">
 
-          {/* ===== HOME VIEW: 3 Category Cards ===== */}
+          {/* ===== HOME VIEW: 3 Category Cards + Daily Tips/Articles Links ===== */}
           {view === 'home' && (
-            <div className="space-y-4">
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-center mb-2">Choose a category</p>
-              {WELLNESS_CATEGORIES.map((cat, i) => {
-                const Icon = Icons[cat.icon]
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => openCategory(cat)}
-                    className={`w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 active:scale-[0.98] opacity-0 animate-fade-in-up border-0 ${cat.borderColor} hover:-translate-y-1`}
-                    style={{ animationDelay: `${150 + i * 120}ms` }}
-                  >
-                    <div className={`bg-gradient-to-r ${cat.gradient} p-5 flex items-center gap-4`}>
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <Icon className="h-8 w-8 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-xl font-bold text-white mb-0.5">{cat.label}</h2>
-                        <p className="text-sm text-white/80">{cat.description}</p>
-                        <p className="text-xs text-white/60 mt-1">{cat.topics.length} topics inside</p>
-                      </div>
-                      <ChevronRight className="h-6 w-6 text-white/60 flex-shrink-0" />
-                    </div>
-                  </button>
-                )
-              })}
+            <div className="space-y-6">
+              
+              {/* Feature Links */}
+              <div className="grid grid-cols-2 gap-3 opacity-0 animate-fade-in-up">
+                <button 
+                  onClick={() => setView('daily-tips')}
+                  className="bg-white p-4 rounded-2xl shadow-sm border border-amber-100 flex flex-col items-center text-center gap-2 hover:shadow-md transition-all active:scale-95"
+                >
+                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+                    <Lightbulb className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">Daily Tips</span>
+                </button>
+                <button 
+                  onClick={() => setView('articles')}
+                  className="bg-white p-4 rounded-2xl shadow-sm border border-blue-100 flex flex-col items-center text-center gap-2 hover:shadow-md transition-all active:scale-95"
+                >
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">Articles</span>
+                </button>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-center mb-3">Wellness Categories</p>
+                <div className="space-y-3">
+                  {WELLNESS_CATEGORIES.map((cat, i) => {
+                    const Icon = Icons[cat.icon]
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => openCategory(cat)}
+                        className={`w-full text-left rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 active:scale-[0.98] opacity-0 animate-fade-in-up border ${cat.borderColor}`}
+                        style={{ animationDelay: `${150 + i * 120}ms` }}
+                      >
+                        <div className={`bg-gradient-to-r ${cat.gradient} p-5 flex items-center gap-4`}>
+                          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <Icon className="h-8 w-8 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h2 className="text-xl font-bold text-white mb-0.5">{cat.label}</h2>
+                            <p className="text-sm text-white/80">{cat.description}</p>
+                            <p className="text-xs text-white/60 mt-1">{cat.topics.length} topics inside</p>
+                          </div>
+                          <ChevronRight className="h-6 w-6 text-white/60 flex-shrink-0" />
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
 
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-3 mt-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
@@ -143,7 +227,7 @@ export default function WellnessPage() {
                   <p className="text-[10px] text-gray-400 font-semibold uppercase">Topics</p>
                 </div>
                 <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
-                  <p className="text-2xl font-black text-indigo-500">55+</p>
+                  <p className="text-2xl font-black text-indigo-500">60+</p>
                   <p className="text-[10px] text-gray-400 font-semibold uppercase">Tips</p>
                 </div>
                 <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
@@ -163,7 +247,7 @@ export default function WellnessPage() {
                   <button
                     key={topic.id}
                     onClick={() => openTopic(topic.id)}
-                    className={`w-full text-left bg-white rounded-2xl shadow-sm border ${activeCategory.borderColor} hover:shadow-lg transition-all duration-300 active:scale-[0.98] overflow-hidden opacity-0 animate-fade-in-up group hover:-translate-y-1`}
+                    className={`w-full text-left bg-white rounded-2xl shadow-sm border ${activeCategory.borderColor} hover:shadow-lg transition-all duration-300 active:scale-[0.98] overflow-hidden opacity-0 animate-fade-in-up group`}
                     style={{ animationDelay: `${100 + i * 100}ms` }}
                   >
                     <div className="p-4 flex items-center gap-4">
@@ -172,7 +256,7 @@ export default function WellnessPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-900 text-base leading-snug">{topic.title}</h3>
-                        <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{topic.content}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{topic.content}</p>
                         {topic.id === 'meals' && (
                           <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
                             <UtensilsCrossed className="h-3 w-3" /> 30 Egyptian dishes
@@ -248,7 +332,7 @@ export default function WellnessPage() {
                 return (
                   <div
                     key={meal.day}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden opacity-0 animate-fade-in-up hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden opacity-0 animate-fade-in-up hover:shadow-md transition-all duration-300"
                     style={{ animationDelay: `${100 + Math.min(i * 50, 800)}ms` }}
                   >
                     <button
@@ -260,7 +344,7 @@ export default function WellnessPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-gray-900 text-[15px] leading-snug">{meal.name}</h3>
+                          <h3 className="font-bold text-gray-900 text-[15px]">{meal.name}</h3>
                         </div>
                         <p className="text-xs text-amber-600 font-medium mt-0.5" dir="rtl">{meal.nameAr}</p>
                       </div>
@@ -284,12 +368,115 @@ export default function WellnessPage() {
             </div>
           )}
 
+          {/* ===== DAILY TIPS VIEW ===== */}
+          {view === 'daily-tips' && (
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+                </div>
+              ) : dailyTips.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">No tips available yet.</div>
+              ) : (
+                <div className="space-y-3">
+                  {dailyTips.map((tip, i) => {
+                    const isOpen = expandedTip === tip.id
+                    return (
+                      <div
+                        key={tip.id}
+                        className="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden opacity-0 animate-fade-in-up hover:shadow-md transition-all duration-300"
+                        style={{ animationDelay: `${50 + Math.min(i * 50, 800)}ms` }}
+                      >
+                        <button
+                          onClick={() => setExpandedTip(isOpen ? null : tip.id)}
+                          className="w-full text-left p-4 flex items-start gap-3"
+                        >
+                          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-amber-600 font-black text-sm">#{tip.tipNumber}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-gray-900 text-[15px]">{tip.title}</h3>
+                            <p className="text-xs text-gray-500 mt-0.5">{tip.shortTip}</p>
+                          </div>
+                          <ChevronDown className={`h-5 w-5 text-gray-300 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                          <div className="px-4 pb-4 pt-0">
+                            <div className="border-t border-amber-50 pt-3">
+                              <p className="text-sm text-gray-700 leading-relaxed">{tip.fullContent}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ===== ARTICLES VIEW ===== */}
+          {view === 'articles' && (
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                </div>
+              ) : articles.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">No articles available yet.</div>
+              ) : (
+                <div className="space-y-4">
+                  {articles.map((article, i) => {
+                    const isOpen = expandedArticle === article.id
+                    return (
+                      <div
+                        key={article.id}
+                        className="bg-white rounded-2xl shadow-sm border border-blue-50 overflow-hidden opacity-0 animate-fade-in-up hover:shadow-md transition-all duration-300"
+                        style={{ animationDelay: `${50 + Math.min(i * 50, 800)}ms` }}
+                      >
+                        <button
+                          onClick={() => setExpandedArticle(isOpen ? null : article.id)}
+                          className="w-full text-left p-4 flex items-start gap-4"
+                        >
+                          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <FileText className="h-6 w-6 text-blue-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[10px] uppercase tracking-wider font-bold text-blue-500 bg-blue-50/50 px-2 py-0.5 rounded-full mb-1 inline-block">
+                              {article.category}
+                            </span>
+                            <h3 className="font-bold text-gray-900 text-base leading-snug">{article.title}</h3>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{article.excerpt}</p>
+                          </div>
+                          <ChevronDown className={`h-5 w-5 text-gray-300 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                          <div className="px-4 pb-4 pt-0">
+                            <div className="border-t border-blue-50 pt-4">
+                              <div 
+                                className="prose prose-sm max-w-none text-gray-600 leading-relaxed [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mb-2 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-gray-800 [&_h2]:mt-4 [&_h2]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_li]:mb-1"
+                                dangerouslySetInnerHTML={{ __html: article.htmlContent }} 
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </main>
 
       {/* Footer */}
       <footer className="bg-eand-ocean px-4 py-6 text-center safe-bottom">
         <EandLogo size="sm" className="mx-auto mb-2 brightness-0 invert opacity-40" />
+        <p className="text-white/30 text-xs"> 2026 e&amp; Egypt. All rights reserved.</p>
         <p className="text-white/30 text-xs">© 2026 e& Egypt. All rights reserved.</p>
       </footer>
     </div>
