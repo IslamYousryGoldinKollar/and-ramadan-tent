@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { 
   ArrowLeft, Moon, ChevronDown, ChevronRight, Sparkles, UtensilsCrossed,
   Activity, Droplets, Dumbbell, Sun, BookOpen, HeartHandshake, Shield,
-  Brain, CloudSun, Target, Users, Flower2, Lightbulb, FileText, Calendar
+  Brain, CloudSun, Target, Users, Flower2, Lightbulb, FileText
 } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
 import { WELLNESS_CATEGORIES, EGYPTIAN_MEALS, type WellnessCategory } from '@/lib/wellness-data'
@@ -476,7 +476,6 @@ export default function WellnessPage() {
       {/* Footer */}
       <footer className="bg-eand-ocean px-4 py-6 text-center safe-bottom">
         <EandLogo size="sm" className="mx-auto mb-2 brightness-0 invert opacity-40" />
-        <p className="text-white/30 text-xs"> 2026 e&amp; Egypt. All rights reserved.</p>
         <p className="text-white/30 text-xs">© 2026 e& Egypt. All rights reserved.</p>
       </footer>
     </div>
