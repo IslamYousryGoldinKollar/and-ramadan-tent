@@ -1,14 +1,12 @@
 import { prisma } from './prisma'
 import { ReservationStatus } from '@prisma/client'
-import { generateUniqueSerialNumber, calculateCredits } from './utils'
+import { generateUniqueSerialNumber, calculateCredits, MAX_CAPACITY } from './utils'
 import { generateQRCode } from './qrcode'
 import { fillVacatedSlots } from './waiting-list'
 import { sendBookingConfirmation, sendModificationAlert, sendCancellationConfirmation } from './notifications'
 import { sendBookingConfirmationSms } from './sms'
 import { sendBookingConfirmationWhatsApp, sendCancellationWhatsApp, sendRescheduleWhatsApp } from './whatsapp'
 import { createAuditLog } from './audit'
-
-const MAX_CAPACITY = 120
 
 /**
  * Check availability for a specific date
@@ -57,8 +55,8 @@ export async function createPublicReservation(
   seatCount: number
 ) {
   // Validate seat count
-  if (seatCount < 1 || seatCount > 10) {
-    throw new Error('Seat count must be between 1 and 10')
+  if (seatCount < 1 || seatCount > MAX_CAPACITY) {
+    throw new Error(`Seat count must be between 1 and ${MAX_CAPACITY}`)
   }
 
   // Check availability
@@ -116,8 +114,8 @@ export async function createReservation(
   seatCount: number
 ) {
   // Validate seat count
-  if (seatCount < 1 || seatCount > 10) {
-    throw new Error('Seat count must be between 1 and 10')
+  if (seatCount < 1 || seatCount > MAX_CAPACITY) {
+    throw new Error(`Seat count must be between 1 and ${MAX_CAPACITY}`)
   }
 
   // Check availability

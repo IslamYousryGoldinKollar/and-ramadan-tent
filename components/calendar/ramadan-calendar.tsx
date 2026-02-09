@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle2, XCircle, AlertTriangle, Sparkles } from 'lucide-react'
+import { MAX_CAPACITY } from '@/lib/utils'
 
-const TOTAL_SEATS = 120
+const DEFAULT_RAMADAN_START_DATE = new Date('2026-02-19T12:00:00.000Z')
 
 interface AvailabilityData {
   date: string
@@ -30,7 +31,7 @@ export function RamadanCalendar({
   today.setHours(0, 0, 0, 0)
 
   // Calculate Ramadan dates (30 days from start)
-  const ramadanStart = startDate || new Date()
+  const ramadanStart = startDate || DEFAULT_RAMADAN_START_DATE
   const dates: Date[] = []
   for (let i = 0; i < 30; i++) {
     const date = new Date(ramadanStart)
@@ -124,10 +125,10 @@ export function RamadanCalendar({
                 const past = isPast(date)
                 const todayDate = isToday(date)
                 const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-                const available = data?.availableSeats ?? TOTAL_SEATS
+                const available = data?.availableSeats ?? MAX_CAPACITY
                 const booked = data?.bookedSeats ?? 0
                 const isFull = available === 0
-                const pct = Math.round((booked / TOTAL_SEATS) * 100)
+                const pct = Math.round((booked / MAX_CAPACITY) * 100)
                 const isLimited = available > 0 && available <= 20
                 const isAlmostFull = available > 0 && available <= 40
 

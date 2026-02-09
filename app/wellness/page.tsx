@@ -74,13 +74,13 @@ export default function WellnessPage() {
             <Sparkles className="h-8 w-8 text-eand-bright-green" />
           </div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight opacity-0 animate-fade-in-up delay-200">
-            {view === 'home' && 'Ramadan Wellness Guide'}
-            {view === 'category' && activeCategory && `${activeCategory.emoji} ${activeCategory.label} Wellness`}
+            {view === 'home' && 'Ramadan Tips'}
+            {view === 'category' && activeCategory && `${activeCategory.emoji} ${activeCategory.label} Tips`}
             {view === 'topic' && currentTopic && `${currentTopic.emoji} ${currentTopic.title}`}
             {view === 'meals' && '🍽️ 30 Egyptian Ramadan Meals'}
           </h1>
           <p className="text-sm text-white/60 leading-relaxed max-w-xs mx-auto opacity-0 animate-fade-in-up delay-400">
-            {view === 'home' && 'Your complete guide for body, mind & soul during the holy month'}
+            {view === 'home' && 'Practical tips for body, mind & worship throughout the holy month'}
             {view === 'category' && activeCategory?.description}
             {view === 'topic' && currentTopic?.content}
             {view === 'meals' && 'One authentic Egyptian dish for each day of Ramadan'}

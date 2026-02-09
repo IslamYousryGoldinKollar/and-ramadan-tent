@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 const addToWaitingListSchema = z.object({
   targetDate: z.string().transform((str) => new Date(str)),
-  requestedSeats: z.number().min(1).max(20),
+  requestedSeats: z.number().min(1).max(120),
 })
 
 export async function POST(request: NextRequest) {

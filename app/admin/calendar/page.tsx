@@ -138,7 +138,7 @@ export default function AdminCalendarPage() {
                     <div className="flex items-center justify-between">
                       <CardTitle>{formatDate(new Date(date))}</CardTitle>
                       <Badge>
-                        {dateReservations.reduce((sum, r) => sum + r.seatCount, 0)} / 20 seats
+                        {dateReservations.reduce((sum, r) => sum + r.seatCount, 0)} / 120 seats
                       </Badge>
                     </div>
                   </CardHeader>

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ReservationStatus } from '@prisma/client'
 import { fillVacatedSlots } from '@/lib/waiting-list'
 import { sendCancellationConfirmation, sendModificationAlert } from '@/lib/notifications'
-import { generateUniqueSerialNumber } from '@/lib/utils'
+import { generateUniqueSerialNumber, MAX_CAPACITY } from '@/lib/utils'
 import { generateQRCode } from '@/lib/qrcode'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
@@ -172,7 +172,7 @@ export async function PATCH(
     })
 
     const bookedSeats = existingReservations.reduce((sum: number, r) => sum + r.seatCount, 0)
-    const availableSeats = 20 - bookedSeats
+    const availableSeats = MAX_CAPACITY - bookedSeats
 
     if (availableSeats < reservation.seatCount) {
       return NextResponse.json(

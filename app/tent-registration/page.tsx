@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { RamadanCalendar } from '@/components/calendar/ramadan-calendar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { formatDate } from '@/lib/utils'
+import { formatDate, MAX_CAPACITY } from '@/lib/utils'
 import { isValidEgyptPhone } from '@/lib/sms'
 import {
   Calendar, ArrowLeft, CheckCircle2, User, Users, ChevronRight, ChevronLeft,
@@ -32,11 +32,16 @@ export default function TentRegistrationPage() {
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [seatCount, setSeatCount] = useState(1)
+  const [availableSeats, setAvailableSeats] = useState<number | null>(null)
+  const [availabilityLoading, setAvailabilityLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState<any>(null)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const maxSeatsForDate = Math.min(MAX_CAPACITY, availableSeats ?? MAX_CAPACITY)
+  const maxSelectableSeats = Math.max(1, maxSeatsForDate)
 
   const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
   const goPrev = () => setStep((s) => Math.max(s - 1, 0))
@@ -46,6 +51,51 @@ export default function TentRegistrationPage() {
     setSelectedDate(date)
     setTimeout(() => goNext(), 400)
   }
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchAvailability() {
+      if (!selectedDate) {
+        setAvailableSeats(null)
+        return
+      }
+
+      setAvailabilityLoading(true)
+      try {
+        const response = await fetch(
+          `/api/availability?date=${encodeURIComponent(selectedDate.toISOString())}`
+        )
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch availability')
+        }
+
+        const data: { availableSeats: number } = await response.json()
+        if (!cancelled) {
+          setAvailableSeats(data.availableSeats)
+        }
+      } catch {
+        if (!cancelled) {
+          setAvailableSeats(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setAvailabilityLoading(false)
+        }
+      }
+    }
+
+    fetchAvailability()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedDate])
+
+  useEffect(() => {
+    if (availableSeats === null) return
+    setSeatCount((prev) => Math.min(prev, Math.max(1, availableSeats)))
+  }, [availableSeats])
 
   const validateInfo = () => {
     const e: Record<string, string> = {}
@@ -65,6 +115,12 @@ export default function TentRegistrationPage() {
 
   const handleBooking = async () => {
     if (!selectedDate) return
+
+    if (availableSeats !== null && seatCount > availableSeats) {
+      setError(`Only ${availableSeats} seats available`)
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -346,7 +402,7 @@ export default function TentRegistrationPage() {
                     <div className="text-sm font-medium text-gray-400 mt-1">{seatCount === 1 ? 'seat' : 'seats'}</div>
                   </div>
                   <button
-                    onClick={() => setSeatCount(Math.min(10, seatCount + 1))}
+                    onClick={() => setSeatCount(Math.min(maxSelectableSeats, seatCount + 1))}
                     className="w-16 h-16 rounded-2xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center active:scale-95 hover:bg-emerald-100 transition-all"
                   >
                     <Plus className="h-7 w-7 text-emerald-500" />
@@ -360,21 +416,21 @@ export default function TentRegistrationPage() {
                     type="number"
                     inputMode="numeric"
                     min={1}
-                    max={10}
+                    max={maxSelectableSeats}
                     value={seatCount}
                     onChange={(e) => {
                       const v = parseInt(e.target.value)
-                      if (!isNaN(v) && v >= 1 && v <= 10) setSeatCount(v)
+                      if (!isNaN(v) && v >= 1 && v <= maxSelectableSeats) setSeatCount(v)
                       else if (e.target.value === '') setSeatCount(1)
                     }}
                     className="w-16 text-center text-lg font-bold border-2 border-gray-200 rounded-xl py-1.5 focus:border-eand-ocean focus:ring-2 focus:ring-eand-ocean/20 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
-                  <span className="text-xs text-gray-400">(1–10)</span>
+                  <span className="text-xs text-gray-400">(1–{maxSelectableSeats})</span>
                 </div>
 
                 {/* Visual seat representation */}
                 <div className="flex justify-center gap-1.5 flex-wrap mb-4">
-                  {Array.from({ length: 10 }).map((_, i) => (
+                  {Array.from({ length: Math.min(maxSelectableSeats, 20) }).map((_, i) => (
                     <div
                       key={i}
                       onClick={() => setSeatCount(i + 1)}
@@ -389,7 +445,7 @@ export default function TentRegistrationPage() {
                   ))}
                 </div>
                 <p className="text-[11px] text-center text-gray-400">
-                  Tap a seat, use +/- buttons, or type a number • Maximum 10 seats
+                  Tap a seat (up to 20), use +/- buttons, or type a number • Maximum {maxSelectableSeats} seats
                 </p>
               </div>
 
@@ -403,10 +459,20 @@ export default function TentRegistrationPage() {
                     { n: 4, label: 'Small group', emoji: '👨‍👩‍👧‍👦' },
                     { n: 6, label: 'Team', emoji: '🏢' },
                     { n: 10, label: 'Big group', emoji: '🎉' },
+                    ...(![1, 2, 4, 6, 10].includes(maxSelectableSeats)
+                      ? [
+                          {
+                            n: maxSelectableSeats,
+                            label: maxSelectableSeats === MAX_CAPACITY ? 'Full tent' : 'Max',
+                            emoji: '🏟️',
+                          },
+                        ]
+                      : []),
                   ].map(({ n, label, emoji }) => (
                     <button
                       key={n}
-                      onClick={() => setSeatCount(n)}
+                      onClick={() => setSeatCount(Math.min(n, maxSelectableSeats))}
+                      disabled={availabilityLoading || maxSeatsForDate <= 0 || n > maxSelectableSeats}
                       className={`px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
                         seatCount === n
                           ? 'bg-ramadan-gold text-eand-ocean shadow-md scale-105 ring-2 ring-ramadan-gold/30'

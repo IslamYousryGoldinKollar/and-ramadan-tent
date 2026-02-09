@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { formatDate } from '@/lib/utils'
+import { formatDate, MAX_CAPACITY } from '@/lib/utils'
 import { Calendar, Users } from 'lucide-react'
 
 
@@ -17,12 +16,67 @@ interface BookingFormProps {
 }
 
 export function BookingForm({ selectedDate }: BookingFormProps) {
-  const { data: session } = useSession()
   const [seatCount, setSeatCount] = useState(1)
+  const [availableSeats, setAvailableSeats] = useState<number | null>(null)
+  const [availabilityLoading, setAvailabilityLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState<any>(null)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+
+  const maxSeatsForDate = Math.min(MAX_CAPACITY, availableSeats ?? MAX_CAPACITY)
+  const maxSelectableSeats = Math.max(1, maxSeatsForDate)
+
+  const fullTentButtonText =
+    maxSeatsForDate <= 0
+      ? 'Sold Out'
+      : maxSeatsForDate === MAX_CAPACITY
+        ? `Full Tent (${MAX_CAPACITY})`
+        : `Max (${maxSeatsForDate})`
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchAvailability() {
+      if (!selectedDate) {
+        setAvailableSeats(null)
+        return
+      }
+
+      setAvailabilityLoading(true)
+      try {
+        const response = await fetch(
+          `/api/availability?date=${encodeURIComponent(selectedDate.toISOString())}`
+        )
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch availability')
+        }
+
+        const data: { availableSeats: number } = await response.json()
+        if (!cancelled) {
+          setAvailableSeats(data.availableSeats)
+        }
+      } catch {
+        if (!cancelled) {
+          setAvailableSeats(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setAvailabilityLoading(false)
+        }
+      }
+    }
+
+    fetchAvailability()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedDate])
+
+  useEffect(() => {
+    setSeatCount((prev) => Math.min(prev, maxSelectableSeats))
+  }, [maxSelectableSeats])
 
   const handleBooking = async () => {
     if (!selectedDate) {
@@ -30,8 +84,13 @@ export function BookingForm({ selectedDate }: BookingFormProps) {
       return
     }
 
-    if (seatCount < 1 || seatCount > 20) {
-      setError('Seat count must be between 1 and 20')
+    if (seatCount < 1 || seatCount > maxSelectableSeats) {
+      setError(`Seat count must be between 1 and ${maxSelectableSeats}`)
+      return
+    }
+
+    if (availableSeats !== null && seatCount > availableSeats) {
+      setError(`Only ${availableSeats} seats available`)
       return
     }
 
@@ -65,7 +124,7 @@ export function BookingForm({ selectedDate }: BookingFormProps) {
   }
 
   const handleFullTentBooking = () => {
-    setSeatCount(20)
+    setSeatCount(maxSelectableSeats)
   }
 
   return (
@@ -84,30 +143,58 @@ export function BookingForm({ selectedDate }: BookingFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="seats">Number of Seats</Label>
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="seats">Number of Seats</Label>
+              {selectedDate && (
+                <Badge
+                  variant={
+                    availabilityLoading
+                      ? 'secondary'
+                      : availableSeats === null
+                        ? 'outline'
+                        : availableSeats > 0
+                          ? 'success'
+                          : 'destructive'
+                  }
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5" />
+                    {availabilityLoading
+                      ? 'Checking...'
+                      : availableSeats === null
+                        ? `Up to ${MAX_CAPACITY}`
+                        : availableSeats > 0
+                          ? `${availableSeats} left`
+                          : 'Sold out'}
+                  </span>
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <Input
                 id="seats"
                 type="number"
                 min="1"
-                max="19"
+                max={maxSelectableSeats}
                 value={seatCount}
                 onChange={(e) => {
                   const value = parseInt(e.target.value) || 1
-                  setSeatCount(Math.min(19, Math.max(1, value)))
+                  setSeatCount(Math.min(maxSelectableSeats, Math.max(1, value)))
                 }}
-                disabled={!selectedDate}
+                disabled={!selectedDate || availabilityLoading || maxSeatsForDate <= 0}
               />
               <Button
                 variant="outline"
                 onClick={handleFullTentBooking}
-                disabled={!selectedDate}
+                disabled={!selectedDate || availabilityLoading || maxSeatsForDate <= 0}
               >
-                Full Tent (20)
+                {fullTentButtonText}
               </Button>
             </div>
             <p className="text-xs text-gray-500">
-              Select 1-19 seats for partial booking, or click "Full Tent" for 20 seats
+              {maxSeatsForDate <= 0
+                ? 'No seats available for this date'
+                : `Select 1-${maxSelectableSeats} seats. Tent capacity is ${MAX_CAPACITY} seats.`}
             </p>
           </div>
 
@@ -120,7 +207,14 @@ export function BookingForm({ selectedDate }: BookingFormProps) {
           <Button
             className="w-full"
             onClick={handleBooking}
-            disabled={!selectedDate || loading || seatCount < 1}
+            disabled={
+              !selectedDate ||
+              loading ||
+              availabilityLoading ||
+              seatCount < 1 ||
+              maxSeatsForDate <= 0 ||
+              (availableSeats !== null && seatCount > availableSeats)
+            }
           >
             {loading ? 'Processing...' : 'Confirm Booking'}
           </Button>

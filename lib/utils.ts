@@ -36,14 +36,16 @@ export function isValidEandEmail(email: string): boolean {
   return email.toLowerCase().endsWith('@eand.com')
 }
 
+export const MAX_CAPACITY = 120
+
 export function calculateCredits(seatCount: number): number {
-  if (seatCount === 20) {
+  if (seatCount === MAX_CAPACITY) {
     return 200 // Full tent booking
   }
   return seatCount * 10 // 10 credits per seat for partial bookings
 }
 
-export function getAvailabilityColor(availableSeats: number, totalSeats: number = 120): string {
+export function getAvailabilityColor(availableSeats: number, totalSeats: number = MAX_CAPACITY): string {
   if (availableSeats === 0) return 'red'
   if (availableSeats <= 20) return 'orange'
   return 'green'

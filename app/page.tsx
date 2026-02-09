@@ -98,7 +98,7 @@ export default function HomePage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900">Ramadan Tips</h3>
                     <p className="text-sm text-eand-grey leading-snug">
-                      Health advice & wellness tips for Ramadan
+                      Health advice & practical tips for Ramadan
                     </p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-eand-med-grey flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />

@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 const createReservationSchema = z.object({
   reservationDate: z.string().transform((str) => new Date(str)),
-  seatCount: z.number().min(1).max(20),
+  seatCount: z.number().min(1).max(120),
 })
 
 export async function GET(request: NextRequest) {

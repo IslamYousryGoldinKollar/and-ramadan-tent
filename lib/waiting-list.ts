@@ -3,6 +3,7 @@ import { prisma } from './prisma'
 import { calculatePriorityScore, getHighestPriorityWaitingListUser } from './priority'
 import { ReservationStatus, WaitingListStatus } from '@prisma/client'
 import { sendWaitingListNotification } from './notifications'
+import { MAX_CAPACITY } from './utils'
 
 /**
  * Automatically fill vacated slots from waiting list
@@ -144,7 +145,7 @@ export async function confirmWaitingListEntry(waitingListId: string) {
   })
 
   const bookedSeats = existingReservations.reduce((sum, r) => sum + r.seatCount, 0)
-  const availableSeats = 20 - bookedSeats
+  const availableSeats = MAX_CAPACITY - bookedSeats
 
   if (availableSeats < entry.requestedSeats) {
     throw new Error('Not enough seats available')

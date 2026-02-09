@@ -10,7 +10,7 @@ const createReservationSchema = z.object({
   email: z.string().email(),
   phoneNumber: z.string().min(1, 'Mobile number is required'),
   reservationDate: z.string().transform((str) => new Date(str)),
-  seatCount: z.number().min(1).max(10),
+  seatCount: z.number().min(1).max(120),
 })
 
 export async function POST(request: NextRequest) {
