@@ -1,4 +1,8 @@
 {
+  "firestore": {
+    "database": "eandramadan",
+    "indexes": "firestore.indexes.json"
+  },
   "hosting": {
     "public": ".next",
     "ignore": [

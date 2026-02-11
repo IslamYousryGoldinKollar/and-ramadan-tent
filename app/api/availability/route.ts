@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error checking availability:', error)
     return NextResponse.json(
-      { error: 'Internal server error', debug: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack?.split('\n').slice(0, 5) : undefined },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
