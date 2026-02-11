@@ -3,6 +3,9 @@
     "database": "eandramadan",
     "indexes": "firestore.indexes.json"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "public": ".next",
     "ignore": [

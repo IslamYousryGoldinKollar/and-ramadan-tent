@@ -5,6 +5,15 @@ import path from 'path'
 const STORAGE_PREFIX = 'uploads'
 
 /**
+ * Build a public Firebase Storage download URL.
+ * Format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{encodedPath}?alt=media
+ */
+function buildStorageUrl(bucketName: string, storagePath: string): string {
+  const encoded = encodeURIComponent(storagePath)
+  return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encoded}?alt=media`
+}
+
+/**
  * Save an uploaded file to Firebase Storage and create a DB record
  */
 export async function saveUpload(
@@ -22,19 +31,14 @@ export async function saveUpload(
   const bucket = getStorageBucket()
   const storageFile = bucket.file(storagePath)
 
-  // Save file; attempt public ACL but don't fail if uniform access is on
-  try {
-    await storageFile.save(buffer, {
-      metadata: { contentType: file.type },
-      public: true,
-    })
-  } catch {
-    await storageFile.save(buffer, {
-      metadata: { contentType: file.type },
-    })
-  }
+  await storageFile.save(buffer, {
+    metadata: {
+      contentType: file.type,
+      cacheControl: 'public, max-age=31536000',
+    },
+  })
 
-  const url = `https://storage.googleapis.com/${bucket.name}/${storagePath}`
+  const url = buildStorageUrl(bucket.name, storagePath)
   const id = generateId()
   const doc = {
     filename: file.name,
