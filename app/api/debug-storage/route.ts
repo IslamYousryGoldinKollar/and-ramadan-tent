@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApps, initializeApp, cert } from 'firebase-admin/app'
-import { getStorage } from 'firebase-admin/storage'
 
 export async function GET(request: NextRequest) {
   const steps: string[] = []
