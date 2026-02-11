@@ -1,6 +1,5 @@
 import { initializeApp, getApps, cert, App } from 'firebase-admin/app'
 import { getFirestore, Firestore } from 'firebase-admin/firestore'
-import { getStorage } from 'firebase-admin/storage'
 
 const DATABASE_ID = 'eandramadan'
 
@@ -42,5 +41,7 @@ if (!globalForFirestore.firestore) {
 export const db = globalForFirestore.firestore
 
 export function getStorageBucket() {
+  // Dynamic require to avoid bundling issues on Firebase App Hosting
+  const { getStorage } = require('firebase-admin/storage')
   return getStorage(getApp()).bucket()
 }
