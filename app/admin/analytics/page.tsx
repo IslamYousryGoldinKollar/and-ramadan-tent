@@ -15,26 +15,28 @@ const COLORS = ['#e4002b', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'
 interface AnalyticsData {
   overview: {
     totalPageViews: number
-    uniqueSessions: number
+    uniqueVisitors: number
     avgDuration: number
     avgScrollDepth: number
-    topPages: Array<{ path: string; _count: { id: number } }>
-    deviceBreakdown: Array<{ device: string; _count: { id: number } }>
-    browserBreakdown: Array<{ browser: string; _count: { id: number } }>
+    bounceRate: number
+    topPages: Array<{ path: string; views: number; avgDuration: number; avgScrollDepth: number }>
+    deviceBreakdown: Array<{ device: string; count: number }>
+    browserBreakdown: Array<{ browser: string; count: number }>
   }
   viewsOverTime: Array<{ date: string; count: number }>
   hourlyTraffic: Array<{ hour: number; count: number }>
   recentSessions: Array<{
     sessionId: string
-    path: string
+    pagesVisited: number
+    pages: string[]
     device: string | null
     browser: string | null
     os: string | null
-    duration: number
-    createdAt: string
+    totalDuration: number
+    startedAt: string
   }>
-  topReferrers: Array<{ referrer: string; _count: { id: number } }>
-  eventCounts: Array<{ eventName: string; _count: { id: number } }>
+  topReferrers: Array<{ referrer: string; count: number }>
+  eventCounts: Array<{ eventName: string; _count: number }>
   dateRange: { start: string; end: string }
 }
 
@@ -72,18 +74,18 @@ export default function AdminAnalyticsPage() {
 
   const devicePieData = data?.overview.deviceBreakdown.map((d) => ({
     name: d.device || 'unknown',
-    value: d._count.id,
+    value: d.count,
   })) || []
 
   const browserPieData = data?.overview.browserBreakdown.map((b) => ({
     name: b.browser || 'unknown',
-    value: b._count.id,
+    value: b.count,
   })) || []
 
   const topPagesBarData = data?.overview.topPages.slice(0, 8).map((p) => ({
     path: p.path.length > 20 ? p.path.slice(0, 20) + '…' : p.path,
     fullPath: p.path,
-    views: p._count.id,
+    views: p.views,
   })) || []
 
   const hourlyData = Array.from({ length: 24 }, (_, hour) => {
@@ -142,7 +144,7 @@ export default function AdminAnalyticsPage() {
                     <Users className="h-4 w-4 text-green-500" />
                     <span className="text-xs text-gray-500">Unique Sessions</span>
                   </div>
-                  <p className="text-2xl font-bold">{(data.overview.uniqueSessions ?? 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold">{(data.overview.uniqueVisitors ?? 0).toLocaleString()}</p>
                 </CardContent>
               </Card>
               <Card className="animate-fade-in-up delay-300">
@@ -294,7 +296,7 @@ export default function AdminAnalyticsPage() {
                       {data.eventCounts.map((event, i) => (
                         <div key={i} className="flex items-center justify-between">
                           <span className="text-sm">{event.eventName}</span>
-                          <span className="text-sm font-semibold">{event._count.id}</span>
+                          <span className="text-sm font-semibold">{event._count}</span>
                         </div>
                       ))}
                     </div>
@@ -315,7 +317,7 @@ export default function AdminAnalyticsPage() {
                       {data.topReferrers.map((ref, i) => (
                         <div key={i} className="flex items-center justify-between">
                           <span className="text-sm truncate flex-1">{ref.referrer || 'Direct'}</span>
-                          <span className="text-sm font-semibold ml-2">{ref._count.id}</span>
+                          <span className="text-sm font-semibold ml-2">{ref.count}</span>
                         </div>
                       ))}
                     </div>
@@ -344,11 +346,11 @@ export default function AdminAnalyticsPage() {
                     <tbody>
                       {data.recentSessions.slice(0, 20).map((session, i) => (
                         <tr key={i} className="border-b last:border-0">
-                          <td className="py-2 font-mono text-xs">{session.path}</td>
+                          <td className="py-2 font-mono text-xs">{session.pages?.[0] || '-'}</td>
                           <td className="py-2">{session.device || '-'}</td>
                           <td className="py-2">{session.browser || '-'}</td>
-                          <td className="py-2">{formatDuration(session.duration)}</td>
-                          <td className="py-2 text-gray-500">{new Date(session.createdAt).toLocaleString()}</td>
+                          <td className="py-2">{formatDuration(session.totalDuration)}</td>
+                          <td className="py-2 text-gray-500">{session.startedAt ? new Date(session.startedAt).toLocaleString() : '-'}</td>
                         </tr>
                       ))}
                     </tbody>
