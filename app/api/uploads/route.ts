@@ -27,10 +27,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('Error uploading file:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    )
+    
+    // Log error to Firestore for debugging
+    try {
+      const { db } = await import('@/lib/db')
+      await db.collection('system_logs').add({
+        route: '/api/uploads',
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : null,
+        timestamp: new Date()
+      })
+    } catch (logError) {
+      console.error('Failed to log error to Firestore:', logError)
+    }
+
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
