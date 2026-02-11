@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert, App } from 'firebase-admin/app'
 import { getFirestore, Firestore } from 'firebase-admin/firestore'
+import { getStorage } from 'firebase-admin/storage'
 
 const DATABASE_ID = 'eandramadan'
 
@@ -16,10 +17,12 @@ function getApp(): App {
       app = initializeApp({
         credential: cert(serviceAccount),
         projectId: 'kedup-9rc91',
+        storageBucket: 'kedup-9rc91.firebasestorage.app',
       })
     } else {
       app = initializeApp({
         projectId: 'kedup-9rc91',
+        storageBucket: 'kedup-9rc91.firebasestorage.app',
       })
     }
   } else {
@@ -37,3 +40,7 @@ if (!globalForFirestore.firestore) {
 }
 
 export const db = globalForFirestore.firestore
+
+export function getStorageBucket() {
+  return getStorage(getApp()).bucket()
+}
