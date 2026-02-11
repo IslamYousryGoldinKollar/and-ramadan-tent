@@ -623,9 +623,9 @@ export default function TentRegistrationPage() {
                 <PartyPopper className="h-8 w-8 text-emerald-600" />
               </div>
             </div>
-            <DialogTitle className="text-center text-xl">🎉 Booking Confirmed!</DialogTitle>
+            <DialogTitle className="text-center text-xl">🎉 Reservation Confirmed!</DialogTitle>
             <DialogDescription className="text-center text-sm">
-              Your seat is reserved! Save your booking number for reference.
+              Thank you for reserving your spot at the e& Egypt Ramadan Tent. We look forward to hosting you!
             </DialogDescription>
           </DialogHeader>
           {success && (
@@ -645,6 +645,14 @@ export default function TentRegistrationPage() {
                     <p className="text-sm font-bold text-gray-900">{success.seatCount}</p>
                   </div>
                 </div>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100 space-y-2">
+                <p className="text-xs font-semibold text-amber-800">Please note the following guidelines:</p>
+                <ul className="text-xs text-amber-700 space-y-1.5">
+                  <li className="flex gap-1.5"><span>🕐</span><span><strong>Arrival Time</strong> — Please arrive at least 30 minutes before Maghrib prayer to ensure a smooth seating experience.</span></li>
+                  <li className="flex gap-1.5"><span>🍽️</span><span><strong>Dining Essentials Provided</strong> — All cutlery, plates, and dining essentials are provided at the venue. There is no need to bring your own.</span></li>
+                  <li className="flex gap-1.5"><span>🔄</span><span><strong>Cancellation Policy</strong> — If your plans change and you are unable to attend, please cancel your reservation as early as possible so that your colleagues can benefit from the available spot.</span></li>
+                </ul>
               </div>
               <div className="flex gap-3">
                 <Button

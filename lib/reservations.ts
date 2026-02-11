@@ -93,7 +93,7 @@ export async function createPublicReservation(
     serialNumber,
     reservationDate,
     seatCount,
-    location: 'e& Egypt Corporate Ramadan Tent',
+    location: 'e& Egypt HQ Kattameya, L1',
   })
 
   if (phoneNumber) {

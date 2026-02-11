@@ -75,9 +75,14 @@ export async function sendBookingConfirmationWhatsApp(
 📋 *Serial:* ${serialNumber}
 📅 *Date:* ${dateStr}
 💺 *Seats:* ${seatCount}
-📍 *Location:* e& Egypt Corporate Ramadan Tent
+📍 *Location:* e& Egypt HQ Kattameya, L1
 
-The tent is open — just walk in! Ramadan Kareem! 🌙`
+*Please note:*
+🕐 Arrive at least *30 min before Maghrib* prayer.
+🍽️ Cutlery & plates are *provided* — no need to bring your own.
+🔄 If you can't attend, please *cancel your reservation* so colleagues can use the spot.
+
+Ramadan Kareem! 🌙`
 
   return sendWhatsApp(phone, body)
 }

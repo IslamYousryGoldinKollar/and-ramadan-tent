@@ -43,7 +43,7 @@ export default function HomePage() {
             Ramadan Tent<br className="lg:hidden" /> Registration
           </h1>
           <p className="text-base lg:text-lg text-white/70 mb-8 leading-relaxed max-w-md mx-auto opacity-0 animate-fade-in-up delay-400">
-            Reserve your seat at the e& Egypt Ramadan Tent for Iftar & Suhoor
+            Secure your spot at the e& Egypt Ramadan Tent for Iftar at HQ Kattameya, L1.
           </p>
           <div className="max-w-sm mx-auto space-y-3 opacity-0 animate-fade-in-up delay-600">
             <Link href="/tent-registration" className="block">

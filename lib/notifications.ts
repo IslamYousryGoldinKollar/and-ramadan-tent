@@ -27,7 +27,7 @@ export async function sendBookingConfirmation(
   const subject = `Ramadan Tent Reservation Confirmed - ${data.serialNumber}`
   const text = `Dear Employee,
 
-Your reservation for the e& Egypt Ramadan Tent has been confirmed.
+Your reservation for the e& Egypt Ramadan Tent has been confirmed. We look forward to hosting you!
 
 Reservation Details:
 - Serial Number: ${data.serialNumber}
@@ -35,9 +35,15 @@ Reservation Details:
 - Seats: ${data.seatCount}
 - Location: ${data.location}
 
-The tent is open — just walk in! No QR code needed.
+Please note the following guidelines:
 
-Thank you!
+1. Arrival Time — Please arrive at least 30 minutes before Maghrib prayer to ensure a smooth seating experience.
+
+2. Dining Essentials Provided — All cutlery, plates, and dining essentials are provided at the venue. There is no need to bring your own.
+
+3. Cancellation Policy — If your plans change and you are unable to attend, please cancel your reservation as early as possible so that your colleagues can benefit from the available spot.
+
+We wish you a blessed Ramadan!
 e& Egypt HR Team`
 
   await sendEmail({ to: email, subject, text })
