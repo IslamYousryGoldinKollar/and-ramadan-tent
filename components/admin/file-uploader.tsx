@@ -42,8 +42,14 @@ export function FileUploader({
       })
 
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Upload failed')
+        let msg = 'Upload failed'
+        try {
+          const data = await res.json()
+          msg = data.error || msg
+        } catch {
+          msg = `Upload failed (HTTP ${res.status})`
+        }
+        throw new Error(msg)
       }
 
       const data = await res.json()
