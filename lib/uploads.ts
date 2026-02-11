@@ -21,10 +21,18 @@ export async function saveUpload(
 
   const bucket = getStorageBucket()
   const storageFile = bucket.file(storagePath)
-  await storageFile.save(buffer, {
-    metadata: { contentType: file.type },
-  })
-  await storageFile.makePublic()
+
+  // Save file; attempt public ACL but don't fail if uniform access is on
+  try {
+    await storageFile.save(buffer, {
+      metadata: { contentType: file.type },
+      public: true,
+    })
+  } catch {
+    await storageFile.save(buffer, {
+      metadata: { contentType: file.type },
+    })
+  }
 
   const url = `https://storage.googleapis.com/${bucket.name}/${storagePath}`
   const id = generateId()
