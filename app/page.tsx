@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Brain, Lightbulb, Tent, ChevronRight, CalendarDays, Star, Moon } from 'lucide-react'
+import { Tent, Brain, HeartHandshake, Activity, Moon, ChevronRight } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
+import { KeyVisual } from '@/components/ui/key-visual'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-eand-ocean/95 backdrop-blur-md border-b border-white/10 safe-top">
         <div className="content-container py-3 flex items-center justify-between">
@@ -20,99 +20,141 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-ramadan-hero px-4 pt-12 pb-10 lg:pt-20 lg:pb-16">
-        {/* Animated decorative elements */}
-        <div className="absolute top-6 right-8 text-ramadan-gold/20 animate-float-slow">
-          <Moon className="h-32 w-32 lg:h-48 lg:w-48" />
+      {/* Hero Section */}
+      <section className="w-full bg-[#141a3c]">
+        {/* Key Visual SVG - Full Width, No Overlay */}
+        <div className="w-full">
+          <KeyVisual className="w-full h-auto max-h-[60vh] object-contain" />
         </div>
-        <div className="absolute bottom-4 left-6 text-ramadan-gold/10 animate-float delay-1000">
-          <Star className="h-20 w-20" />
-        </div>
-        <div className="particle w-2 h-2 bg-ramadan-gold/30 top-1/3 left-1/4 animate-twinkle" />
-        <div className="particle w-1.5 h-1.5 bg-ramadan-gold/20 top-1/4 right-1/3 animate-twinkle delay-700" />
-        <div className="particle w-1 h-1 bg-white/20 bottom-1/3 right-1/4 animate-twinkle delay-1500" />
-        <div className="particle w-1.5 h-1.5 bg-ramadan-gold/15 top-1/2 left-[15%] animate-twinkle delay-2000" />
-        <div className="particle w-1 h-1 bg-white/15 bottom-1/4 left-1/3 animate-twinkle delay-500" />
-
-        <div className="content-container text-center relative z-10">
-          <div className="w-20 h-20 lg:w-24 lg:h-24 bg-ramadan-gold/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-6 border border-ramadan-gold/30 animate-pulse-glow opacity-0 animate-scale-in">
-            <Tent className="h-10 w-10 lg:h-12 lg:w-12 text-ramadan-gold" />
-          </div>
-          <h1 className="text-3xl lg:text-5xl font-bold text-white mb-3 leading-tight opacity-0 animate-fade-in-up delay-200">
-            Ramadan Tent<br className="lg:hidden" /> Registration
+        
+        {/* Hero Content - Placed below the visual to avoid overlay */}
+        <div className="content-container py-8 md:py-12 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 animate-fade-in-up">
+            Ramadan Tent Registration
           </h1>
-          <p className="text-base lg:text-lg text-white/70 mb-8 leading-relaxed max-w-md mx-auto opacity-0 animate-fade-in-up delay-400">
-            Secure your spot at the e& Egypt Ramadan Tent for Iftar at HQ Kattameya, L1.
+          <p className="text-white/70 text-lg md:text-xl max-w-2xl mx-auto mb-8 animate-fade-in-up delay-100">
+            Join us for an unforgettable Iftar experience at the e& Egypt Ramadan Tent. 
+            Reserve your spot and celebrate the holy month with us.
           </p>
-          <div className="max-w-sm mx-auto space-y-3 opacity-0 animate-fade-in-up delay-600">
-            <Link href="/tent-registration" className="block">
-              <Button size="lg" className="w-full text-base py-6 rounded-2xl bg-ramadan-gold hover:bg-ramadan-gold/90 text-eand-ocean shadow-lg shadow-ramadan-gold/25 active:scale-[0.98] transition-all font-semibold hover:-translate-y-0.5">
-                <CalendarDays className="h-5 w-5 mr-2" />
+          <div className="flex justify-center animate-fade-in-up delay-200">
+            <Link href="/tent-registration">
+              <Button size="lg" className="px-8 py-6 text-lg rounded-full bg-ramadan-gold hover:bg-ramadan-gold/90 text-eand-ocean font-bold shadow-lg shadow-ramadan-gold/20 transition-transform hover:-translate-y-1">
                 Book Your Seat Now
               </Button>
-            </Link>
-            <Link
-              href="/tent-registration/manage"
-              className="inline-block text-sm text-white/50 hover:text-white/80 transition-colors"
-            >
-              Already registered? Manage your booking →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Activities section */}
-      <section className="flex-1 bg-ramadan-subtle px-4 py-8 lg:py-12">
-        <div className="content-container space-y-4">
-          <h2 className="text-xs font-semibold text-eand-grey uppercase tracking-wider px-1 opacity-0 animate-fade-in delay-300">
-            Ramadan Activities
-          </h2>
+      {/* Main Actions - 2 Big Cards */}
+      <section className="py-12 px-4 -mt-6 relative z-10">
+        <div className="content-container">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Tent Registration Card */}
+            <div className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 p-8 flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-ramadan-gold/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Tent className="w-10 h-10 text-ramadan-gold" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Tent Registration</h2>
+              <p className="text-gray-500 mb-8 leading-relaxed max-w-sm">
+                Secure your table for family and friends. Enjoy our exclusive menu and atmosphere.
+              </p>
+              <Link href="/tent-registration" className="w-full max-w-xs mt-auto">
+                <Button className="w-full py-6 rounded-xl bg-ramadan-gold hover:bg-ramadan-gold/90 text-eand-ocean font-bold">
+                  Enter Registration
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Ramadan Riddles */}
-            <Link href="/riddles" className="block opacity-0 animate-fade-in-up delay-400">
-              <Card className="group modern-card-hover overflow-hidden">
-                <CardContent className="p-5 flex items-center gap-4">
-                  <div className="w-14 h-14 bg-eand-ocean rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <Brain className="h-7 w-7 text-ramadan-gold" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900">Ramadan Riddles</h3>
-                    <p className="text-sm text-eand-grey leading-snug">
-                      Watch episodes, answer questions & win prizes
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-eand-med-grey flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
-                </CardContent>
-              </Card>
+            {/* Ramadan Riddles Card */}
+            <div className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 p-8 flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-eand-ocean/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Brain className="w-10 h-10 text-eand-ocean" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Ramadan Riddles</h2>
+              <p className="text-gray-500 mb-8 leading-relaxed max-w-sm">
+                Test your knowledge and win prizes! Watch daily episodes and answer the riddles.
+              </p>
+              <Link href="/riddles" className="w-full max-w-xs mt-auto">
+                <Button className="w-full py-6 rounded-xl bg-eand-ocean hover:bg-eand-ocean/90 text-white font-bold">
+                  Start Playing
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* Ramadan Tips Section */}
+      <section className="py-12 px-4 bg-white">
+        <div className="content-container">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">Ramadan Tips</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto">
+              Expert advice for your physical, mental, and emotional health during the holy month.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Physical */}
+            <Link href="/wellness" className="group block">
+              <div className="h-full bg-emerald-50 hover:bg-emerald-100/80 rounded-2xl p-6 transition-colors duration-300 border border-emerald-100">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                  <Activity className="w-6 h-6 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-bold text-emerald-900 mb-2">Physical</h3>
+                <p className="text-emerald-700/80 text-sm leading-relaxed">
+                  Nutrition, hydration, and energy management for a healthy body.
+                </p>
+              </div>
             </Link>
 
-            {/* Ramadan Tips */}
-            <Link href="/wellness" className="block opacity-0 animate-fade-in-up delay-500">
-              <Card className="group modern-card-hover overflow-hidden">
-                <CardContent className="p-5 flex items-center gap-4">
-                  <div className="w-14 h-14 bg-eand-dark-green rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <Lightbulb className="h-7 w-7 text-eand-bright-green" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900">Ramadan Tips</h3>
-                    <p className="text-sm text-eand-grey leading-snug">
-                      Health advice & practical tips for Ramadan
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-eand-med-grey flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
-                </CardContent>
-              </Card>
+            {/* Mental */}
+            <Link href="/wellness" className="group block">
+              <div className="h-full bg-sky-50 hover:bg-sky-100/80 rounded-2xl p-6 transition-colors duration-300 border border-sky-100">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                  <Brain className="w-6 h-6 text-sky-600" />
+                </div>
+                <h3 className="text-xl font-bold text-sky-900 mb-2">Mental</h3>
+                <p className="text-sky-700/80 text-sm leading-relaxed">
+                  Focus, clarity, and stress management techniques.
+                </p>
+              </div>
+            </Link>
+
+            {/* Emotional */}
+            <Link href="/wellness" className="group block">
+              <div className="h-full bg-rose-50 hover:bg-rose-100/80 rounded-2xl p-6 transition-colors duration-300 border border-rose-100">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                  <HeartHandshake className="w-6 h-6 text-rose-600" />
+                </div>
+                <h3 className="text-xl font-bold text-rose-900 mb-2">Emotional</h3>
+                <p className="text-rose-700/80 text-sm leading-relaxed">
+                  Balance, connection, and inner peace throughout the month.
+                </p>
+              </div>
+            </Link>
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link href="/wellness">
+              <Button variant="outline" className="px-8 py-6 rounded-xl border-2 border-gray-200 text-gray-600 hover:border-eand-ocean hover:text-eand-ocean font-semibold">
+                View All Tips
+                <ChevronRight className="ml-2 w-4 h-4" />
+              </Button>
             </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-eand-ocean px-4 py-6 text-center safe-bottom">
-        <EandLogo size="sm" className="mx-auto mb-2 brightness-0 invert opacity-40" />
-        <p className="text-white/30 text-xs"> 2026 e& Egypt. All rights reserved.</p>
+      <footer className="bg-eand-ocean px-4 py-8 text-center safe-bottom mt-auto">
+        <EandLogo size="sm" className="mx-auto mb-4 brightness-0 invert opacity-40" />
+        <p className="text-white/30 text-sm">© 2026 e& Egypt. All rights reserved.</p>
       </footer>
     </div>
   )
