@@ -34,8 +34,9 @@ const globalForFirestore = globalThis as unknown as {
   firestore: Firestore | undefined
 }
 
-if (!globalForFirestore.firestore) {
-  globalForFirestore.firestore = getFirestore(getApp(), DATABASE_ID)
+  if (!globalForFirestore.firestore) {
+  // Use default database
+  globalForFirestore.firestore = getFirestore(getApp())
 }
 
 export const db = globalForFirestore.firestore
