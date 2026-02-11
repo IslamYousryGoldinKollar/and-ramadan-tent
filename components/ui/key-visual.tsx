@@ -3,7 +3,6 @@ import React from 'react'
 export function KeyVisual({ className }: { className?: string }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 2617.2 706.6">
-  <!-- Generator: Adobe Illustrator 30.1.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 136)  -->
   <defs>
     <style>{`
       .st0, .st1, .st2, .st3, .st4, .st5, .st6 {
