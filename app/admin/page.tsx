@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/lib/utils'
-import { LayoutDashboard, Calendar, Users, TrendingUp } from 'lucide-react'
+import { LayoutDashboard, Calendar, Users, TrendingUp, Brain, Lightbulb, FileText, BarChart3, ClipboardList, Settings } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
@@ -124,30 +124,41 @@ export default function AdminDashboardPage() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <a
-                href="/admin/calendar"
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Calendar className="h-6 w-6 mb-2 text-eand-red" />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <a href="/admin/reservations" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <ClipboardList className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold">Reservations</h3>
+                <p className="text-sm text-gray-600">Manage bookings</p>
+              </a>
+              <a href="/admin/calendar" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <Calendar className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold">Calendar View</h3>
                 <p className="text-sm text-gray-600">View all reservations</p>
               </a>
-              <a
-                href="/admin/checkin"
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Users className="h-6 w-6 mb-2 text-eand-red" />
-                <h3 className="font-semibold">Check-in System</h3>
+              <a href="/admin/checkin" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <Settings className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold">Check-in</h3>
                 <p className="text-sm text-gray-600">Scan QR codes</p>
               </a>
-              <a
-                href="/admin/calendar"
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <TrendingUp className="h-6 w-6 mb-2 text-eand-red" />
-                <h3 className="font-semibold">Export Data</h3>
-                <p className="text-sm text-gray-600">Download CSV reports</p>
+              <a href="/admin/riddles" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <Brain className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold">Riddles</h3>
+                <p className="text-sm text-gray-600">Episodes & raffles</p>
+              </a>
+              <a href="/admin/tips/daily" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <Lightbulb className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold">Daily Tips</h3>
+                <p className="text-sm text-gray-600">Manage tips</p>
+              </a>
+              <a href="/admin/tips/articles" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <FileText className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold">Articles</h3>
+                <p className="text-sm text-gray-600">Ramadan content</p>
+              </a>
+              <a href="/admin/analytics" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <BarChart3 className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold">Analytics</h3>
+                <p className="text-sm text-gray-600">Traffic & engagement</p>
               </a>
             </div>
           </CardContent>

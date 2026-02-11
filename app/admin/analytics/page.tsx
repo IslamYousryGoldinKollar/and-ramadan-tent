@@ -5,6 +5,12 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { BarChart3, Users, Eye, Clock, MousePointer, Globe, Monitor, Smartphone } from 'lucide-react'
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts'
+
+const COLORS = ['#e4002b', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
 
 interface AnalyticsData {
   overview: {
@@ -63,6 +69,27 @@ export default function AdminAnalyticsPage() {
     { value: '30d', label: '30 days' },
     { value: '90d', label: '90 days' },
   ]
+
+  const devicePieData = data?.overview.deviceBreakdown.map((d) => ({
+    name: d.device || 'unknown',
+    value: d._count.id,
+  })) || []
+
+  const browserPieData = data?.overview.browserBreakdown.map((b) => ({
+    name: b.browser || 'unknown',
+    value: b._count.id,
+  })) || []
+
+  const topPagesBarData = data?.overview.topPages.slice(0, 8).map((p) => ({
+    path: p.path.length > 20 ? p.path.slice(0, 20) + '…' : p.path,
+    fullPath: p.path,
+    views: p._count.id,
+  })) || []
+
+  const hourlyData = Array.from({ length: 24 }, (_, hour) => {
+    const entry = data?.hourlyTraffic.find((h) => h.hour === hour)
+    return { hour: `${hour}:00`, views: entry?.count || 0 }
+  })
 
   return (
     <DashboardLayout>
@@ -138,30 +165,124 @@ export default function AdminAnalyticsPage() {
               </Card>
             </div>
 
+            {/* Page Views Over Time — Line Chart */}
+            <Card className="animate-fade-in-up delay-500">
+              <CardHeader>
+                <CardTitle className="text-base">Page Views Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {data.viewsOverTime.length === 0 ? (
+                  <p className="text-sm text-gray-500">No data yet.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={data.viewsOverTime}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="count" name="Views" stroke="#e4002b" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Top Pages */}
-              <Card className="animate-fade-in-up delay-500">
+              {/* Device Breakdown — Pie Chart */}
+              <Card className="animate-fade-in-up delay-600">
                 <CardHeader>
-                  <CardTitle className="text-base">Top Pages</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Monitor className="h-4 w-4" /> Visitors by Device
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {data.overview.topPages.length === 0 ? (
+                  {devicePieData.length === 0 ? (
                     <p className="text-sm text-gray-500">No data yet.</p>
                   ) : (
-                    <div className="space-y-3">
-                      {data.overview.topPages.map((page, i) => (
-                        <div key={i} className="flex items-center justify-between">
-                          <span className="text-sm font-mono truncate flex-1">{page.path}</span>
-                          <span className="text-sm font-semibold ml-2">{page._count.id}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie data={devicePieData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
+                          {devicePieData.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Events */}
-              <Card className="animate-fade-in-up delay-500">
+              {/* Browser Breakdown — Pie Chart */}
+              <Card className="animate-fade-in-up delay-600">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Globe className="h-4 w-4" /> Visitors by Browser
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {browserPieData.length === 0 ? (
+                    <p className="text-sm text-gray-500">No data yet.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie data={browserPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
+                          {browserPieData.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Top Pages — Horizontal Bar Chart */}
+              <Card className="animate-fade-in-up delay-700">
+                <CardHeader>
+                  <CardTitle className="text-base">Top Pages</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {topPagesBarData.length === 0 ? (
+                    <p className="text-sm text-gray-500">No data yet.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={Math.max(200, topPagesBarData.length * 36)}>
+                      <BarChart data={topPagesBarData} layout="vertical" margin={{ left: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis type="number" tick={{ fontSize: 12 }} allowDecimals={false} />
+                        <YAxis dataKey="path" type="category" tick={{ fontSize: 11 }} width={120} />
+                        <Tooltip formatter={(value: any) => [value, 'Views']} labelFormatter={(label: any) => {
+                          const item = topPagesBarData.find((p) => p.path === String(label))
+                          return item?.fullPath || String(label)
+                        }} />
+                        <Bar dataKey="views" fill="#e4002b" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Hourly Traffic — Bar Chart */}
+              <Card className="animate-fade-in-up delay-700">
+                <CardHeader>
+                  <CardTitle className="text-base">Hourly Traffic</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={hourlyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={2} />
+                      <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="views" name="Views" fill="#e4002b" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Custom Events */}
+              <Card className="animate-fade-in-up delay-800">
                 <CardHeader>
                   <CardTitle className="text-base">Custom Events</CardTitle>
                 </CardHeader>
@@ -181,75 +302,8 @@ export default function AdminAnalyticsPage() {
                 </CardContent>
               </Card>
 
-              {/* Device Breakdown */}
-              <Card className="animate-fade-in-up delay-600">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Monitor className="h-4 w-4" /> Device Breakdown
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {data.overview.deviceBreakdown.length === 0 ? (
-                    <p className="text-sm text-gray-500">No data yet.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {data.overview.deviceBreakdown.map((d, i) => {
-                        const total = data.overview.totalPageViews || 1
-                        const pct = Math.round((d._count.id / total) * 100)
-                        return (
-                          <div key={i}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm flex items-center gap-1">
-                                {d.device === 'mobile' ? <Smartphone className="h-3 w-3" /> : <Monitor className="h-3 w-3" />}
-                                {d.device || 'unknown'}
-                              </span>
-                              <span className="text-sm font-semibold">{pct}% ({d._count.id})</span>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2">
-                              <div className="bg-eand-red rounded-full h-2" style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Browser Breakdown */}
-              <Card className="animate-fade-in-up delay-600">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Globe className="h-4 w-4" /> Browser Breakdown
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {data.overview.browserBreakdown.length === 0 ? (
-                    <p className="text-sm text-gray-500">No data yet.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {data.overview.browserBreakdown.map((b, i) => {
-                        const total = data.overview.totalPageViews || 1
-                        const pct = Math.round((b._count.id / total) * 100)
-                        return (
-                          <div key={i}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm">{b.browser || 'unknown'}</span>
-                              <span className="text-sm font-semibold">{pct}% ({b._count.id})</span>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2">
-                              <div className="bg-blue-500 rounded-full h-2" style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Top Referrers */}
-              <Card className="animate-fade-in-up delay-700">
+              <Card className="animate-fade-in-up delay-800">
                 <CardHeader>
                   <CardTitle className="text-base">Top Referrers</CardTitle>
                 </CardHeader>
@@ -264,39 +318,6 @@ export default function AdminAnalyticsPage() {
                           <span className="text-sm font-semibold ml-2">{ref._count.id}</span>
                         </div>
                       ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Hourly Traffic */}
-              <Card className="animate-fade-in-up delay-700">
-                <CardHeader>
-                  <CardTitle className="text-base">Hourly Traffic</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {data.hourlyTraffic.length === 0 ? (
-                    <p className="text-sm text-gray-500">No data yet.</p>
-                  ) : (
-                    <div className="flex items-end gap-0.5 h-32">
-                      {Array.from({ length: 24 }, (_, hour) => {
-                        const entry = data.hourlyTraffic.find(h => h.hour === hour)
-                        const count = entry?.count || 0
-                        const max = Math.max(...data.hourlyTraffic.map(h => h.count), 1)
-                        const height = (count / max) * 100
-                        return (
-                          <div
-                            key={hour}
-                            className="flex-1 bg-eand-red/80 rounded-t hover:bg-eand-red transition-colors relative group"
-                            style={{ height: `${Math.max(height, 2)}%` }}
-                            title={`${hour}:00 - ${count} views`}
-                          >
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none">
-                              {hour}:00 ({count})
-                            </div>
-                          </div>
-                        )
-                      })}
                     </div>
                   )}
                 </CardContent>
