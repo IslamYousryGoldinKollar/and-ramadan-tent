@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(uploads)
   } catch (error) {
     console.error('Error listing uploads:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error', debug: error instanceof Error ? error.message : String(error) }, { status: 500 })
   }
 }
 
