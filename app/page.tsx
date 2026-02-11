@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Tent, Brain, HeartHandshake, Activity, Moon, ChevronRight } from 'lucide-react'
+import { Tent, Brain, HeartHandshake, Activity, Moon, ChevronRight, Sparkles } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
 import { KeyVisual } from '@/components/ui/key-visual'
 
@@ -68,18 +68,18 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Ramadan Riddles Card */}
+            {/* Ramadan Tips Card */}
             <div className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 p-8 flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-eand-ocean/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Brain className="w-10 h-10 text-eand-ocean" />
+              <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Sparkles className="w-10 h-10 text-emerald-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Ramadan Riddles</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Ramadan Tips</h2>
               <p className="text-gray-500 mb-8 leading-relaxed max-w-sm">
-                Test your knowledge and win prizes! Watch daily episodes and answer the riddles.
+                Expert advice for your physical, mental, and emotional health during the holy month.
               </p>
-              <Link href="/riddles" className="w-full max-w-xs mt-auto">
-                <Button className="w-full py-6 rounded-xl bg-eand-ocean hover:bg-eand-ocean/90 text-white font-bold">
-                  Start Playing
+              <Link href="/wellness" className="w-full max-w-xs mt-auto">
+                <Button className="w-full py-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                  Explore Tips
                   <ChevronRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
