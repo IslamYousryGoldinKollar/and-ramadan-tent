@@ -20,13 +20,10 @@ export async function GET() {
     endOfToday.setHours(23, 59, 59, 999)
 
     // Fetch all active reservations
-    let allActive: any[] = []
-    for (const status of ACTIVE_STATUSES) {
-      const snap = await db.collection('reservations')
-        .where('status', '==', status)
-        .get()
-      allActive.push(...docsToArray(snap))
-    }
+    const activeSnap = await db.collection('reservations')
+      .where('status', 'in', ACTIVE_STATUSES)
+      .get()
+    const allActive = docsToArray(activeSnap) as any[]
 
     const totalReservations = allActive.length
     const totalSeatsBooked = allActive.reduce((sum: number, r: any) => sum + (r.seatCount || 0), 0)

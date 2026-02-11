@@ -118,9 +118,16 @@ export async function DELETE(request: NextRequest) {
 
     if (clearAll) {
       const snap = await db.collection('reservations').get()
-      const batch = db.batch()
-      snap.docs.forEach((d) => batch.delete(d.ref))
-      await batch.commit()
+      // Firestore batch limit is 500 operations
+      const chunks: FirebaseFirestore.DocumentReference[][] = []
+      for (let i = 0; i < snap.docs.length; i += 500) {
+        chunks.push(snap.docs.slice(i, i + 500).map((d) => d.ref))
+      }
+      for (const chunk of chunks) {
+        const batch = db.batch()
+        chunk.forEach((ref) => batch.delete(ref))
+        await batch.commit()
+      }
       return NextResponse.json({ deleted: snap.size })
     }
 

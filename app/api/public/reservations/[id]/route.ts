@@ -108,17 +108,15 @@ export async function PATCH(
     const endOfDay = new Date(validated.newDate)
     endOfDay.setHours(23, 59, 59, 999)
 
+    const existingSnap = await db.collection('reservations')
+      .where('status', 'in', ACTIVE_STATUSES)
+      .where('reservationDate', '>=', startOfDay)
+      .where('reservationDate', '<=', endOfDay)
+      .get()
     let bookedSeats = 0
-    for (const status of ACTIVE_STATUSES) {
-      const snap = await db.collection('reservations')
-        .where('reservationDate', '>=', startOfDay)
-        .where('reservationDate', '<=', endOfDay)
-        .where('status', '==', status)
-        .get()
-      for (const d of snap.docs) {
-        if (d.id !== params.id) {
-          bookedSeats += d.data().seatCount || 0
-        }
+    for (const d of existingSnap.docs) {
+      if (d.id !== params.id) {
+        bookedSeats += d.data().seatCount || 0
       }
     }
 

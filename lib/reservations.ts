@@ -17,16 +17,12 @@ async function getActiveReservationsForDate(reservationDate: Date) {
   const endOfDay = new Date(reservationDate)
   endOfDay.setHours(23, 59, 59, 999)
 
-  const results: any[] = []
-  for (const status of ACTIVE_STATUSES) {
-    const snap = await db.collection('reservations')
-      .where('reservationDate', '>=', startOfDay)
-      .where('reservationDate', '<=', endOfDay)
-      .where('status', '==', status)
-      .get()
-    results.push(...docsToArray(snap))
-  }
-  return results
+  const snap = await db.collection('reservations')
+    .where('status', 'in', ACTIVE_STATUSES)
+    .where('reservationDate', '>=', startOfDay)
+    .where('reservationDate', '<=', endOfDay)
+    .get()
+  return docsToArray(snap)
 }
 
 /**
@@ -310,15 +306,12 @@ export async function checkAvailabilityRange(
   const end = new Date(endDate)
   end.setHours(23, 59, 59, 999)
 
-  const reservations: any[] = []
-  for (const status of ACTIVE_STATUSES) {
-    const snap = await db.collection('reservations')
-      .where('reservationDate', '>=', start)
-      .where('reservationDate', '<=', end)
-      .where('status', '==', status)
-      .get()
-    reservations.push(...docsToArray(snap))
-  }
+  const snap = await db.collection('reservations')
+    .where('status', 'in', ACTIVE_STATUSES)
+    .where('reservationDate', '>=', start)
+    .where('reservationDate', '<=', end)
+    .get()
+  const reservations = docsToArray(snap) as any[]
 
   const dailyBooked: Record<string, number> = {}
   for (const r of reservations) {
@@ -346,15 +339,12 @@ export async function checkAvailabilityRange(
  * Get reservations for a date range (for calendar view)
  */
 export async function getReservationsForDateRange(startDate: Date, endDate: Date) {
-  const reservations: any[] = []
-  for (const status of ACTIVE_STATUSES) {
-    const snap = await db.collection('reservations')
-      .where('reservationDate', '>=', startDate)
-      .where('reservationDate', '<=', endDate)
-      .where('status', '==', status)
-      .get()
-    reservations.push(...docsToArray(snap))
-  }
+  const snap = await db.collection('reservations')
+    .where('status', 'in', ACTIVE_STATUSES)
+    .where('reservationDate', '>=', startDate)
+    .where('reservationDate', '<=', endDate)
+    .get()
+  const reservations = docsToArray(snap) as any[]
 
   // Enrich with user data
   const userIds = [...new Set(reservations.map((r) => r.userId).filter(Boolean))]
