@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { prisma } from '@/lib/prisma'
-import { ReservationStatus, Prisma } from '@prisma/client'
+import { db, toPlainObject, docsToArray } from '@/lib/db'
+
+const VALID_STATUSES = ['CONFIRMED', 'PENDING', 'CANCELLED', 'RESCHEDULED', 'CHECKED_IN']
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,58 +22,79 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt'
     const sortDir = (searchParams.get('sortDir') || 'desc') as 'asc' | 'desc'
 
-    const where: Prisma.ReservationWhereInput = {}
+    // Build query - Firestore has limited compound queries so we filter in code
+    let query: FirebaseFirestore.Query = db.collection('reservations')
 
-    // Search filter
-    if (search) {
-      where.OR = [
-        { employeeName: { contains: search, mode: 'insensitive' } },
-        { employeeId: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { serialNumber: { contains: search, mode: 'insensitive' } },
-        { phoneNumber: { contains: search, mode: 'insensitive' } },
-      ]
+    if (status && VALID_STATUSES.includes(status)) {
+      query = query.where('status', '==', status)
     }
 
-    // Status filter
-    if (status && Object.values(ReservationStatus).includes(status as ReservationStatus)) {
-      where.status = status as ReservationStatus
-    }
+    const snap = await query.get()
+    let reservations = docsToArray(snap) as any[]
 
     // Date range filter
     if (dateFrom) {
-      where.reservationDate = { ...((where.reservationDate as any) || {}), gte: new Date(dateFrom) }
+      const from = new Date(dateFrom)
+      reservations = reservations.filter((r) => {
+        const d = r.reservationDate instanceof Date ? r.reservationDate : new Date(r.reservationDate)
+        return d >= from
+      })
     }
     if (dateTo) {
       const end = new Date(dateTo)
       end.setHours(23, 59, 59, 999)
-      where.reservationDate = { ...((where.reservationDate as any) || {}), lte: end }
+      reservations = reservations.filter((r) => {
+        const d = r.reservationDate instanceof Date ? r.reservationDate : new Date(r.reservationDate)
+        return d <= end
+      })
     }
 
-    // Sorting
-    const orderBy: Prisma.ReservationOrderByWithRelationInput = {}
+    // Search filter (client-side)
+    if (search) {
+      const s = search.toLowerCase()
+      reservations = reservations.filter((r) =>
+        r.employeeName?.toLowerCase().includes(s) ||
+        r.employeeId?.toLowerCase().includes(s) ||
+        r.email?.toLowerCase().includes(s) ||
+        r.serialNumber?.toLowerCase().includes(s) ||
+        r.phoneNumber?.toLowerCase().includes(s)
+      )
+    }
+
+    const total = reservations.length
+
+    // Sort
     const validSortFields = ['createdAt', 'reservationDate', 'employeeName', 'seatCount', 'status', 'serialNumber']
-    if (validSortFields.includes(sortBy)) {
-      (orderBy as any)[sortBy] = sortDir
-    } else {
-      orderBy.createdAt = 'desc'
+    const field = validSortFields.includes(sortBy) ? sortBy : 'createdAt'
+    reservations.sort((a, b) => {
+      const aVal = a[field] ?? ''
+      const bVal = b[field] ?? ''
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+
+    // Paginate
+    const paginated = reservations.slice((page - 1) * limit, page * limit)
+
+    // Enrich with user data
+    const userIds = [...new Set(paginated.map((r) => r.userId).filter(Boolean))]
+    const userMap: Record<string, any> = {}
+    for (const uid of userIds) {
+      const userDoc = await db.collection('users').doc(uid).get()
+      if (userDoc.exists) {
+        const u = toPlainObject(userDoc)!
+        userMap[uid] = { fullName: (u as any).fullName, department: (u as any).department }
+      }
     }
 
-    const [reservations, total] = await Promise.all([
-      prisma.reservation.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          user: { select: { fullName: true, department: true } },
-        },
-      }),
-      prisma.reservation.count({ where }),
-    ])
+    const enriched = paginated.map((r) => ({
+      ...r,
+      user: r.userId ? userMap[r.userId] || null : null,
+    }))
 
     return NextResponse.json({
-      reservations,
+      reservations: enriched,
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -95,13 +117,20 @@ export async function DELETE(request: NextRequest) {
     const { ids, clearAll } = body
 
     if (clearAll) {
-      const result = await prisma.reservation.deleteMany({})
-      return NextResponse.json({ deleted: result.count })
+      const snap = await db.collection('reservations').get()
+      const batch = db.batch()
+      snap.docs.forEach((d) => batch.delete(d.ref))
+      await batch.commit()
+      return NextResponse.json({ deleted: snap.size })
     }
 
     if (ids && Array.isArray(ids) && ids.length > 0) {
-      const result = await prisma.reservation.deleteMany({ where: { id: { in: ids } } })
-      return NextResponse.json({ deleted: result.count })
+      const batch = db.batch()
+      for (const id of ids) {
+        batch.delete(db.collection('reservations').doc(id))
+      }
+      await batch.commit()
+      return NextResponse.json({ deleted: ids.length })
     }
 
     return NextResponse.json({ error: 'No IDs provided' }, { status: 400 })

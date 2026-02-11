@@ -1,5 +1,4 @@
-import { prisma } from './prisma'
-import { UserRole } from '@prisma/client'
+import { db, toPlainObject, docsToArray } from './db'
 
 export enum PriorityTier {
   TIER_1 = 1, // High Priority: First-time users (0 bookings)
@@ -13,47 +12,41 @@ export interface PriorityScore {
   bookingCount: number
 }
 
+const ACTIVE_STATUSES = ['CONFIRMED', 'RESCHEDULED', 'CHECKED_IN']
+
 /**
  * Calculate priority score based on booking history
- * @param userId - User ID to check history for
- * @returns Priority score object with tier, score, and booking count
  */
 export async function calculatePriorityScore(userId: string): Promise<PriorityScore> {
   // Count confirmed bookings (exclude cancelled)
-  const bookingCount = await prisma.reservation.count({
-    where: {
-      userId,
-      status: {
-        in: ['CONFIRMED', 'RESCHEDULED', 'CHECKED_IN'],
-      },
-    },
-  })
+  let bookingCount = 0
+  for (const status of ACTIVE_STATUSES) {
+    const snap = await db.collection('reservations')
+      .where('userId', '==', userId)
+      .where('status', '==', status)
+      .get()
+    bookingCount += snap.size
+  }
 
   let tier: PriorityTier
   let score: number
 
   if (bookingCount === 0) {
     tier = PriorityTier.TIER_1
-    score = 100 // Highest priority
+    score = 100
   } else if (bookingCount <= 2) {
     tier = PriorityTier.TIER_2
-    score = 50 // Medium priority
+    score = 50
   } else {
     tier = PriorityTier.TIER_3
-    score = 10 // Lowest priority
+    score = 10
   }
 
-  return {
-    tier,
-    score,
-    bookingCount,
-  }
+  return { tier, score, bookingCount }
 }
 
 /**
  * Get the highest priority user from waiting list for a specific date
- * @param targetDate - Date to find waiting list entries for
- * @returns Waiting list entry with highest priority, or null if none found
  */
 export async function getHighestPriorityWaitingListUser(targetDate: Date) {
   const startOfDay = new Date(targetDate)
@@ -61,22 +54,27 @@ export async function getHighestPriorityWaitingListUser(targetDate: Date) {
   const endOfDay = new Date(targetDate)
   endOfDay.setHours(23, 59, 59, 999)
 
-  const waitingListEntry = await prisma.waitingList.findFirst({
-    where: {
-      targetDate: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
-      status: 'PENDING',
-    },
-    orderBy: [
-      { priorityScore: 'desc' }, // Higher score = higher priority
-      { createdAt: 'asc' }, // Earlier signup = higher priority if same score
-    ],
-    include: {
-      user: true,
-    },
+  const snapshot = await db.collection('waitingList')
+    .where('targetDate', '>=', startOfDay)
+    .where('targetDate', '<=', endOfDay)
+    .where('status', '==', 'PENDING')
+    .orderBy('targetDate')
+    .get()
+
+  if (snapshot.empty) return null
+
+  // Sort by priorityScore desc, then createdAt asc
+  const entries = docsToArray(snapshot)
+  entries.sort((a: any, b: any) => {
+    if (b.priorityScore !== a.priorityScore) return b.priorityScore - a.priorityScore
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   })
 
-  return waitingListEntry
+  const entry = entries[0] as any
+
+  // Enrich with user data
+  const userDoc = await db.collection('users').doc(entry.userId).get()
+  const user = toPlainObject(userDoc)
+
+  return { ...entry, user }
 }

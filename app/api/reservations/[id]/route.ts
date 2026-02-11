@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { cancelReservation, rescheduleReservation } from '@/lib/reservations'
-import { prisma } from '@/lib/prisma'
-import { ReservationStatus } from '@prisma/client'
+import { db, toPlainObject } from '@/lib/db'
 import { z } from 'zod'
+
+const VALID_STATUSES = ['CONFIRMED', 'PENDING', 'CANCELLED', 'RESCHEDULED', 'CHECKED_IN'] as const
 
 const rescheduleSchema = z.object({
   newDate: z.string().transform((str) => new Date(str)).optional(),
-  status: z.nativeEnum(ReservationStatus).optional(),
+  status: z.enum(VALID_STATUSES).optional(),
 })
 
 export async function DELETE(
@@ -47,11 +48,12 @@ export async function PATCH(
 
     // Admin can update status directly (for check-in)
     if (validated.status && session.user.role === 'ADMIN') {
-      const reservation = await prisma.reservation.update({
-        where: { id: params.id },
-        data: { status: validated.status },
-        include: { user: true },
+      await db.collection('reservations').doc(params.id).update({
+        status: validated.status,
+        updatedAt: new Date(),
       })
+      const updatedDoc = await db.collection('reservations').doc(params.id).get()
+      const reservation = toPlainObject(updatedDoc)
       return NextResponse.json(reservation)
     }
 

@@ -1,4 +1,4 @@
-import { prisma } from './prisma'
+import { db, generateId, toPlainObject, docsToArray } from './db'
 import { writeFile, mkdir, unlink } from 'fs/promises'
 import path from 'path'
 
@@ -23,7 +23,6 @@ export async function saveUpload(
   const bytes = await file.arrayBuffer()
   const buffer = Buffer.from(bytes)
 
-  // Generate unique filename
   const ext = path.extname(file.name)
   const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9-_]/g, '_')
   const uniqueName = `${baseName}-${Date.now()}${ext}`
@@ -32,43 +31,42 @@ export async function saveUpload(
   await writeFile(filePath, buffer)
 
   const url = `/uploads/${uniqueName}`
+  const id = generateId()
+  const doc = {
+    filename: file.name,
+    mimeType: file.type,
+    size: file.size,
+    url,
+    uploadedBy: uploadedBy || null,
+    createdAt: new Date(),
+  }
+  await db.collection('uploads').doc(id).set(doc)
 
-  const upload = await prisma.upload.create({
-    data: {
-      filename: file.name,
-      mimeType: file.type,
-      size: file.size,
-      url,
-      uploadedBy,
-    },
-  })
-
-  return { id: upload.id, url: upload.url, filename: upload.filename }
+  return { id, url, filename: file.name }
 }
 
 /**
  * List all uploads
  */
 export async function listUploads(options?: { mimeType?: string }) {
-  const where: any = {}
+  const snap = await db.collection('uploads').orderBy('createdAt', 'desc').get()
+  let uploads = docsToArray(snap) as any[]
+
   if (options?.mimeType) {
-    where.mimeType = { startsWith: options.mimeType }
+    uploads = uploads.filter((u) => u.mimeType?.startsWith(options.mimeType!))
   }
 
-  return prisma.upload.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-  })
+  return uploads
 }
 
 /**
  * Delete an upload (file + DB record)
  */
 export async function deleteUpload(id: string) {
-  const upload = await prisma.upload.findUnique({ where: { id } })
-  if (!upload) throw new Error('Upload not found')
+  const doc = await db.collection('uploads').doc(id).get()
+  if (!doc.exists) throw new Error('Upload not found')
+  const upload = toPlainObject<any>(doc)!
 
-  // Delete file from disk
   const filePath = path.join(process.cwd(), 'public', upload.url)
   try {
     await unlink(filePath)
@@ -76,12 +74,14 @@ export async function deleteUpload(id: string) {
     // File may already be deleted
   }
 
-  return prisma.upload.delete({ where: { id } })
+  await db.collection('uploads').doc(id).delete()
+  return upload
 }
 
 /**
  * Get upload by ID
  */
 export async function getUploadById(id: string) {
-  return prisma.upload.findUnique({ where: { id } })
+  const doc = await db.collection('uploads').doc(id).get()
+  return toPlainObject(doc)
 }

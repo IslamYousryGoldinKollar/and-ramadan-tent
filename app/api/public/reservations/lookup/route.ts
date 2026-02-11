@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db, toPlainObject } from '@/lib/db'
 import { z } from 'zod'
 
 const lookupSchema = z.object({
@@ -12,38 +12,27 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validated = lookupSchema.parse(body)
 
-    const reservation = await prisma.reservation.findUnique({
-      where: { serialNumber: validated.serialNumber },
-    })
+    const snap = await db.collection('reservations')
+      .where('serialNumber', '==', validated.serialNumber)
+      .limit(1)
+      .get()
 
-    if (!reservation) {
-      return NextResponse.json(
-        { error: 'Reservation not found' },
-        { status: 404 }
-      )
+    if (snap.empty) {
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
 
-    // Verify email matches
+    const reservation = toPlainObject<any>(snap.docs[0])!
+
     if (reservation.email?.toLowerCase() !== validated.email.toLowerCase()) {
-      return NextResponse.json(
-        { error: 'Email does not match reservation' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Email does not match reservation' }, { status: 403 })
     }
 
     return NextResponse.json(reservation)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 })
     }
-
     console.error('Error looking up reservation:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

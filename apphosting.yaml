@@ -7,8 +7,6 @@ runConfig:
   concurrency: 80
 
 env:
-  - variable: DATABASE_URL
-    value: "postgres://f7abd7f13763a3c6e897b220926d321d2e28477c1e523b709682d229b3744ace:sk_-ncbry7FxrmP_jw_8vuy1@db.prisma.io:5432/postgres?sslmode=require"
   - variable: NEXTAUTH_URL
     value: "https://peopleofeand.goldinkollar.com"
   - variable: NEXTAUTH_SECRET

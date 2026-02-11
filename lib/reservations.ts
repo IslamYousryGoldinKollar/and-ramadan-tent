@@ -1,12 +1,33 @@
-import { prisma } from './prisma'
-import { ReservationStatus } from '@prisma/client'
-import { generateUniqueSerialNumber, calculateCredits, MAX_CAPACITY } from './utils'
+import { db, generateId, toPlainObject, docsToArray, generateUniqueSerialNumber } from './db'
+import { calculateCredits, MAX_CAPACITY } from './utils'
 import { generateQRCode } from './qrcode'
 import { fillVacatedSlots } from './waiting-list'
 import { sendBookingConfirmation, sendModificationAlert, sendCancellationConfirmation } from './notifications'
 import { sendBookingConfirmationSms } from './sms'
 import { sendBookingConfirmationWhatsApp, sendCancellationWhatsApp, sendRescheduleWhatsApp } from './whatsapp'
 import { createAuditLog } from './audit'
+
+export type ReservationStatus = 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'RESCHEDULED' | 'CHECKED_IN'
+
+const ACTIVE_STATUSES: ReservationStatus[] = ['CONFIRMED', 'RESCHEDULED', 'CHECKED_IN']
+
+async function getActiveReservationsForDate(reservationDate: Date) {
+  const startOfDay = new Date(reservationDate)
+  startOfDay.setHours(0, 0, 0, 0)
+  const endOfDay = new Date(reservationDate)
+  endOfDay.setHours(23, 59, 59, 999)
+
+  const results: any[] = []
+  for (const status of ACTIVE_STATUSES) {
+    const snap = await db.collection('reservations')
+      .where('reservationDate', '>=', startOfDay)
+      .where('reservationDate', '<=', endOfDay)
+      .where('status', '==', status)
+      .get()
+    results.push(...docsToArray(snap))
+  }
+  return results
+}
 
 /**
  * Check availability for a specific date
@@ -16,24 +37,8 @@ export async function checkAvailability(reservationDate: Date): Promise<{
   availableSeats: number
   bookedSeats: number
 }> {
-  const startOfDay = new Date(reservationDate)
-  startOfDay.setHours(0, 0, 0, 0)
-  const endOfDay = new Date(reservationDate)
-  endOfDay.setHours(23, 59, 59, 999)
-
-  const existingReservations = await prisma.reservation.findMany({
-    where: {
-      reservationDate: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
-      status: {
-        in: [ReservationStatus.CONFIRMED, ReservationStatus.RESCHEDULED, ReservationStatus.CHECKED_IN],
-      },
-    },
-  })
-
-  const bookedSeats = existingReservations.reduce((sum, r) => sum + r.seatCount, 0)
+  const existingReservations = await getActiveReservationsForDate(reservationDate)
+  const bookedSeats = existingReservations.reduce((sum: number, r: any) => sum + r.seatCount, 0)
   const availableSeats = MAX_CAPACITY - bookedSeats
 
   return {
@@ -54,39 +59,40 @@ export async function createPublicReservation(
   reservationDate: Date,
   seatCount: number
 ) {
-  // Validate seat count
   if (seatCount < 1 || seatCount > MAX_CAPACITY) {
     throw new Error(`Seat count must be between 1 and ${MAX_CAPACITY}`)
   }
 
-  // Check availability
   const availability = await checkAvailability(reservationDate)
   if (availability.availableSeats < seatCount) {
     throw new Error(`Only ${availability.availableSeats} seats available`)
   }
 
-  // Generate unique serial number and QR code
-  const serialNumber = await generateUniqueSerialNumber(prisma)
+  const serialNumber = await generateUniqueSerialNumber()
   const qrCodeString = await generateQRCode(serialNumber)
   const creditsUsed = calculateCredits(seatCount)
 
-  // Create reservation without user relation
-  const reservation = await prisma.reservation.create({
-    data: {
-      employeeId,
-      employeeName,
-      email: email.toLowerCase(),
-      phoneNumber,
-      reservationDate,
-      seatCount,
-      status: ReservationStatus.CONFIRMED,
-      serialNumber,
-      qrCodeString,
-      creditsUsed,
-    },
-  })
+  const id = generateId()
+  const now = new Date()
+  const reservation = {
+    employeeId,
+    employeeName,
+    email: email.toLowerCase(),
+    phoneNumber,
+    reservationDate,
+    seatCount,
+    status: 'CONFIRMED' as ReservationStatus,
+    serialNumber,
+    qrCodeString,
+    creditsUsed,
+    userId: null,
+    createdAt: now,
+    updatedAt: now,
+  }
 
-  // Send confirmation email
+  await db.collection('reservations').doc(id).set(reservation)
+  const result = { id, ...reservation }
+
   await sendBookingConfirmation(email, {
     serialNumber,
     reservationDate,
@@ -94,7 +100,6 @@ export async function createPublicReservation(
     location: 'e& Egypt Corporate Ramadan Tent',
   })
 
-  // Send confirmation SMS + WhatsApp
   if (phoneNumber) {
     await Promise.allSettled([
       sendBookingConfirmationSms(phoneNumber, serialNumber, reservationDate, seatCount),
@@ -102,7 +107,7 @@ export async function createPublicReservation(
     ])
   }
 
-  return reservation
+  return result
 }
 
 /**
@@ -113,47 +118,47 @@ export async function createReservation(
   reservationDate: Date,
   seatCount: number
 ) {
-  // Validate seat count
   if (seatCount < 1 || seatCount > MAX_CAPACITY) {
     throw new Error(`Seat count must be between 1 and ${MAX_CAPACITY}`)
   }
 
-  // Check availability
   const availability = await checkAvailability(reservationDate)
   if (availability.availableSeats < seatCount) {
     throw new Error(`Only ${availability.availableSeats} seats available`)
   }
 
-  // Generate unique serial number and QR code
-  const serialNumber = await generateUniqueSerialNumber(prisma)
+  const serialNumber = await generateUniqueSerialNumber()
   const qrCodeString = await generateQRCode(serialNumber)
   const creditsUsed = calculateCredits(seatCount)
 
-  // Create reservation
-  const reservation = await prisma.reservation.create({
-    data: {
-      userId,
-      reservationDate,
-      seatCount,
-      status: ReservationStatus.CONFIRMED,
-      serialNumber,
-      qrCodeString,
-      creditsUsed,
-    },
-    include: {
-      user: true,
-    },
-  })
-
-  // Create audit log
-  await createAuditLog(userId, reservation.id, 'CREATED', {
+  const id = generateId()
+  const now = new Date()
+  const reservationData = {
+    userId,
     reservationDate,
     seatCount,
+    status: 'CONFIRMED' as ReservationStatus,
     serialNumber,
-  })
+    qrCodeString,
+    creditsUsed,
+    employeeId: null,
+    employeeName: null,
+    email: null,
+    phoneNumber: null,
+    createdAt: now,
+    updatedAt: now,
+  }
 
-  // Send confirmation email
-  const email = reservation.user?.email || reservation.email
+  await db.collection('reservations').doc(id).set(reservationData)
+
+  // Get user for email
+  const userDoc = await db.collection('users').doc(userId).get()
+  const user = toPlainObject(userDoc)
+  const reservation = { id, ...reservationData, user }
+
+  await createAuditLog(userId, id, 'CREATED', { reservationDate, seatCount, serialNumber })
+
+  const email = user?.email || reservationData.email
   if (email) {
     await sendBookingConfirmation(email, {
       serialNumber,
@@ -170,47 +175,40 @@ export async function createReservation(
  * Cancel a reservation
  */
 export async function cancelReservation(reservationId: string, userId: string) {
-  const reservation = await prisma.reservation.findUnique({
-    where: { id: reservationId },
-    include: { user: true },
+  const doc = await db.collection('reservations').doc(reservationId).get()
+  if (!doc.exists) throw new Error('Reservation not found')
+
+  const reservation = toPlainObject<any>(doc)!
+
+  if (reservation.userId !== userId) throw new Error('Unauthorized')
+  if (reservation.status === 'CANCELLED') throw new Error('Reservation already cancelled')
+
+  await db.collection('reservations').doc(reservationId).update({
+    status: 'CANCELLED',
+    updatedAt: new Date(),
   })
 
-  if (!reservation) {
-    throw new Error('Reservation not found')
-  }
-
-  if (reservation.userId !== userId) {
-    throw new Error('Unauthorized')
-  }
-
-  if (reservation.status === ReservationStatus.CANCELLED) {
-    throw new Error('Reservation already cancelled')
-  }
-
-  // Update reservation status
-  await prisma.reservation.update({
-    where: { id: reservationId },
-    data: { status: ReservationStatus.CANCELLED },
-  })
-
-  // Create audit log
   await createAuditLog(userId, reservationId, 'CANCELLED', {
     reservationDate: reservation.reservationDate,
     seatCount: reservation.seatCount,
   })
 
-  // Send cancellation email + WhatsApp
-  const email = reservation.user?.email || reservation.email
-  if (email) {
-    await sendCancellationConfirmation(email, reservation.serialNumber)
+  // Get user for email
+  let userEmail = reservation.email
+  if (reservation.userId) {
+    const userDoc = await db.collection('users').doc(reservation.userId).get()
+    const user = toPlainObject(userDoc)
+    if (user) userEmail = (user as any).email || userEmail
+  }
+
+  if (userEmail) {
+    await sendCancellationConfirmation(userEmail, reservation.serialNumber)
   }
   if (reservation.phoneNumber) {
     await sendCancellationWhatsApp(reservation.phoneNumber, reservation.serialNumber)
   }
 
-  // Trigger waiting list fill
   await fillVacatedSlots(reservation.reservationDate, reservation.seatCount)
-
   return reservation
 }
 
@@ -222,50 +220,32 @@ export async function rescheduleReservation(
   userId: string,
   newDate: Date
 ) {
-  const reservation = await prisma.reservation.findUnique({
-    where: { id: reservationId },
-    include: { user: true },
-  })
+  const doc = await db.collection('reservations').doc(reservationId).get()
+  if (!doc.exists) throw new Error('Reservation not found')
 
-  if (!reservation) {
-    throw new Error('Reservation not found')
-  }
+  const reservation = toPlainObject<any>(doc)!
 
-  if (reservation.userId !== userId) {
-    throw new Error('Unauthorized')
-  }
-
-  if (reservation.status === ReservationStatus.CANCELLED) {
-    throw new Error('Cannot reschedule a cancelled reservation')
-  }
+  if (reservation.userId !== userId) throw new Error('Unauthorized')
+  if (reservation.status === 'CANCELLED') throw new Error('Cannot reschedule a cancelled reservation')
 
   const oldDate = reservation.reservationDate
 
-  // Check availability for new date
   const availability = await checkAvailability(newDate)
   if (availability.availableSeats < reservation.seatCount) {
     throw new Error(`Only ${availability.availableSeats} seats available on the new date`)
   }
 
-  // Generate new unique serial number and QR code
-  const newSerialNumber = await generateUniqueSerialNumber(prisma)
+  const newSerialNumber = await generateUniqueSerialNumber()
   const newQrCodeString = await generateQRCode(newSerialNumber)
 
-  // Update reservation
-  const updatedReservation = await prisma.reservation.update({
-    where: { id: reservationId },
-    data: {
-      reservationDate: newDate,
-      status: ReservationStatus.RESCHEDULED,
-      serialNumber: newSerialNumber,
-      qrCodeString: newQrCodeString,
-    },
-    include: {
-      user: true,
-    },
+  await db.collection('reservations').doc(reservationId).update({
+    reservationDate: newDate,
+    status: 'RESCHEDULED',
+    serialNumber: newSerialNumber,
+    qrCodeString: newQrCodeString,
+    updatedAt: new Date(),
   })
 
-  // Create audit log
   await createAuditLog(userId, reservationId, 'MOVED', {
     oldDate,
     newDate,
@@ -273,53 +253,53 @@ export async function rescheduleReservation(
     newSerialNumber,
   })
 
-  // Send modification email + WhatsApp
-  const email = reservation.user?.email || reservation.email
-  if (email) {
-    await sendModificationAlert(email, {
-      oldDate,
-      newDate,
-      serialNumber: newSerialNumber,
-    })
+  // Get user for email
+  let userEmail = reservation.email
+  if (reservation.userId) {
+    const userDoc = await db.collection('users').doc(reservation.userId).get()
+    const user = toPlainObject(userDoc)
+    if (user) userEmail = (user as any).email || userEmail
+  }
+
+  if (userEmail) {
+    await sendModificationAlert(userEmail, { oldDate, newDate, serialNumber: newSerialNumber })
   }
   if (reservation.phoneNumber) {
     await sendRescheduleWhatsApp(reservation.phoneNumber, newSerialNumber, oldDate, newDate)
   }
 
-  // Trigger waiting list fill for old date
   await fillVacatedSlots(oldDate, reservation.seatCount)
 
-  return updatedReservation
+  const updatedDoc = await db.collection('reservations').doc(reservationId).get()
+  return toPlainObject(updatedDoc)
 }
 
 /**
  * Get reservation by serial number
  */
 export async function getReservationBySerial(serialNumber: string) {
-  return prisma.reservation.findUnique({
-    where: { serialNumber },
-    include: {
-      user: true,
-      auditLogs: {
-        orderBy: { timestamp: 'desc' },
-      },
-    },
-  })
+  const snap = await db.collection('reservations')
+    .where('serialNumber', '==', serialNumber)
+    .limit(1)
+    .get()
+
+  if (snap.empty) return null
+  return toPlainObject(snap.docs[0])
 }
 
 /**
  * Get all reservations for a user
  */
 export async function getUserReservations(userId: string) {
-  return prisma.reservation.findMany({
-    where: { userId },
-    orderBy: { reservationDate: 'asc' },
-  })
+  const snap = await db.collection('reservations')
+    .where('userId', '==', userId)
+    .orderBy('reservationDate', 'asc')
+    .get()
+  return docsToArray(snap)
 }
 
 /**
  * Check availability for a range of dates in a single query.
- * Returns a map of date strings to availability data.
  */
 export async function checkAvailabilityRange(
   startDate: Date,
@@ -330,24 +310,23 @@ export async function checkAvailabilityRange(
   const end = new Date(endDate)
   end.setHours(23, 59, 59, 999)
 
-  const reservations = await prisma.reservation.findMany({
-    where: {
-      reservationDate: { gte: start, lte: end },
-      status: {
-        in: [ReservationStatus.CONFIRMED, ReservationStatus.RESCHEDULED, ReservationStatus.CHECKED_IN],
-      },
-    },
-    select: { reservationDate: true, seatCount: true },
-  })
+  const reservations: any[] = []
+  for (const status of ACTIVE_STATUSES) {
+    const snap = await db.collection('reservations')
+      .where('reservationDate', '>=', start)
+      .where('reservationDate', '<=', end)
+      .where('status', '==', status)
+      .get()
+    reservations.push(...docsToArray(snap))
+  }
 
-  // Aggregate booked seats per day
   const dailyBooked: Record<string, number> = {}
   for (const r of reservations) {
-    const dateKey = r.reservationDate.toISOString().split('T')[0]
+    const d = r.reservationDate instanceof Date ? r.reservationDate : new Date(r.reservationDate)
+    const dateKey = d.toISOString().split('T')[0]
     dailyBooked[dateKey] = (dailyBooked[dateKey] || 0) + r.seatCount
   }
 
-  // Build result for every day in range
   const result: Record<string, { availableSeats: number; bookedSeats: number }> = {}
   const current = new Date(start)
   while (current <= end) {
@@ -367,26 +346,28 @@ export async function checkAvailabilityRange(
  * Get reservations for a date range (for calendar view)
  */
 export async function getReservationsForDateRange(startDate: Date, endDate: Date) {
-  return prisma.reservation.findMany({
-    where: {
-      reservationDate: {
-        gte: startDate,
-        lte: endDate,
-      },
-      status: {
-        in: [ReservationStatus.CONFIRMED, ReservationStatus.RESCHEDULED, ReservationStatus.CHECKED_IN],
-      },
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          fullName: true,
-          employeeId: true,
-          department: true,
-        },
-      },
-    },
-    orderBy: { reservationDate: 'asc' },
-  })
+  const reservations: any[] = []
+  for (const status of ACTIVE_STATUSES) {
+    const snap = await db.collection('reservations')
+      .where('reservationDate', '>=', startDate)
+      .where('reservationDate', '<=', endDate)
+      .where('status', '==', status)
+      .get()
+    reservations.push(...docsToArray(snap))
+  }
+
+  // Enrich with user data
+  const userIds = [...new Set(reservations.map((r) => r.userId).filter(Boolean))]
+  const userMap: Record<string, any> = {}
+  for (const uid of userIds) {
+    const userDoc = await db.collection('users').doc(uid).get()
+    if (userDoc.exists) {
+      const u = toPlainObject(userDoc)!
+      userMap[uid] = { id: u.id, fullName: (u as any).fullName, employeeId: (u as any).employeeId, department: (u as any).department }
+    }
+  }
+
+  return reservations
+    .map((r) => ({ ...r, user: r.userId ? userMap[r.userId] || null : null }))
+    .sort((a, b) => new Date(a.reservationDate).getTime() - new Date(b.reservationDate).getTime())
 }

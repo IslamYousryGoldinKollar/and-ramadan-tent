@@ -1,4 +1,4 @@
-import { prisma } from './prisma'
+import { db, generateId, toPlainObject, docsToArray } from './db'
 
 export const ARTICLE_CATEGORIES = [
   'Health',
@@ -36,62 +36,64 @@ export interface UpdateArticleData {
  * Create a new Ramadan article
  */
 export async function createArticle(data: CreateArticleData) {
-  return prisma.ramadanArticle.create({
-    data: {
-      title: data.title,
-      excerpt: data.excerpt,
-      htmlContent: data.htmlContent,
-      category: data.category || 'General',
-      imageUrl: data.imageUrl,
-      videoUrl: data.videoUrl,
-      displayOrder: data.displayOrder ?? 0,
-      isActive: true,
-    },
-  })
+  const id = generateId()
+  const now = new Date()
+  const doc = {
+    title: data.title,
+    excerpt: data.excerpt || null,
+    htmlContent: data.htmlContent,
+    category: data.category || 'General',
+    imageUrl: data.imageUrl || null,
+    videoUrl: data.videoUrl || null,
+    displayOrder: data.displayOrder ?? 0,
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  }
+  await db.collection('ramadanArticles').doc(id).set(doc)
+  return { id, ...doc }
 }
 
 /**
  * Update an article
  */
 export async function updateArticle(id: string, data: UpdateArticleData) {
-  return prisma.ramadanArticle.update({
-    where: { id },
-    data,
-  })
+  await db.collection('ramadanArticles').doc(id).update({ ...data, updatedAt: new Date() })
+  const doc = await db.collection('ramadanArticles').doc(id).get()
+  return toPlainObject(doc)
 }
 
 /**
  * Delete an article
  */
 export async function deleteArticle(id: string) {
-  return prisma.ramadanArticle.delete({
-    where: { id },
-  })
+  await db.collection('ramadanArticles').doc(id).delete()
 }
 
 /**
  * Toggle article active status
  */
 export async function toggleArticleStatus(id: string) {
-  const article = await prisma.ramadanArticle.findUnique({ where: { id } })
-  if (!article) throw new Error('Article not found')
-  return prisma.ramadanArticle.update({
-    where: { id },
-    data: { isActive: !article.isActive },
-  })
+  const doc = await db.collection('ramadanArticles').doc(id).get()
+  if (!doc.exists) throw new Error('Article not found')
+  const article = toPlainObject<any>(doc)!
+  await db.collection('ramadanArticles').doc(id).update({ isActive: !article.isActive, updatedAt: new Date() })
+  return { ...article, isActive: !article.isActive }
 }
 
 /**
  * Get active articles (public)
  */
 export async function getActiveArticles(category?: string) {
-  return prisma.ramadanArticle.findMany({
-    where: {
-      isActive: true,
-      ...(category ? { category } : {}),
-    },
-    orderBy: { displayOrder: 'asc' },
-  })
+  let query: FirebaseFirestore.Query = db.collection('ramadanArticles')
+    .where('isActive', '==', true)
+
+  if (category) {
+    query = query.where('category', '==', category)
+  }
+
+  const snap = await query.orderBy('displayOrder', 'asc').get()
+  return docsToArray(snap)
 }
 
 /**
@@ -102,62 +104,72 @@ export async function getAllArticles(options?: {
   search?: string
   isActive?: boolean
 }) {
-  const where: any = {}
-  if (options?.category) where.category = options.category
-  if (options?.isActive !== undefined) where.isActive = options.isActive
-  if (options?.search) {
-    where.OR = [
-      { title: { contains: options.search, mode: 'insensitive' } },
-      { excerpt: { contains: options.search, mode: 'insensitive' } },
-    ]
+  let query: FirebaseFirestore.Query = db.collection('ramadanArticles')
+
+  if (options?.category) {
+    query = query.where('category', '==', options.category)
+  }
+  if (options?.isActive !== undefined) {
+    query = query.where('isActive', '==', options.isActive)
   }
 
-  return prisma.ramadanArticle.findMany({
-    where,
-    orderBy: { displayOrder: 'asc' },
-  })
+  const snap = await query.orderBy('displayOrder', 'asc').get()
+  let articles = docsToArray(snap) as any[]
+
+  // Client-side text search (Firestore doesn't support full-text search)
+  if (options?.search) {
+    const search = options.search.toLowerCase()
+    articles = articles.filter(
+      (a) =>
+        a.title?.toLowerCase().includes(search) ||
+        a.excerpt?.toLowerCase().includes(search)
+    )
+  }
+
+  return articles
 }
 
 /**
  * Get article by ID
  */
 export async function getArticleById(id: string) {
-  return prisma.ramadanArticle.findUnique({
-    where: { id },
-  })
+  const doc = await db.collection('ramadanArticles').doc(id).get()
+  return toPlainObject(doc)
 }
 
 /**
  * Batch reorder articles
  */
 export async function reorderArticles(items: { id: string; displayOrder: number }[]) {
-  await prisma.$transaction(
-    items.map((item) =>
-      prisma.ramadanArticle.update({
-        where: { id: item.id },
-        data: { displayOrder: item.displayOrder },
-      })
-    )
-  )
+  const batch = db.batch()
+  for (const item of items) {
+    batch.update(db.collection('ramadanArticles').doc(item.id), {
+      displayOrder: item.displayOrder,
+      updatedAt: new Date(),
+    })
+  }
+  await batch.commit()
 }
 
 /**
  * Get article stats
  */
 export async function getArticleStats() {
-  const [total, active, byCategory] = await Promise.all([
-    prisma.ramadanArticle.count(),
-    prisma.ramadanArticle.count({ where: { isActive: true } }),
-    prisma.ramadanArticle.groupBy({
-      by: ['category'],
-      _count: true,
-    }),
-  ])
+  const snap = await db.collection('ramadanArticles').get()
+  const articles = docsToArray(snap) as any[]
+  const total = articles.length
+  const active = articles.filter((a) => a.isActive).length
+
+  const catMap: Record<string, number> = {}
+  for (const a of articles) {
+    const cat = a.category || 'General'
+    catMap[cat] = (catMap[cat] || 0) + 1
+  }
 
   return {
     total,
     active,
     inactive: total - active,
-    byCategory: byCategory.map((g) => ({ category: g.category, count: g._count })),
+    byCategory: Object.entries(catMap).map(([category, count]) => ({ category, count })),
   }
 }

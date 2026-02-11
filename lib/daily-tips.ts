@@ -1,4 +1,4 @@
-import { prisma } from './prisma'
+import { db, generateId, toPlainObject, docsToArray } from './db'
 
 export interface CreateDailyTipData {
   title: string
@@ -19,83 +19,81 @@ export interface UpdateDailyTipData {
  * Create a new daily tip
  */
 export async function createDailyTip(data: CreateDailyTipData) {
-  return prisma.dailyTip.create({
-    data: {
-      title: data.title,
-      shortTip: data.shortTip,
-      fullContent: data.fullContent,
-      tipNumber: data.tipNumber,
-      isActive: true,
-    },
-  })
+  const id = generateId()
+  const now = new Date()
+  const doc = {
+    title: data.title,
+    shortTip: data.shortTip,
+    fullContent: data.fullContent,
+    tipNumber: data.tipNumber,
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  }
+  await db.collection('dailyTips').doc(id).set(doc)
+  return { id, ...doc }
 }
 
 /**
  * Update a daily tip
  */
 export async function updateDailyTip(id: string, data: UpdateDailyTipData) {
-  return prisma.dailyTip.update({
-    where: { id },
-    data,
-  })
+  await db.collection('dailyTips').doc(id).update({ ...data, updatedAt: new Date() })
+  const doc = await db.collection('dailyTips').doc(id).get()
+  return toPlainObject(doc)
 }
 
 /**
  * Delete a daily tip
  */
 export async function deleteDailyTip(id: string) {
-  return prisma.dailyTip.delete({
-    where: { id },
-  })
+  await db.collection('dailyTips').doc(id).delete()
 }
 
 /**
  * Toggle daily tip active status
  */
 export async function toggleDailyTipStatus(id: string) {
-  const tip = await prisma.dailyTip.findUnique({ where: { id } })
-  if (!tip) throw new Error('Daily tip not found')
-  return prisma.dailyTip.update({
-    where: { id },
-    data: { isActive: !tip.isActive },
-  })
+  const doc = await db.collection('dailyTips').doc(id).get()
+  if (!doc.exists) throw new Error('Daily tip not found')
+  const tip = toPlainObject<any>(doc)!
+  await db.collection('dailyTips').doc(id).update({ isActive: !tip.isActive, updatedAt: new Date() })
+  return { ...tip, isActive: !tip.isActive }
 }
 
 /**
  * Get all active daily tips ordered by tip number
  */
 export async function getActiveDailyTips() {
-  return prisma.dailyTip.findMany({
-    where: { isActive: true },
-    orderBy: { tipNumber: 'asc' },
-  })
+  const snap = await db.collection('dailyTips')
+    .where('isActive', '==', true)
+    .orderBy('tipNumber', 'asc')
+    .get()
+  return docsToArray(snap)
 }
 
 /**
  * Get all daily tips (admin)
  */
 export async function getAllDailyTips() {
-  return prisma.dailyTip.findMany({
-    orderBy: { tipNumber: 'asc' },
-  })
+  const snap = await db.collection('dailyTips').orderBy('tipNumber', 'asc').get()
+  return docsToArray(snap)
 }
 
 /**
  * Get a single daily tip by ID
  */
 export async function getDailyTipById(id: string) {
-  return prisma.dailyTip.findUnique({
-    where: { id },
-  })
+  const doc = await db.collection('dailyTips').doc(id).get()
+  return toPlainObject(doc)
 }
 
 /**
  * Get daily tip stats
  */
 export async function getDailyTipStats() {
-  const [total, active] = await Promise.all([
-    prisma.dailyTip.count(),
-    prisma.dailyTip.count({ where: { isActive: true } }),
-  ])
+  const allSnap = await db.collection('dailyTips').get()
+  const total = allSnap.size
+  const active = allSnap.docs.filter((d) => d.data().isActive === true).length
   return { total, active, inactive: total - active }
 }

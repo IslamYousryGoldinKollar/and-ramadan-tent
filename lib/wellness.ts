@@ -1,4 +1,4 @@
-import { prisma } from './prisma'
+import { db, generateId, toPlainObject, docsToArray } from './db'
 
 export interface CreateWellnessContentData {
   title: string
@@ -8,45 +8,52 @@ export interface CreateWellnessContentData {
 }
 
 /**
- * Create wellness content (now backed by RamadanArticle)
+ * Create wellness content (now backed by ramadanArticles collection)
  */
 export async function createWellnessContent(data: CreateWellnessContentData) {
-  return prisma.ramadanArticle.create({
-    data: {
-      title: data.title,
-      htmlContent: data.content,
-      displayOrder: data.displayOrder || 0,
-      isActive: true,
-    },
-  })
+  const id = generateId()
+  const now = new Date()
+  const doc = {
+    title: data.title,
+    htmlContent: data.content,
+    displayOrder: data.displayOrder || 0,
+    isActive: true,
+    category: 'General',
+    excerpt: null,
+    imageUrl: null,
+    videoUrl: null,
+    createdAt: now,
+    updatedAt: now,
+  }
+  await db.collection('ramadanArticles').doc(id).set(doc)
+  return { id, ...doc }
 }
 
 /**
  * Get all active wellness content
  */
 export async function getActiveWellnessContent() {
-  return prisma.ramadanArticle.findMany({
-    where: { isActive: true },
-    orderBy: { displayOrder: 'asc' },
-  })
+  const snap = await db.collection('ramadanArticles')
+    .where('isActive', '==', true)
+    .orderBy('displayOrder', 'asc')
+    .get()
+  return docsToArray(snap)
 }
 
 /**
  * Get all wellness content (admin)
  */
 export async function getAllWellnessContent() {
-  return prisma.ramadanArticle.findMany({
-    orderBy: { displayOrder: 'asc' },
-  })
+  const snap = await db.collection('ramadanArticles').orderBy('displayOrder', 'asc').get()
+  return docsToArray(snap)
 }
 
 /**
  * Get wellness content by ID
  */
 export async function getWellnessContentById(id: string) {
-  return prisma.ramadanArticle.findUnique({
-    where: { id },
-  })
+  const doc = await db.collection('ramadanArticles').doc(id).get()
+  return toPlainObject(doc)
 }
 
 /**
@@ -56,43 +63,34 @@ export async function updateWellnessContent(
   id: string,
   data: Partial<CreateWellnessContentData>
 ) {
-  const updateData: any = { ...data }
+  const updateData: any = { ...data, updatedAt: new Date() }
   if (data.content) {
     updateData.htmlContent = data.content
     delete updateData.content
   }
   delete updateData.pdfUrl
-  return prisma.ramadanArticle.update({
-    where: { id },
-    data: updateData,
-  })
+  await db.collection('ramadanArticles').doc(id).update(updateData)
+  const doc = await db.collection('ramadanArticles').doc(id).get()
+  return toPlainObject(doc)
 }
 
 /**
  * Delete wellness content
  */
 export async function deleteWellnessContent(id: string) {
-  return prisma.ramadanArticle.delete({
-    where: { id },
-  })
+  await db.collection('ramadanArticles').doc(id).delete()
 }
 
 /**
  * Toggle wellness content active status
  */
 export async function toggleWellnessContentStatus(id: string) {
-  const content = await prisma.ramadanArticle.findUnique({
-    where: { id },
+  const doc = await db.collection('ramadanArticles').doc(id).get()
+  if (!doc.exists) throw new Error('Content not found')
+  const content = toPlainObject<any>(doc)!
+  await db.collection('ramadanArticles').doc(id).update({
+    isActive: !content.isActive,
+    updatedAt: new Date(),
   })
-
-  if (!content) {
-    throw new Error('Content not found')
-  }
-
-  return prisma.ramadanArticle.update({
-    where: { id },
-    data: {
-      isActive: !content.isActive,
-    },
-  })
+  return { ...content, isActive: !content.isActive }
 }

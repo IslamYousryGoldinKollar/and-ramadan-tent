@@ -11,26 +11,6 @@ export function generateSerialNumber(): string {
   return `RAM-${year}-${random}`
 }
 
-/**
- * Generate a unique serial number with DB collision check.
- * Retries up to maxAttempts times if a collision is found.
- */
-export async function generateUniqueSerialNumber(
-  prisma: { reservation: { findUnique: (args: any) => Promise<any> } },
-  maxAttempts: number = 10
-): Promise<string> {
-  for (let i = 0; i < maxAttempts; i++) {
-    const serialNumber = generateSerialNumber()
-    const existing = await prisma.reservation.findUnique({
-      where: { serialNumber },
-      select: { id: true },
-    })
-    if (!existing) {
-      return serialNumber
-    }
-  }
-  throw new Error('Failed to generate a unique serial number after multiple attempts')
-}
 
 export function isValidEandEmail(email: string): boolean {
   const emailLower = email.toLowerCase()

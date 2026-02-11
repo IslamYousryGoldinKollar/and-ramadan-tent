@@ -1,30 +1,36 @@
 /**
- * Script to create an admin user in the database
+ * Script to create an admin user in the Firestore database
  * Usage: node scripts/setup-admin.js
  * 
- * Make sure DATABASE_URL is set in your .env file
+ * Make sure GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT_KEY is set
  */
 
-const { PrismaClient } = require('@prisma/client')
+const { initializeApp, getApps, cert } = require('firebase-admin/app')
+const { getFirestore } = require('firebase-admin/firestore')
 const bcrypt = require('bcryptjs')
-const readline = require('readline')
 
-const prisma = new PrismaClient()
+const DATABASE_ID = 'eandramadan'
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-})
-
-function question(query) {
-  return new Promise((resolve) => rl.question(query, resolve))
+// Initialize Firebase Admin
+let app
+if (getApps().length === 0) {
+  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+  if (serviceAccountKey) {
+    const serviceAccount = JSON.parse(serviceAccountKey)
+    app = initializeApp({ credential: cert(serviceAccount), projectId: 'kedup-9rc91' })
+  } else {
+    app = initializeApp({ projectId: 'kedup-9rc91' })
+  }
+} else {
+  app = getApps()[0]
 }
+
+const db = getFirestore(app, DATABASE_ID)
 
 async function setupAdmin() {
   try {
     console.log('=== e& Egypt Ramadan Tent - Admin User Setup ===\n')
 
-    // Create admin account directly
     const employeeId = 'ADMIN001'
     const fullName = 'Islam Yousry'
     const email = 'islam.yousry@goldinkollar.com'
@@ -43,53 +49,54 @@ async function setupAdmin() {
 
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Check if user already exists
-    const existing = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { employeeId },
-          { email: email.toLowerCase() },
-        ],
-      },
-    })
+    // Check if user already exists by employeeId or email
+    const byEmployeeId = await db.collection('users')
+      .where('employeeId', '==', employeeId)
+      .limit(1)
+      .get()
+
+    const byEmail = await db.collection('users')
+      .where('email', '==', email.toLowerCase())
+      .limit(1)
+      .get()
+
+    const existing = !byEmployeeId.empty ? byEmployeeId.docs[0] : (!byEmail.empty ? byEmail.docs[0] : null)
 
     if (existing) {
       console.log('\n⚠️  User already exists. Updating to admin...')
-      const updated = await prisma.user.update({
-        where: { id: existing.id },
-        data: {
-          role: 'ADMIN',
-          fullName,
-          password: hashedPassword,
-          department: department || null,
-        },
+      await existing.ref.update({
+        role: 'ADMIN',
+        fullName,
+        password: hashedPassword,
+        department: department || null,
+        updatedAt: new Date(),
       })
+      const data = existing.data()
       console.log('\n✅ Admin user updated successfully!')
-      console.log(`   Employee ID: ${updated.employeeId}`)
-      console.log(`   Email: ${updated.email}`)
-      console.log(`   Role: ${updated.role}`)
+      console.log(`   Employee ID: ${data.employeeId}`)
+      console.log(`   Email: ${data.email}`)
+      console.log(`   Role: ADMIN`)
     } else {
-      const user = await prisma.user.create({
-        data: {
-          employeeId,
-          fullName,
-          email: email.toLowerCase(),
-          password: hashedPassword,
-          department: department || null,
-          role: 'ADMIN',
-        },
+      const id = db.collection('users').doc().id
+      const now = new Date()
+      await db.collection('users').doc(id).set({
+        employeeId,
+        fullName,
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        department: department || null,
+        role: 'ADMIN',
+        createdAt: now,
+        updatedAt: now,
       })
       console.log('\n✅ Admin user created successfully!')
-      console.log(`   Employee ID: ${user.employeeId}`)
-      console.log(`   Email: ${user.email}`)
-      console.log(`   Role: ${user.role}`)
+      console.log(`   Employee ID: ${employeeId}`)
+      console.log(`   Email: ${email.toLowerCase()}`)
+      console.log(`   Role: ADMIN`)
     }
   } catch (error) {
     console.error('\n❌ Error:', error.message)
     process.exit(1)
-  } finally {
-    rl.close()
-    await prisma.$disconnect()
   }
 }
 

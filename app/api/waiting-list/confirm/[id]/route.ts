@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { confirmWaitingListEntry } from '@/lib/waiting-list'
 import { createReservation } from '@/lib/reservations'
-import { prisma } from '@/lib/prisma'
+import { db, toPlainObject } from '@/lib/db'
 
 export async function POST(
   request: NextRequest,
@@ -19,11 +19,16 @@ export async function POST(
     }
 
     // Verify token matches the waiting list entry
-    const waitingListEntry = await prisma.waitingList.findUnique({
-      where: { id: params.id },
-    })
+    const doc = await db.collection('waitingList').doc(params.id).get()
+    if (!doc.exists) {
+      return NextResponse.json(
+        { error: 'Invalid confirmation token' },
+        { status: 403 }
+      )
+    }
 
-    if (!waitingListEntry || waitingListEntry.confirmationToken !== token) {
+    const waitingListEntry = toPlainObject<any>(doc)!
+    if (waitingListEntry.confirmationToken !== token) {
       return NextResponse.json(
         { error: 'Invalid confirmation token' },
         { status: 403 }

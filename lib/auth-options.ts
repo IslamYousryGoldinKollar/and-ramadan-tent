@@ -1,7 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { prisma } from './prisma'
+import { db, toPlainObject } from './db'
 import { isValidEandEmail } from './utils'
 
 export const authOptions: NextAuthOptions = {
@@ -24,16 +24,17 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Find user by employee ID and email
-        const user = await prisma.user.findFirst({
-          where: {
-            employeeId: credentials.employeeId,
-            email: credentials.email.toLowerCase(),
-          },
-        })
+        const snapshot = await db.collection('users')
+          .where('employeeId', '==', credentials.employeeId)
+          .where('email', '==', credentials.email.toLowerCase())
+          .limit(1)
+          .get()
 
-        if (!user) {
+        if (snapshot.empty) {
           throw new Error('Invalid credentials')
         }
+
+        const user = toPlainObject<any>(snapshot.docs[0])!
 
         // Verify password
         if (!user.password) {

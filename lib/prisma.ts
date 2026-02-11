@@ -1,14 +1,2 @@
-import { PrismaClient } from '@prisma/client'
-import { withAccelerate } from '@prisma/extension-accelerate'
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-if (!globalForPrisma.prisma) {
-  globalForPrisma.prisma = new PrismaClient().$extends(
-    withAccelerate()
-  ) as unknown as PrismaClient
-}
-
-export const prisma = globalForPrisma.prisma
+// This file is deprecated. The database layer has been migrated to Firebase Firestore.
+// See lib/db.ts and lib/firebase-admin.ts for the new implementation.

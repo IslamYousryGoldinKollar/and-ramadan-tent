@@ -1,6 +1,22 @@
-const { PrismaClient } = require('@prisma/client')
+const { initializeApp, getApps, cert } = require('firebase-admin/app')
+const { getFirestore } = require('firebase-admin/firestore')
 
-const prisma = new PrismaClient()
+const DATABASE_ID = 'eandramadan'
+
+let app
+if (getApps().length === 0) {
+  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+  if (serviceAccountKey) {
+    const serviceAccount = JSON.parse(serviceAccountKey)
+    app = initializeApp({ credential: cert(serviceAccount), projectId: 'kedup-9rc91' })
+  } else {
+    app = initializeApp({ projectId: 'kedup-9rc91' })
+  }
+} else {
+  app = getApps()[0]
+}
+
+const db = getFirestore(app, DATABASE_ID)
 
 const dailyTips = [
   {
@@ -334,27 +350,29 @@ async function main() {
 
   // Seed Daily Tips
   console.log('Seeding Daily Tips...')
-  // Clear existing tips (optional, careful in prod)
-  // await prisma.dailyTip.deleteMany() 
   
   for (const tip of dailyTips) {
-    const existing = await prisma.dailyTip.findFirst({
-      where: { tipNumber: tip.tipNumber }
-    })
+    const existing = await db.collection('dailyTips')
+      .where('tipNumber', '==', tip.tipNumber)
+      .limit(1)
+      .get()
 
-    if (!existing) {
-      await prisma.dailyTip.create({
-        data: tip
+    if (existing.empty) {
+      const id = db.collection('dailyTips').doc().id
+      const now = new Date()
+      await db.collection('dailyTips').doc(id).set({
+        ...tip,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
       })
       console.log(`Created tip #${tip.tipNumber}`)
     } else {
-      await prisma.dailyTip.update({
-        where: { id: existing.id },
-        data: {
-          title: tip.title,
-          shortTip: tip.shortTip,
-          fullContent: tip.fullContent
-        }
+      await existing.docs[0].ref.update({
+        title: tip.title,
+        shortTip: tip.shortTip,
+        fullContent: tip.fullContent,
+        updatedAt: new Date(),
       })
       console.log(`Updated tip #${tip.tipNumber}`)
     }
@@ -362,27 +380,32 @@ async function main() {
 
   // Seed Articles
   console.log('Seeding Ramadan Articles...')
-  // await prisma.ramadanArticle.deleteMany()
 
   for (const article of articles) {
-    const existing = await prisma.ramadanArticle.findFirst({
-      where: { title: article.title }
-    })
+    const existing = await db.collection('ramadanArticles')
+      .where('title', '==', article.title)
+      .limit(1)
+      .get()
 
-    if (!existing) {
-      await prisma.ramadanArticle.create({
-        data: article
+    if (existing.empty) {
+      const id = db.collection('ramadanArticles').doc().id
+      const now = new Date()
+      await db.collection('ramadanArticles').doc(id).set({
+        ...article,
+        isActive: true,
+        imageUrl: null,
+        videoUrl: null,
+        createdAt: now,
+        updatedAt: now,
       })
       console.log(`Created article: ${article.title}`)
     } else {
-      await prisma.ramadanArticle.update({
-        where: { id: existing.id },
-        data: {
-          excerpt: article.excerpt,
-          htmlContent: article.htmlContent,
-          category: article.category,
-          displayOrder: article.displayOrder
-        }
+      await existing.docs[0].ref.update({
+        excerpt: article.excerpt,
+        htmlContent: article.htmlContent,
+        category: article.category,
+        displayOrder: article.displayOrder,
+        updatedAt: new Date(),
       })
       console.log(`Updated article: ${article.title}`)
     }
@@ -395,7 +418,4 @@ main()
   .catch((e) => {
     console.error(e)
     process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
   })
