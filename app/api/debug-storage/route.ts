@@ -58,14 +58,36 @@ export async function GET(request: NextRequest) {
 
     // 5. Test Access (Get Metadata)
     steps.push('Testing bucket access (getMetadata)')
+    let metadata
     try {
-        const [metadata] = await bucket.getMetadata()
+        const [meta] = await bucket.getMetadata()
+        metadata = meta
         steps.push('Got metadata')
-        return NextResponse.json({ success: true, steps, metadata })
     } catch (e) {
         steps.push(`Error accessing bucket: ${e instanceof Error ? e.message : String(e)}`)
-        return NextResponse.json({ success: false, steps, error: String(e) }, { status: 500 })
     }
+
+    // 6. Fetch System Logs
+    steps.push('Fetching system_logs')
+    let logs: any[] = []
+    try {
+        const { db } = require('@/lib/db')
+        const snapshot = await db.collection('system_logs')
+            .orderBy('timestamp', 'desc')
+            .limit(10)
+            .get()
+        
+        logs = snapshot.docs.map((doc: any) => ({
+            id: doc.id,
+            ...doc.data(),
+            timestamp: doc.data().timestamp?.toDate().toISOString()
+        }))
+        steps.push(`Fetched ${logs.length} logs`)
+    } catch (e) {
+        steps.push(`Error fetching logs: ${e instanceof Error ? e.message : String(e)}`)
+    }
+
+    return NextResponse.json({ success: true, steps, metadata, logs })
 
   } catch (error) {
     return NextResponse.json({ 
