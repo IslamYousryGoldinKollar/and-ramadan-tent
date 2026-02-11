@@ -47,6 +47,8 @@ export async function GET(request: NextRequest) {
 
     // 3. Get Storage
     steps.push('Getting storage')
+    // Dynamic import to match lib/firebase-admin.ts fix
+    const { getStorage } = require('firebase-admin/storage')
     const storage = getStorage(app)
     steps.push('Got storage instance')
 
