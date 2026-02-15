@@ -127,7 +127,7 @@ This is a reminder that you have a reservation for the Ramadan Tent tomorrow.
 Date: ${reservationDate.toLocaleDateString()}
 Serial Number: ${serialNumber}
 
-The tent is open — just walk in!
+Please bring your own plates, cutlery, and dining essentials. Arrive 30 min before Maghrib.
 
 Thank you!
 e& Egypt HR Team`

@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 const createReservationSchema = z.object({
   reservationDate: z.string().transform((str) => new Date(str)),
-  seatCount: z.number().min(1).max(120),
+  seatCount: z.number().min(1).max(110),
 })
 
 export async function GET(request: NextRequest) {
@@ -54,6 +54,19 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validated = createReservationSchema.parse(body)
+
+    // Enforce 48-hour advance booking
+    const minBookingDate = new Date()
+    minBookingDate.setHours(minBookingDate.getHours() + 48)
+    minBookingDate.setHours(0, 0, 0, 0)
+    const reservationDay = new Date(validated.reservationDate)
+    reservationDay.setHours(0, 0, 0, 0)
+    if (reservationDay < minBookingDate) {
+      return NextResponse.json(
+        { error: 'Bookings must be made at least 48 hours in advance.' },
+        { status: 400 }
+      )
+    }
 
     const reservation = await createReservation(
       session.user.id,

@@ -102,6 +102,19 @@ export async function PATCH(
 
     const oldDate = reservation.reservationDate
 
+    // Enforce 48-hour advance booking on new date
+    const minBookingDate = new Date()
+    minBookingDate.setHours(minBookingDate.getHours() + 48)
+    minBookingDate.setHours(0, 0, 0, 0)
+    const newDay = new Date(validated.newDate)
+    newDay.setHours(0, 0, 0, 0)
+    if (newDay < minBookingDate) {
+      return NextResponse.json(
+        { error: 'Bookings must be made at least 48 hours in advance.' },
+        { status: 400 }
+      )
+    }
+
     // Check availability for new date
     const startOfDay = new Date(validated.newDate)
     startOfDay.setHours(0, 0, 0, 0)

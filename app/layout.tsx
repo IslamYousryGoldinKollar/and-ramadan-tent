@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'e& Egypt Ramadan Portal',
-  description: 'Reserve your seat at the e& Egypt Corporate Ramadan Tent',
+  description: 'Secure your spot at the e& Egypt Ramadan Tent for Iftar at HQ Kattameya, L1.',
   icons: {
     icon: '/eand-logo.svg',
     shortcut: '/eand-logo.svg',
