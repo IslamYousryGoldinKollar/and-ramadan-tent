@@ -30,6 +30,11 @@ export function RamadanCalendar({
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  // 48-hour advance booking cutoff
+  const minBookingDate = new Date()
+  minBookingDate.setHours(minBookingDate.getHours() + 48)
+  minBookingDate.setHours(0, 0, 0, 0)
+
   // Calculate Ramadan dates (30 days from start)
   const ramadanStart = startDate || DEFAULT_RAMADAN_START_DATE
   const dates: Date[] = []
@@ -81,6 +86,11 @@ export function RamadanCalendar({
     d.setHours(0, 0, 0, 0)
     return d < today
   }
+  const isTooSoon = (date: Date) => {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d >= today && d < minBookingDate
+  }
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -123,11 +133,13 @@ export function RamadanCalendar({
                 const dateKey = date.toISOString().split('T')[0]
                 const data = availability[dateKey]
                 const past = isPast(date)
+                const tooSoon = isTooSoon(date)
                 const todayDate = isToday(date)
                 const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
                 const available = data?.availableSeats ?? MAX_CAPACITY
                 const booked = data?.bookedSeats ?? 0
                 const isFull = available === 0
+                const disabled = past || tooSoon || isFull
                 const pct = Math.round((booked / MAX_CAPACITY) * 100)
                 const isLimited = available > 0 && available <= 20
                 const isAlmostFull = available > 0 && available <= 40
@@ -164,7 +176,7 @@ export function RamadanCalendar({
                   barColor = 'bg-yellow-400'
                 }
 
-                if (past) {
+                if (past || tooSoon) {
                   cardBg = 'bg-gray-50 border-gray-200/50 cursor-not-allowed'
                   numberColor = 'text-gray-300'
                 }
@@ -172,12 +184,12 @@ export function RamadanCalendar({
                 return (
                   <button
                     key={dateKey}
-                    onClick={() => !past && !isFull && handleDateClick(date)}
-                    disabled={past || isFull}
+                    onClick={() => !disabled && handleDateClick(date)}
+                    disabled={disabled}
                     className={`
                       relative p-2 rounded-xl text-center transition-all duration-200 min-h-[5.5rem] border
                       opacity-0 animate-fade-in-up
-                      ${past ? 'opacity-30' : 'active:scale-95'}
+                      ${past || tooSoon ? 'opacity-30' : 'active:scale-95'}
                       ${cardBg}
                       ${isSelected ? 'ring-2 ring-eand-ocean ring-offset-2 !border-eand-ocean shadow-lg scale-[1.02]' : ''}
                       ${todayDate && !isSelected ? 'ring-2 ring-ramadan-gold/50' : ''}
@@ -215,6 +227,9 @@ export function RamadanCalendar({
                     )}
                     {past && (
                       <div className="text-[9px] text-gray-300 mt-2">Past</div>
+                    )}
+                    {tooSoon && !past && (
+                      <div className="text-[9px] text-gray-300 mt-2">Too soon</div>
                     )}
                   </button>
                 )

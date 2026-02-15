@@ -6,7 +6,6 @@ import { RamadanCalendar } from '@/components/calendar/ramadan-calendar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate, MAX_CAPACITY } from '@/lib/utils'
 import { isValidEgyptPhone } from '@/lib/sms'
@@ -40,18 +39,6 @@ export default function TentRegistrationPage() {
   const [success, setSuccess] = useState<any>(null)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [rulesAccepted, setRulesAccepted] = useState<Record<string, boolean>>({
-    maxSeats: false,
-    advance48h: false,
-    confirmationEmail: false,
-    keepClean: false,
-  })
-
-  const allRulesAccepted = Object.values(rulesAccepted).every(Boolean)
-
-  const toggleRule = (key: string) => {
-    setRulesAccepted((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
 
   const maxSeatsForDate = Math.min(MAX_CAPACITY, availableSeats ?? MAX_CAPACITY)
   const maxSelectableSeats = Math.max(1, maxSeatsForDate)
@@ -589,27 +576,15 @@ export default function TentRegistrationPage() {
                 </div>
               )}
 
-              {/* Rules confirmation */}
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 opacity-0 animate-fade-in-up delay-400 space-y-3">
-                <p className="text-xs font-semibold text-amber-800">Please confirm the below: <span className="text-red-500">*</span></p>
-                <div className="space-y-2.5">
-                  <label className="flex items-start gap-2.5 cursor-pointer" onClick={() => toggleRule('maxSeats')}>
-                    <Checkbox checked={rulesAccepted.maxSeats} className="mt-0.5" />
-                    <span className="text-xs text-amber-700 leading-relaxed">Maximum number of seats booking per day is {MAX_CAPACITY} seats.</span>
-                  </label>
-                  <label className="flex items-start gap-2.5 cursor-pointer" onClick={() => toggleRule('advance48h')}>
-                    <Checkbox checked={rulesAccepted.advance48h} className="mt-0.5" />
-                    <span className="text-xs text-amber-700 leading-relaxed">Bookings must be made at least 48 hours in advance.</span>
-                  </label>
-                  <label className="flex items-start gap-2.5 cursor-pointer" onClick={() => toggleRule('confirmationEmail')}>
-                    <Checkbox checked={rulesAccepted.confirmationEmail} className="mt-0.5" />
-                    <span className="text-xs text-amber-700 leading-relaxed">After booking, you will receive a confirmation email. Registration is based on first come, first served.</span>
-                  </label>
-                  <label className="flex items-start gap-2.5 cursor-pointer" onClick={() => toggleRule('keepClean')}>
-                    <Checkbox checked={rulesAccepted.keepClean} className="mt-0.5" />
-                    <span className="text-xs text-amber-700 leading-relaxed">We are sure that you will be keeping the place tidy & clean, so that we can all enjoy it for the rest of the month.</span>
-                  </label>
-                </div>
+              {/* Important information */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 opacity-0 animate-fade-in-up delay-400 space-y-2.5">
+                <p className="text-xs font-semibold text-amber-800">📋 Please note the following:</p>
+                <ul className="text-xs text-amber-700 space-y-2">
+                  <li className="flex gap-2"><span>📅</span><span>Bookings must be made at least <strong>48 hours in advance</strong>.</span></li>
+                  <li className="flex gap-2"><span>📧</span><span>After booking, you will receive a <strong>confirmation email</strong>. Registration is based on first come, first served.</span></li>
+                  <li className="flex gap-2"><span>🍽️</span><span>All cutlery, plates, and dining essentials are <strong>provided at the venue</strong>. No need to bring your own.</span></li>
+                  <li className="flex gap-2"><span>🧹</span><span>Please help keep the place <strong>tidy & clean</strong> so that everyone can enjoy it throughout the month.</span></li>
+                </ul>
               </div>
 
               {/* Buttons */}
@@ -619,7 +594,7 @@ export default function TentRegistrationPage() {
                 </Button>
                 <Button
                   onClick={handleBooking}
-                  disabled={loading || !allRulesAccepted}
+                  disabled={loading}
                   className="flex-1 rounded-2xl py-5 text-base font-bold shadow-lg bg-ramadan-gold hover:bg-ramadan-gold/90 text-eand-ocean active:scale-[0.97] transition-all hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
