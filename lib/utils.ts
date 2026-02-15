@@ -17,7 +17,7 @@ export function isValidEandEmail(email: string): boolean {
   return emailLower.endsWith('@eand.com') || emailLower.endsWith('@goldinkollar.com')
 }
 
-export const MAX_CAPACITY = 120
+export const MAX_CAPACITY = 110
 
 export function calculateCredits(seatCount: number): number {
   if (seatCount === MAX_CAPACITY) {
