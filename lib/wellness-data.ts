@@ -371,7 +371,7 @@ TAHINI DIP: Thin tahini with lemon juice and garlic for drizzling over the fish.
 
 CHICKEN ESCALOPE (اسكالوب فراخ):
 • Butterfly 4 chicken breasts and pound thin (about 5mm). Season with salt, pepper, garlic powder, and lemon zest.
-• Breading: Flour → egg wash → panko breadcrumbs mixed with dried parsley and parmesan cheese.
+• Breading: Flour → egg wash → panko breadcrumbs mixed with dried parsley and dried oregano.
 • Pan-fry in a mix of oil and butter for 3-4 min per side until golden and cooked through.
 • The panko gives extra crunch compared to regular breadcrumbs. Serve with lemon wedges.
 
@@ -381,7 +381,7 @@ PENNE ARRABIATA (بيني أرابياتا):
 • Simmer 15 min. Toss with pasta. Finish with a drizzle of olive oil.
 
 ROCKET SALAD (سلطة جرجير):
-• Wash and dry a large bunch of rocket (arugula). Add cherry tomatoes (halved), thinly sliced red onion, and shaved parmesan.
+• Wash and dry a large bunch of rocket (arugula). Add cherry tomatoes (halved), thinly sliced red onion, and crumbled white cheese (gibna beyda).
 • Dress with olive oil, lemon juice, balsamic vinegar, salt, and pepper.
 • The peppery rocket cuts through the richness of the escalope perfectly.`
   },
@@ -436,7 +436,7 @@ BEEF STROGANOFF (ستروجانوف):
 • Sear beef strips in 2 tbsp butter on very high heat in batches — 1-2 min per batch. Don't overcrowd. Remove and set aside.
 • In the same pan, add 1 tbsp butter. Sauté 1 sliced onion, 200g sliced mushrooms, and 1 sliced green pepper until softened (5 min).
 • Add 2 tbsp flour, stir for 1 min. Add 1 cup beef broth, stir until thick.
-• Add 3 tbsp sour cream (or use yogurt for Egyptian twist), 1 tbsp mustard, salt, pepper, and a dash of Worcestershire sauce.
+• Add 3 tbsp sour cream (or use yogurt for Egyptian twist), 1 tbsp mustard, salt, pepper, and a dash of soy sauce.
 • Return beef to the pan. Simmer for 3-4 min. Don't overcook the beef.
 • Garnish with fresh parsley.
 
@@ -657,7 +657,7 @@ export const WELLNESS_CATEGORIES: WellnessCategory[] = [
         items: [
           { title: 'The "Golden Hour" Workout', desc: 'The best time to train is 1 hour before Iftar. You can push yourself knowing you will refuel immediately after. Focus on lower intensity cardio or weights.' },
           { title: 'Late Night Sessions', desc: 'If you prefer high intensity, wait until 2-3 hours after Iftar. Your body is fully fueled and hydrated by then.' },
-          { title: 'Focus on mobility', desc: 'Fasting can make joints feel stiff. Dedicate 15 minutes daily to stretching or yoga. It aids digestion and helps with flexibility.' },
+          { title: 'Focus on mobility', desc: 'Fasting can make joints feel stiff. Dedicate 15 minutes daily to stretching or light mobility exercises. It aids digestion and helps with flexibility.' },
           { title: 'Listen to your body signals', desc: 'If you feel dizzy, lightheaded, or nauseous, stop immediately. These are signs of dehydration or low blood sugar. Don\'t push through.' },
           { title: 'Active fasting', desc: 'Ideally, stay active during the day with light walking. It keeps your metabolism running and helps pass the time, but avoid heavy sweating.' },
         ],
