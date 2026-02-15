@@ -208,13 +208,13 @@ export default function TentRegistrationPage() {
           {step === 0 && (
             <div className="space-y-4 opacity-0 animate-fade-in-up">
               {/* Important rules — prominent red box */}
-              <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 space-y-2.5 opacity-0 animate-fade-in-up shadow-sm">
-                <p className="text-sm font-bold text-red-800 flex items-center gap-2">⚠️ Important Guidelines</p>
-                <ul className="text-xs text-red-700 space-y-2">
-                  <li className="flex gap-2"><span>📅</span><span>Bookings must be made at least <strong>48 hours in advance</strong>.</span></li>
-                  <li className="flex gap-2"><span>📧</span><span>After booking, you will receive a <strong>confirmation email</strong>. Registration is based on first come, first served.</span></li>
-                  <li className="flex gap-2"><span>🍽️</span><span>Please <strong>bring your own plates, cutlery, and dining essentials</strong>. They will not be provided at the venue.</span></li>
-                  <li className="flex gap-2"><span>🧹</span><span>Please help keep the place <strong>tidy & clean</strong> so that everyone can enjoy it throughout the month.</span></li>
+              <div className="bg-red-600 rounded-2xl p-4 space-y-2.5 opacity-0 animate-fade-in-up shadow-md">
+                <p className="text-sm font-bold text-white flex items-center gap-2">⚠️ Important Guidelines</p>
+                <ul className="text-xs text-white/90 space-y-2">
+                  <li className="flex gap-2"><span>📅</span><span>Bookings must be made at least <strong className="text-white">48 hours in advance</strong>.</span></li>
+                  <li className="flex gap-2"><span>📧</span><span>After booking, you will receive a <strong className="text-white">confirmation email</strong>. Registration is based on first come, first served.</span></li>
+                  <li className="flex gap-2"><span>🍽️</span><span>Please <strong className="text-white">bring your own plates, cutlery, and dining essentials</strong>. They will not be provided at the venue.</span></li>
+                  <li className="flex gap-2"><span>🧹</span><span>Please help keep the place <strong className="text-white">tidy & clean</strong> so that everyone can enjoy it throughout the month.</span></li>
                 </ul>
               </div>
 
