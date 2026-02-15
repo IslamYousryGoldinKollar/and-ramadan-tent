@@ -99,7 +99,7 @@ export async function sendBookingConfirmationSms(
   seatCount: number
 ): Promise<SmsResult> {
   const dateStr = date.toLocaleDateString('en-EG')
-  const body = `e& Ramadan Tent - Confirmed! Serial: ${serialNumber} | Date: ${dateStr} | Seats: ${seatCount} | Location: HQ Kattameya, L1. Arrive 30 min before Maghrib. Cutlery & plates provided. If plans change, please cancel so colleagues can use the spot.`
+  const body = `e& Ramadan Tent - Confirmed! Serial: ${serialNumber} | Date: ${dateStr} | Seats: ${seatCount} | Location: HQ Kattameya, L1. Arrive 30 min before Maghrib. Bring your own plates & cutlery. If plans change, please cancel so colleagues can use the spot.`
 
   return sendSms(phone, body)
 }

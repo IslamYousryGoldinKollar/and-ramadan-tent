@@ -207,6 +207,17 @@ export default function TentRegistrationPage() {
           {/* ===== STEP 0: Choose Date ===== */}
           {step === 0 && (
             <div className="space-y-4 opacity-0 animate-fade-in-up">
+              {/* Important rules — prominent red box */}
+              <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 space-y-2.5 opacity-0 animate-fade-in-up shadow-sm">
+                <p className="text-sm font-bold text-red-800 flex items-center gap-2">⚠️ Important Guidelines</p>
+                <ul className="text-xs text-red-700 space-y-2">
+                  <li className="flex gap-2"><span>📅</span><span>Bookings must be made at least <strong>48 hours in advance</strong>.</span></li>
+                  <li className="flex gap-2"><span>📧</span><span>After booking, you will receive a <strong>confirmation email</strong>. Registration is based on first come, first served.</span></li>
+                  <li className="flex gap-2"><span>🍽️</span><span>Please <strong>bring your own plates, cutlery, and dining essentials</strong>. They will not be provided at the venue.</span></li>
+                  <li className="flex gap-2"><span>🧹</span><span>Please help keep the place <strong>tidy & clean</strong> so that everyone can enjoy it throughout the month.</span></li>
+                </ul>
+              </div>
+
               {/* Step header with big friendly icon */}
               <div className="text-center space-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto shadow-sm opacity-0 animate-scale-in">
@@ -576,16 +587,6 @@ export default function TentRegistrationPage() {
                 </div>
               )}
 
-              {/* Important information */}
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 opacity-0 animate-fade-in-up delay-400 space-y-2.5">
-                <p className="text-xs font-semibold text-amber-800">📋 Please note the following:</p>
-                <ul className="text-xs text-amber-700 space-y-2">
-                  <li className="flex gap-2"><span>📅</span><span>Bookings must be made at least <strong>48 hours in advance</strong>.</span></li>
-                  <li className="flex gap-2"><span>📧</span><span>After booking, you will receive a <strong>confirmation email</strong>. Registration is based on first come, first served.</span></li>
-                  <li className="flex gap-2"><span>🍽️</span><span>All cutlery, plates, and dining essentials are <strong>provided at the venue</strong>. No need to bring your own.</span></li>
-                  <li className="flex gap-2"><span>🧹</span><span>Please help keep the place <strong>tidy & clean</strong> so that everyone can enjoy it throughout the month.</span></li>
-                </ul>
-              </div>
 
               {/* Buttons */}
               <div className="flex gap-3 opacity-0 animate-fade-in-up delay-500">
@@ -651,7 +652,7 @@ export default function TentRegistrationPage() {
                 <p className="text-xs font-semibold text-amber-800">Please note the following guidelines:</p>
                 <ul className="text-xs text-amber-700 space-y-1.5">
                   <li className="flex gap-1.5"><span>🕐</span><span><strong>Arrival Time</strong> — Please arrive at least 30 minutes before Maghrib prayer to ensure a smooth seating experience.</span></li>
-                  <li className="flex gap-1.5"><span>🍽️</span><span><strong>Dining Essentials Provided</strong> — All cutlery, plates, and dining essentials are provided at the venue. There is no need to bring your own.</span></li>
+                  <li className="flex gap-1.5"><span>🍽️</span><span><strong>Bring Your Own Essentials</strong> — Please bring your own plates, cutlery, and dining essentials. They will not be provided at the venue.</span></li>
                   <li className="flex gap-1.5"><span>🔄</span><span><strong>Cancellation Policy</strong> — If your plans change and you are unable to attend, please cancel your reservation as early as possible so that your colleagues can benefit from the available spot.</span></li>
                 </ul>
               </div>

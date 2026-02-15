@@ -39,7 +39,7 @@ Please note the following guidelines:
 
 1. Arrival Time — Please arrive at least 30 minutes before Maghrib prayer to ensure a smooth seating experience.
 
-2. Dining Essentials Provided — All cutlery, plates, and dining essentials are provided at the venue. There is no need to bring your own.
+2. Bring Your Own Essentials — Please bring your own plates, cutlery, and dining essentials. They will not be provided at the venue.
 
 3. Cancellation Policy — If your plans change and you are unable to attend, please cancel your reservation as early as possible so that your colleagues can benefit from the available spot.
 

@@ -79,7 +79,7 @@ export async function sendBookingConfirmationWhatsApp(
 
 *Please note:*
 🕐 Arrive at least *30 min before Maghrib* prayer.
-🍽️ Cutlery & plates are *provided* — no need to bring your own.
+🍽️ Please *bring your own* plates, cutlery & dining essentials.
 🔄 If you can't attend, please *cancel your reservation* so colleagues can use the spot.
 
 Ramadan Kareem! 🌙`
