@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { 
   ArrowLeft, Moon, ChevronDown, ChevronRight, Sparkles, UtensilsCrossed,
   Activity, Droplets, Dumbbell, Sun, BookOpen, HeartHandshake, Shield,
-  Brain, CloudSun, Target, Users, Flower2
+  Brain, CloudSun, Target, Users, Flower2,
+  Smartphone, Clock, Heart, Home
 } from 'lucide-react'
 import { EandLogo } from '@/components/ui/eand-logo'
 import { WELLNESS_CATEGORIES, EGYPTIAN_MEALS, type WellnessCategory } from '@/lib/wellness-data'
@@ -14,7 +15,8 @@ import { WELLNESS_CATEGORIES, EGYPTIAN_MEALS, type WellnessCategory } from '@/li
 const Icons: Record<string, any> = {
   Activity, Droplets, Dumbbell, Moon, UtensilsCrossed,
   Sparkles, Sun, BookOpen, HeartHandshake, Shield,
-  Brain, CloudSun, Target, Users, Flower2
+  Brain, CloudSun, Target, Users, Flower2,
+  Smartphone, Clock, Heart, Home
 }
 
 type View = 'home' | 'category' | 'topic' | 'meals'
@@ -144,11 +146,11 @@ export default function WellnessPage() {
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-3 mt-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
                 <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
-                  <p className="text-2xl font-black text-emerald-500">11</p>
+                  <p className="text-2xl font-black text-emerald-500">15</p>
                   <p className="text-[10px] text-gray-400 font-semibold uppercase">Topics</p>
                 </div>
                 <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
-                  <p className="text-2xl font-black text-indigo-500">50+</p>
+                  <p className="text-2xl font-black text-indigo-500">75+</p>
                   <p className="text-[10px] text-gray-400 font-semibold uppercase">Tips</p>
                 </div>
                 <div className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100">
