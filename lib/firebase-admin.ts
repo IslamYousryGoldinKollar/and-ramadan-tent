@@ -35,8 +35,8 @@ const globalForFirestore = globalThis as unknown as {
 }
 
   if (!globalForFirestore.firestore) {
-  // Use default database
-  globalForFirestore.firestore = getFirestore(getApp())
+  // Use the named 'eandramadan' database
+  globalForFirestore.firestore = getFirestore(getApp(), DATABASE_ID)
 }
 
 export const db = globalForFirestore.firestore
