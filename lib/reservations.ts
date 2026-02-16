@@ -59,17 +59,13 @@ export async function createPublicReservation(
     throw new Error(`Seat count must be between 1 and ${MAX_CAPACITY}`)
   }
 
-  const availability = await checkAvailability(reservationDate)
-  if (availability.availableSeats < seatCount) {
-    throw new Error(`Only ${availability.availableSeats} seats available`)
-  }
-
+  // Pre-generate serial, QR, and ID outside the transaction
   const serialNumber = await generateUniqueSerialNumber()
   const qrCodeString = await generateQRCode(serialNumber)
   const creditsUsed = calculateCredits(seatCount)
-
   const id = generateId()
   const now = new Date()
+
   const reservation = {
     employeeId,
     employeeName,
@@ -86,7 +82,29 @@ export async function createPublicReservation(
     updatedAt: now,
   }
 
-  await db.collection('reservations').doc(id).set(reservation)
+  // Use a transaction to atomically check availability and write
+  await db.runTransaction(async (tx) => {
+    const startOfDay = new Date(reservationDate)
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(reservationDate)
+    endOfDay.setHours(23, 59, 59, 999)
+
+    const snap = await tx.get(
+      db.collection('reservations')
+        .where('status', 'in', ACTIVE_STATUSES)
+        .where('reservationDate', '>=', startOfDay)
+        .where('reservationDate', '<=', endOfDay)
+    )
+    const bookedSeats = snap.docs.reduce((sum, d) => sum + (d.data().seatCount || 0), 0)
+    const availableSeats = MAX_CAPACITY - bookedSeats
+
+    if (availableSeats < seatCount) {
+      throw new Error(`Only ${availableSeats} seats available`)
+    }
+
+    tx.set(db.collection('reservations').doc(id), reservation)
+  })
+
   const result = { id, ...reservation }
 
   await sendBookingConfirmation(email, {
@@ -118,17 +136,13 @@ export async function createReservation(
     throw new Error(`Seat count must be between 1 and ${MAX_CAPACITY}`)
   }
 
-  const availability = await checkAvailability(reservationDate)
-  if (availability.availableSeats < seatCount) {
-    throw new Error(`Only ${availability.availableSeats} seats available`)
-  }
-
+  // Pre-generate serial, QR, and ID outside the transaction
   const serialNumber = await generateUniqueSerialNumber()
   const qrCodeString = await generateQRCode(serialNumber)
   const creditsUsed = calculateCredits(seatCount)
-
   const id = generateId()
   const now = new Date()
+
   const reservationData = {
     userId,
     reservationDate,
@@ -145,7 +159,28 @@ export async function createReservation(
     updatedAt: now,
   }
 
-  await db.collection('reservations').doc(id).set(reservationData)
+  // Use a transaction to atomically check availability and write
+  await db.runTransaction(async (tx) => {
+    const startOfDay = new Date(reservationDate)
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(reservationDate)
+    endOfDay.setHours(23, 59, 59, 999)
+
+    const snap = await tx.get(
+      db.collection('reservations')
+        .where('status', 'in', ACTIVE_STATUSES)
+        .where('reservationDate', '>=', startOfDay)
+        .where('reservationDate', '<=', endOfDay)
+    )
+    const bookedSeats = snap.docs.reduce((sum, d) => sum + (d.data().seatCount || 0), 0)
+    const availableSeats = MAX_CAPACITY - bookedSeats
+
+    if (availableSeats < seatCount) {
+      throw new Error(`Only ${availableSeats} seats available`)
+    }
+
+    tx.set(db.collection('reservations').doc(id), reservationData)
+  })
 
   // Get user for email
   const userDoc = await db.collection('users').doc(userId).get()

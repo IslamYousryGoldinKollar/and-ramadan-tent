@@ -15,9 +15,9 @@ const createReservationSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 5 requests per minute per IP
+    // Rate limit: 30 requests per minute per IP (high for corporate shared IP)
     const ip = getClientIp(request)
-    const limiter = rateLimit(`public-reservation:${ip}`, { windowMs: 60_000, maxRequests: 5 })
+    const limiter = rateLimit(`public-reservation:${ip}`, { windowMs: 60_000, maxRequests: 30 })
     if (!limiter.success) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },

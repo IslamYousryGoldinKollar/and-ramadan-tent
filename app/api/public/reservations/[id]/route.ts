@@ -24,7 +24,7 @@ export async function DELETE(
 ) {
   try {
     const ip = getClientIp(request)
-    const limiter = rateLimit(`public-cancel:${ip}`, { windowMs: 60_000, maxRequests: 5 })
+    const limiter = rateLimit(`public-cancel:${ip}`, { windowMs: 60_000, maxRequests: 20 })
     if (!limiter.success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
@@ -75,7 +75,7 @@ export async function PATCH(
 ) {
   try {
     const ip = getClientIp(request)
-    const limiter = rateLimit(`public-reschedule:${ip}`, { windowMs: 60_000, maxRequests: 5 })
+    const limiter = rateLimit(`public-reschedule:${ip}`, { windowMs: 60_000, maxRequests: 20 })
     if (!limiter.success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
