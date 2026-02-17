@@ -139,7 +139,8 @@ export function RamadanCalendar({
                 const available = data?.availableSeats ?? MAX_CAPACITY
                 const booked = data?.bookedSeats ?? 0
                 const isFull = available === 0
-                const disabled = past || tooSoon || isFull
+                const isFridayOrSaturday = date.getDay() === 5 || date.getDay() === 6
+                const disabled = past || tooSoon || isFull || isFridayOrSaturday
                 const pct = Math.round((booked / MAX_CAPACITY) * 100)
                 const isLimited = available > 0 && available <= 20
                 const isAlmostFull = available > 0 && available <= 40
@@ -174,6 +175,13 @@ export function RamadanCalendar({
                   statusText = 'text-yellow-700'
                   statusLabel = `${available} left`
                   barColor = 'bg-yellow-400'
+                }
+
+                if (isFridayOrSaturday && !past) {
+                  cardBg = 'bg-gray-50 border-gray-200/50 cursor-not-allowed'
+                  numberColor = 'text-gray-300'
+                  statusLabel = 'Closed'
+                  statusText = 'text-gray-400'
                 }
 
                 if (past || tooSoon) {

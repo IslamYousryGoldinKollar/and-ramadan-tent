@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { db, toPlainObject, docsToArray } from '@/lib/db'
 import { createAuditLog } from '@/lib/audit'
+import { sendAdminEditNotification } from '@/lib/notifications'
 
 const VALID_STATUSES = ['CONFIRMED', 'PENDING', 'CANCELLED', 'RESCHEDULED', 'CHECKED_IN']
 
@@ -89,6 +90,9 @@ export async function PATCH(
     }
 
     const resDoc = snap.docs[0]
+    const previousData = toPlainObject<any>(resDoc)!
+    const previousStatus = previousData.status
+
     await resDoc.ref.update({ status, updatedAt: new Date() })
 
     const updated = toPlainObject<any>(await resDoc.ref.get())!
@@ -109,6 +113,19 @@ export async function PATCH(
       status === 'CHECKED_IN' ? 'CHECKED_IN' : 'MODIFIED',
       { status }
     )
+
+    // Send email notification if status changed
+    const recipientEmail = updated.email || (user as any)?.email
+    if (recipientEmail && previousStatus !== status) {
+      const resDate = updated.reservationDate instanceof Date
+        ? updated.reservationDate
+        : new Date(updated.reservationDate)
+      sendAdminEditNotification(recipientEmail, {
+        serialNumber: updated.serialNumber,
+        changes: `- Status changed from ${previousStatus} to ${status}`,
+        reservationDate: resDate,
+      }).catch((err) => console.error('Failed to send admin edit notification:', err))
+    }
 
     return NextResponse.json({ ...updated, user })
   } catch (error) {

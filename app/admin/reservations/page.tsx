@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import {
-  Search, ChevronLeft, ChevronRight, Trash2, RefreshCw,
-  ArrowUpDown, ArrowUp, ArrowDown, Filter, X, Download, AlertTriangle
+  Search, ChevronLeft, ChevronRight, RefreshCw,
+  ArrowUpDown, ArrowUp, ArrowDown, Filter, X, Download, CheckSquare, AlertTriangle
 } from 'lucide-react'
 
 interface Reservation {
@@ -57,13 +57,16 @@ export default function AdminReservationsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [selectAll, setSelectAll] = useState(false)
 
+  // Bulk action
+  const [bulkStatus, setBulkStatus] = useState('')
+  const [showBulkDialog, setShowBulkDialog] = useState(false)
+
   // Dialogs
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showClearDialog, setShowClearDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null)
   const [editStatus, setEditStatus] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
 
   const fetchReservations = useCallback(async () => {
@@ -134,47 +137,30 @@ export default function AdminReservationsPage() {
     setSelectAll(!selectAll)
   }
 
-  const handleDeleteSelected = async () => {
+  const handleBulkStatusChange = async () => {
+    if (!bulkStatus || selected.size === 0) return
     setActionLoading(true)
     try {
       const res = await fetch('/api/admin/reservations', {
-        method: 'DELETE',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: Array.from(selected) }),
+        body: JSON.stringify({ ids: Array.from(selected), status: bulkStatus }),
       })
       if (res.ok) {
         const data = await res.json()
-        setFeedback({ type: 'success', msg: `Deleted ${data.deleted} reservation(s)` })
+        setFeedback({ type: 'success', msg: `Updated ${data.updated} reservation(s) to ${bulkStatus}` })
         setSelected(new Set())
         setSelectAll(false)
         fetchReservations()
+      } else {
+        setFeedback({ type: 'error', msg: 'Failed to update' })
       }
     } catch (err) {
-      setFeedback({ type: 'error', msg: 'Failed to delete' })
+      setFeedback({ type: 'error', msg: 'Failed to update' })
     }
     setActionLoading(false)
-    setShowDeleteDialog(false)
-  }
-
-  const handleClearAll = async () => {
-    setActionLoading(true)
-    try {
-      const res = await fetch('/api/admin/reservations', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clearAll: true }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setFeedback({ type: 'success', msg: `Cleared all ${data.deleted} reservation(s)` })
-        setSelected(new Set())
-        fetchReservations()
-      }
-    } catch (err) {
-      setFeedback({ type: 'error', msg: 'Failed to clear' })
-    }
-    setActionLoading(false)
-    setShowClearDialog(false)
+    setShowBulkDialog(false)
+    setBulkStatus('')
   }
 
   const handleUpdateStatus = async () => {
@@ -200,27 +186,30 @@ export default function AdminReservationsPage() {
     setEditingReservation(null)
   }
 
-  const exportCSV = () => {
-    const headers = ['Serial', 'Date', 'Name', 'Employee ID', 'Email', 'Phone', 'Seats', 'Status', 'Created']
-    const rows = reservations.map(r => [
-      r.serialNumber,
-      new Date(r.reservationDate).toLocaleDateString(),
-      r.employeeName || r.user?.fullName || '',
-      r.employeeId || '',
-      r.email || '',
-      r.phoneNumber || '',
-      r.seatCount,
-      r.status,
-      new Date(r.createdAt).toLocaleString(),
-    ])
-    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `reservations-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+  const exportFullCSV = async () => {
+    setExportLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      if (statusFilter) params.set('status', statusFilter)
+      if (dateFrom) params.set('dateFrom', dateFrom)
+      if (dateTo) params.set('dateTo', dateTo)
+
+      const res = await fetch(`/api/admin/reservations/export?${params}`)
+      if (!res.ok) throw new Error('Export failed')
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `reservations-full-export-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      setFeedback({ type: 'success', msg: `Exported all ${total} reservation(s) to CSV` })
+    } catch (err) {
+      setFeedback({ type: 'error', msg: 'Failed to export CSV' })
+    }
+    setExportLoading(false)
   }
 
   // Auto-clear feedback
@@ -239,11 +228,8 @@ export default function AdminReservationsPage() {
           <p className="text-sm text-gray-500">{total} total reservation(s)</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={exportCSV}>
-            <Download className="h-4 w-4 mr-1" /> Export CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowClearDialog(true)} className="text-red-600 border-red-200 hover:bg-red-50">
-            <Trash2 className="h-4 w-4 mr-1" /> Clear All
+          <Button variant="outline" size="sm" onClick={exportFullCSV} disabled={exportLoading}>
+            <Download className="h-4 w-4 mr-1" /> {exportLoading ? 'Exporting...' : 'Export All CSV'}
           </Button>
           <Button variant="outline" size="sm" onClick={() => fetchReservations()}>
             <RefreshCw className="h-4 w-4" />
@@ -309,12 +295,28 @@ export default function AdminReservationsPage() {
 
       {/* Bulk actions */}
       {selected.size > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-          <span className="text-sm font-medium text-blue-700">{selected.size} selected</span>
-          <Button size="sm" variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-            <Trash2 className="h-3 w-3 mr-1" /> Delete Selected
+        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg flex-wrap">
+          <span className="text-sm font-medium text-blue-700">
+            <CheckSquare className="h-4 w-4 inline mr-1" />
+            {selected.size} selected
+          </span>
+          <select
+            value={bulkStatus}
+            onChange={(e) => setBulkStatus(e.target.value)}
+            className="h-8 px-2 rounded-md border border-blue-200 text-sm bg-white"
+          >
+            <option value="">Change status to...</option>
+            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <Button
+            size="sm"
+            disabled={!bulkStatus}
+            onClick={() => setShowBulkDialog(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Apply to {selected.size}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => { setSelected(new Set()); setSelectAll(false) }}>
+          <Button size="sm" variant="ghost" onClick={() => { setSelected(new Set()); setSelectAll(false); setBulkStatus('') }}>
             Clear Selection
           </Button>
         </div>
@@ -447,37 +449,20 @@ export default function AdminReservationsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Selected Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      {/* Bulk Status Change Dialog */}
+      <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
         <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
-            <div className="flex justify-center mb-2"><AlertTriangle className="h-10 w-10 text-red-500" /></div>
-            <DialogTitle className="text-center">Delete {selected.size} Reservation(s)?</DialogTitle>
-            <DialogDescription className="text-center">This action cannot be undone.</DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="flex-1">Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteSelected} disabled={actionLoading} className="flex-1">
-              {actionLoading ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Clear All Dialog */}
-      <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <div className="flex justify-center mb-2"><AlertTriangle className="h-10 w-10 text-red-500" /></div>
-            <DialogTitle className="text-center">Clear ALL Reservations?</DialogTitle>
+            <div className="flex justify-center mb-2"><AlertTriangle className="h-10 w-10 text-blue-500" /></div>
+            <DialogTitle className="text-center">Update {selected.size} Reservation(s)?</DialogTitle>
             <DialogDescription className="text-center">
-              This will permanently delete ALL {total} reservation(s) from the database. This cannot be undone.
+              Change status to <strong>{bulkStatus}</strong> for {selected.size} reservation(s). Each affected user will receive an email notification.
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowClearDialog(false)} className="flex-1">Cancel</Button>
-            <Button variant="destructive" onClick={handleClearAll} disabled={actionLoading} className="flex-1">
-              {actionLoading ? 'Clearing...' : 'Clear All'}
+            <Button variant="outline" onClick={() => setShowBulkDialog(false)} className="flex-1">Cancel</Button>
+            <Button onClick={handleBulkStatusChange} disabled={actionLoading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+              {actionLoading ? 'Updating...' : 'Confirm'}
             </Button>
           </div>
         </DialogContent>

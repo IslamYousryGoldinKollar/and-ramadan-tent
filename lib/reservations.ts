@@ -95,6 +95,18 @@ export async function createPublicReservation(
         .where('reservationDate', '>=', startOfDay)
         .where('reservationDate', '<=', endOfDay)
     )
+    // Check for duplicate reservation (same email or employeeId on the same day)
+    const normalizedEmail = email.toLowerCase()
+    for (const doc of snap.docs) {
+      const existing = doc.data()
+      if (
+        existing.email?.toLowerCase() === normalizedEmail ||
+        existing.employeeId === employeeId
+      ) {
+        throw new Error('You already have a reservation for this date. Please choose a different day.')
+      }
+    }
+
     const bookedSeats = snap.docs.reduce((sum, d) => sum + (d.data().seatCount || 0), 0)
     const availableSeats = MAX_CAPACITY - bookedSeats
 

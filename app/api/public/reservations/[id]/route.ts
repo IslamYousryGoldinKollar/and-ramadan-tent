@@ -102,6 +102,15 @@ export async function PATCH(
 
     const oldDate = reservation.reservationDate
 
+    // Reject Fridays and Saturdays
+    const dayOfWeek = new Date(validated.newDate).getDay()
+    if (dayOfWeek === 5 || dayOfWeek === 6) {
+      return NextResponse.json(
+        { error: 'The tent is closed on Fridays and Saturdays.' },
+        { status: 400 }
+      )
+    }
+
     // Enforce 48-hour advance booking on new date
     const minBookingDate = new Date()
     minBookingDate.setHours(minBookingDate.getHours() + 48)

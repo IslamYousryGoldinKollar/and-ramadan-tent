@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { db, toPlainObject, docsToArray } from '@/lib/db'
+import { createAuditLog } from '@/lib/audit'
+import { sendAdminEditNotification } from '@/lib/notifications'
 
 const VALID_STATUSES = ['CONFIRMED', 'PENDING', 'CANCELLED', 'RESCHEDULED', 'CHECKED_IN']
 
@@ -105,8 +107,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// DELETE - bulk delete or clear all
-export async function DELETE(request: NextRequest) {
+// PATCH - bulk status update
+export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || (session.user as any).role !== 'ADMIN') {
@@ -114,35 +116,59 @@ export async function DELETE(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { ids, clearAll } = body
+    const { ids, status } = body
 
-    if (clearAll) {
-      const snap = await db.collection('reservations').get()
-      // Firestore batch limit is 500 operations
-      const chunks: FirebaseFirestore.DocumentReference[][] = []
-      for (let i = 0; i < snap.docs.length; i += 500) {
-        chunks.push(snap.docs.slice(i, i + 500).map((d) => d.ref))
-      }
-      for (const chunk of chunks) {
-        const batch = db.batch()
-        chunk.forEach((ref) => batch.delete(ref))
-        await batch.commit()
-      }
-      return NextResponse.json({ deleted: snap.size })
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'No reservation IDs provided' }, { status: 400 })
+    }
+    if (!status || !VALID_STATUSES.includes(status)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
 
-    if (ids && Array.isArray(ids) && ids.length > 0) {
+    let updated = 0
+    // Process in chunks of 500 (Firestore batch limit)
+    for (let i = 0; i < ids.length; i += 500) {
+      const chunk = ids.slice(i, i + 500)
       const batch = db.batch()
-      for (const id of ids) {
-        batch.delete(db.collection('reservations').doc(id))
+      const docs: any[] = []
+
+      for (const id of chunk) {
+        const docRef = db.collection('reservations').doc(id)
+        const doc = await docRef.get()
+        if (doc.exists) {
+          const prev = toPlainObject<any>(doc)!
+          docs.push(prev)
+          batch.update(docRef, { status, updatedAt: new Date() })
+        }
       }
+
       await batch.commit()
-      return NextResponse.json({ deleted: ids.length })
+      updated += docs.length
+
+      // Send email notifications and audit logs (fire-and-forget)
+      for (const prev of docs) {
+        if (prev.status !== status) {
+          createAuditLog(session.user.id, prev.id, 'MODIFIED', { status, previousStatus: prev.status })
+            .catch((err) => console.error('Audit log error:', err))
+
+          const email = prev.email
+          if (email) {
+            const resDate = prev.reservationDate instanceof Date
+              ? prev.reservationDate
+              : new Date(prev.reservationDate)
+            sendAdminEditNotification(email, {
+              serialNumber: prev.serialNumber,
+              changes: `- Status changed from ${prev.status} to ${status}`,
+              reservationDate: resDate,
+            }).catch((err) => console.error('Email notification error:', err))
+          }
+        }
+      }
     }
 
-    return NextResponse.json({ error: 'No IDs provided' }, { status: 400 })
+    return NextResponse.json({ updated })
   } catch (error) {
-    console.error('Error deleting reservations:', error)
+    console.error('Error bulk updating reservations:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

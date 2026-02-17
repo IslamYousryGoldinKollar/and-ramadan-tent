@@ -28,6 +28,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validated = createReservationSchema.parse(body)
 
+    // Reject Fridays and Saturdays
+    const dayOfWeek = new Date(validated.reservationDate).getDay()
+    if (dayOfWeek === 5 || dayOfWeek === 6) {
+      return NextResponse.json(
+        { error: 'The tent is closed on Fridays and Saturdays.' },
+        { status: 400 }
+      )
+    }
+
     // Enforce 48-hour advance booking
     const minBookingDate = new Date()
     minBookingDate.setHours(minBookingDate.getHours() + 48)
@@ -67,10 +76,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.error('Error creating reservation:', error)
+    const message = error instanceof Error ? error.message : 'Internal server error'
+    const isDuplicate = message.includes('already have a reservation')
+    const isCapacity = message.includes('seats available')
+    if (!isDuplicate && !isCapacity) {
+      console.error('Error creating reservation:', error)
+    }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      { error: message },
+      { status: isDuplicate || isCapacity ? 400 : 500 }
     )
   }
 }

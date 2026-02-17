@@ -55,6 +55,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validated = createReservationSchema.parse(body)
 
+    // Reject Fridays and Saturdays
+    const dayOfWeek = new Date(validated.reservationDate).getDay()
+    if (dayOfWeek === 5 || dayOfWeek === 6) {
+      return NextResponse.json(
+        { error: 'The tent is closed on Fridays and Saturdays.' },
+        { status: 400 }
+      )
+    }
+
     // Enforce 48-hour advance booking
     const minBookingDate = new Date()
     minBookingDate.setHours(minBookingDate.getHours() + 48)

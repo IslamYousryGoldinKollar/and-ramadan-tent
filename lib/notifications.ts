@@ -114,6 +114,26 @@ e& Egypt HR Team`
   await sendEmail({ to: email, subject, text })
 }
 
+export async function sendAdminEditNotification(
+  email: string,
+  data: { serialNumber: string; changes: string; reservationDate: Date }
+): Promise<void> {
+  const subject = `Ramadan Tent Reservation Modified by Admin - ${data.serialNumber}`
+  const text = `Dear Employee,
+
+Your reservation (${data.serialNumber}) for ${data.reservationDate.toLocaleDateString()} has been updated by an administrator.
+
+Changes made:
+${data.changes}
+
+If you have any questions, please contact HR.
+
+Thank you!
+e& Egypt HR Team`
+
+  await sendEmail({ to: email, subject, text })
+}
+
 export async function sendReminder(
   email: string,
   serialNumber: string,
