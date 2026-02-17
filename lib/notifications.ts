@@ -79,10 +79,7 @@ export async function sendCancellationConfirmation(
 
 Your reservation (${serialNumber}) has been cancelled.
 
-If you need to make a new reservation, please visit the booking portal.
-
-Thank you!
-e& Egypt HR Team`
+If you need to make a new reservation, please visit the booking portal.`
 
   await sendEmail({ to: email, subject, text })
 }

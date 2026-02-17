@@ -189,6 +189,21 @@ export function RamadanCalendar({
                   numberColor = 'text-gray-300'
                 }
 
+                if (isFridayOrSaturday) {
+                  return (
+                    <div
+                      key={dateKey}
+                      className="relative p-2 rounded-xl text-center min-h-[5.5rem] border bg-gray-100/80 border-gray-200/40 opacity-40 flex flex-col items-center justify-center opacity-0 animate-fade-in-up"
+                      style={{ animationDelay: `${Math.min(index * 30, 600)}ms` }}
+                    >
+                      <div className="text-lg font-bold leading-tight text-gray-300">{date.getDate()}</div>
+                      <div className="text-[10px] font-semibold text-gray-400 mt-1">
+                        {date.getDay() === 5 ? 'Friday' : 'Saturday'}
+                      </div>
+                    </div>
+                  )
+                }
+
                 return (
                   <button
                     key={dateKey}
