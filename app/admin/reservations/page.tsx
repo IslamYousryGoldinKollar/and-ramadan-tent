@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { formatDate, formatDateTime } from '@/lib/utils'
 import {
   Search, ChevronLeft, ChevronRight, RefreshCw,
-  ArrowUpDown, ArrowUp, ArrowDown, Filter, X, Download, CheckSquare, AlertTriangle
+  ArrowUpDown, ArrowUp, ArrowDown, Filter, X, Download, CheckSquare, AlertTriangle, Copy
 } from 'lucide-react'
+import Link from 'next/link'
 
 interface Reservation {
   id: string
@@ -228,6 +229,11 @@ export default function AdminReservationsPage() {
           <p className="text-sm text-gray-500">{total} total reservation(s)</p>
         </div>
         <div className="flex gap-2">
+          <Link href="/admin/reservations/duplicates">
+            <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50">
+              <Copy className="h-4 w-4 mr-1" /> Find Duplicates
+            </Button>
+          </Link>
           <Button variant="outline" size="sm" onClick={exportFullCSV} disabled={exportLoading}>
             <Download className="h-4 w-4 mr-1" /> {exportLoading ? 'Exporting...' : 'Export All CSV'}
           </Button>
