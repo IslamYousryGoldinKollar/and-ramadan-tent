@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicReservation } from '@/lib/reservations'
 import { isValidEgyptPhone, normalizeEgyptPhone } from '@/lib/sms'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { rateLimitDistributed, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const createReservationSchema = z.object({
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limit: 30 requests per minute per IP (high for corporate shared IP)
     const ip = getClientIp(request)
-    const limiter = rateLimit(`public-reservation:${ip}`, { windowMs: 60_000, maxRequests: 30 })
+    const limiter = await rateLimitDistributed(`public-reservation:${ip}`, { windowMs: 60_000, maxRequests: 30 })
     if (!limiter.success) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },

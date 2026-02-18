@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { saveUpload, listUploads, deleteUpload } from '@/lib/uploads'
 
+const ALLOWED_UPLOAD_MIME_PREFIXES = ['image/', 'video/']
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,6 +22,10 @@ export async function POST(request: NextRequest) {
     // 50MB max
     if (file.size > 50 * 1024 * 1024) {
       return NextResponse.json({ error: 'File too large. Maximum size is 50MB.' }, { status: 400 })
+    }
+
+    if (!file.type || !ALLOWED_UPLOAD_MIME_PREFIXES.some((prefix) => file.type.startsWith(prefix))) {
+      return NextResponse.json({ error: 'Unsupported file type. Only image and video uploads are allowed.' }, { status: 400 })
     }
 
     const userId = (session.user as any).id

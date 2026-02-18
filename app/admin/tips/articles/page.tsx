@@ -28,6 +28,7 @@ interface Article {
   excerpt?: string
   category: string
   imageUrl?: string
+  imagePreviewUrl?: string
   videoUrl?: string
   displayOrder: number
   isActive: boolean
@@ -145,7 +146,7 @@ export default function AdminArticlesPage() {
               <Card key={article.id} className={`modern-card-hover group ${!article.isActive ? 'opacity-60' : ''}`}>
                 <CardContent className="flex items-center gap-4 py-4">
                   {article.imageUrl ? (
-                    <img src={article.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                    <img src={article.imagePreviewUrl || article.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0" />
                   ) : (
                     <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                       <ImageIcon className="w-6 h-6 text-gray-400" />

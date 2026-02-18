@@ -29,6 +29,7 @@ export default function ArticleEditorPage() {
   const [htmlContent, setHtmlContent] = useState('')
   const [category, setCategory] = useState('General')
   const [imageUrl, setImageUrl] = useState('')
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('')
   const [videoUrl, setVideoUrl] = useState('')
   const [displayOrder, setDisplayOrder] = useState(0)
   const [saving, setSaving] = useState(false)
@@ -44,6 +45,7 @@ export default function ArticleEditorPage() {
           setHtmlContent(data.htmlContent || '')
           setCategory(data.category || 'General')
           setImageUrl(data.imageUrl || '')
+          setImagePreviewUrl(data.imagePreviewUrl || data.imageUrl || '')
           setVideoUrl(data.videoUrl || '')
           setDisplayOrder(data.displayOrder || 0)
         })
@@ -149,10 +151,24 @@ export default function ArticleEditorPage() {
               <CardContent className="pt-6 space-y-4">
                 <div className="space-y-2">
                   <Label>Cover Image</Label>
-                  <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Image URL (optional)" />
-                  <FileUploader accept="image/*" label="Upload Image" onUpload={(url) => setImageUrl(url)} />
-                  {imageUrl && (
-                    <img src={imageUrl} alt="Preview" className="w-full h-32 object-cover rounded-lg mt-2" />
+                  <Input
+                    value={imageUrl}
+                    onChange={(e) => {
+                      setImageUrl(e.target.value)
+                      setImagePreviewUrl(e.target.value)
+                    }}
+                    placeholder="Image URL (optional)"
+                  />
+                  <FileUploader
+                    accept="image/*"
+                    label="Upload Image"
+                    onUpload={(url, previewUrl) => {
+                      setImageUrl(url)
+                      setImagePreviewUrl(previewUrl || url)
+                    }}
+                  />
+                  {(imagePreviewUrl || imageUrl) && (
+                    <img src={imagePreviewUrl || imageUrl} alt="Preview" className="w-full h-32 object-cover rounded-lg mt-2" />
                   )}
                 </div>
               </CardContent>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { getDailyTipById, updateDailyTip, deleteDailyTip, toggleDailyTipStatus } from '@/lib/daily-tips'
+import { sanitizeHtml } from '@/lib/html-sanitizer'
 import { z } from 'zod'
 
 const updateTipSchema = z.object({
@@ -16,10 +17,18 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions)
+    const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN'
+
     const tip = await getDailyTipById(params.id)
     if (!tip) {
       return NextResponse.json({ error: 'Tip not found' }, { status: 404 })
     }
+
+    if (!isAdmin && !(tip as any).isActive) {
+      return NextResponse.json({ error: 'Tip not found' }, { status: 404 })
+    }
+
     return NextResponse.json(tip)
   } catch (error) {
     console.error('Error fetching daily tip:', error)
@@ -39,7 +48,11 @@ export async function PUT(
 
     const body = await request.json()
     const validated = updateTipSchema.parse(body)
-    const tip = await updateDailyTip(params.id, validated)
+    const sanitized = {
+      ...validated,
+      ...(validated.fullContent ? { fullContent: sanitizeHtml(validated.fullContent) } : {}),
+    }
+    const tip = await updateDailyTip(params.id, sanitized)
     return NextResponse.json(tip)
   } catch (error) {
     if (error instanceof z.ZodError) {

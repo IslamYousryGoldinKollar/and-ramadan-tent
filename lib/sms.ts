@@ -1,18 +1,9 @@
-// SMS service using Twilio — best provider for Egypt with reliable delivery
-// Alternative Egypt-friendly providers: Unifonic, Infobip, Vonage
+// Phone helpers.
+// SMS delivery is intentionally disabled for now.
 
 interface SmsResult {
   success: boolean
   messageId?: string
-}
-
-const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID
-const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN
-const TWILIO_MESSAGING_SERVICE_SID = process.env.TWILIO_MESSAGING_SERVICE_SID
-const TWILIO_FROM = process.env.TWILIO_PHONE_NUMBER // Fallback if no Messaging Service
-
-function isSmsConfigured(): boolean {
-  return !!(TWILIO_SID && TWILIO_TOKEN && (TWILIO_MESSAGING_SERVICE_SID || TWILIO_FROM))
 }
 
 /**
@@ -46,47 +37,13 @@ export function isValidEgyptPhone(phone: string): boolean {
 }
 
 /**
- * Send an SMS message via Twilio
+ * SMS sending is disabled.
+ * Kept as a compatibility no-op to avoid changing API contracts.
  */
 export async function sendSms(to: string, body: string): Promise<SmsResult> {
   const normalizedTo = normalizeEgyptPhone(to)
-
-  if (!isSmsConfigured()) {
-    console.log(`[SMS][LOG ONLY] To: ${normalizedTo} | Body: ${body}`)
-    return { success: false }
-  }
-
-  try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`
-    const auth = Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64')
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        To: normalizedTo,
-        ...(TWILIO_MESSAGING_SERVICE_SID
-          ? { MessagingServiceSid: TWILIO_MESSAGING_SERVICE_SID }
-          : { From: TWILIO_FROM! }),
-        Body: body,
-      }),
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      return { success: true, messageId: data.sid }
-    }
-
-    const errorData = await response.json().catch(() => null)
-    console.error('[SMS] Twilio error:', errorData?.message || response.statusText)
-    return { success: false }
-  } catch (error) {
-    console.error('[SMS] Failed to send:', error)
-    return { success: false }
-  }
+  console.log(`[SMS][DISABLED] To: ${normalizedTo} | Body: ${body}`)
+  return { success: false }
 }
 
 /**

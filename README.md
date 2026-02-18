@@ -38,14 +38,13 @@ A comprehensive web application for managing reservations at the e& Egypt Corpor
 - **Authentication**: NextAuth.js (Credentials Provider)
 - **Styling**: Tailwind CSS with Radix UI components
 - **Hosting**: Firebase App Hosting
-- **Notifications**: Resend (Email), Twilio (SMS/WhatsApp)
+- **Notifications**: Resend (Email)
 
 ## Prerequisites
 
 - Node.js 18+ and npm/yarn
 - Firebase Project with Firestore enabled
 - Resend API Key (for emails)
-- Twilio Account (for SMS/WhatsApp - optional)
 
 ## Installation
 
@@ -70,10 +69,14 @@ A comprehensive web application for managing reservations at the e& Egypt Corpor
    - `NEXTAUTH_URL`: Your application URL
    - `FIREBASE_SERVICE_ACCOUNT_KEY`: JSON string of your Firebase Admin Service Account
    - `RESEND_API_KEY`: Your Resend API Key
-   - `TWILIO_*`: Twilio credentials (optional)
 
 4. **Create an admin user**
    ```bash
+   ADMIN_EMPLOYEE_ID=ADMIN001 \
+   ADMIN_FULL_NAME="Admin Name" \
+   ADMIN_EMAIL="admin@eand.com" \
+   ADMIN_PASSWORD="strong-password" \
+   ADMIN_DEPARTMENT="IT" \
    node scripts/setup-admin.js
    ```
 
@@ -91,7 +94,15 @@ This project is configured for **Firebase App Hosting**.
 
 1. Connect your GitHub repository to Firebase App Hosting.
 2. Ensure the `apphosting.yaml` is present in the root.
-3. Set the required environment variables in the Firebase Console (App Hosting > Settings).
+3. Set required secrets before deploy (recommended via CLI):
+   ```bash
+   firebase apphosting:secrets:set nextauthSecret
+   firebase apphosting:secrets:set resendApiKey
+   ```
+4. Grant backend access to secrets:
+   ```bash
+   firebase apphosting:secrets:grantaccess
+   ```
 
 ## Project Structure
 
@@ -118,7 +129,7 @@ eand/
 │   ├── reservations.ts   # Reservation logic
 │   ├── waiting-list.ts   # Waiting list logic
 │   ├── notifications.ts  # Notification logic
-│   └── sms.ts            # SMS service
+│   └── sms.ts            # Phone validation helpers
 ├── scripts/              # Utility scripts (admin setup, etc.)
 └── firestore.indexes.json # Firestore index definitions
 ```

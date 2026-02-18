@@ -1,6 +1,5 @@
-// WhatsApp messaging via Twilio WhatsApp API
-// Uses the same Twilio credentials as SMS, but with whatsapp: prefix
-// Sandbox: +14155238886 | Production: your WhatsApp Business number
+// WhatsApp delivery is intentionally disabled for now.
+// Kept as compatibility no-op helpers.
 
 import { normalizeEgyptPhone } from './sms'
 
@@ -9,55 +8,13 @@ interface WhatsAppResult {
   messageId?: string
 }
 
-const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID
-const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN
-const TWILIO_WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM
-
-function isWhatsAppConfigured(): boolean {
-  return !!(TWILIO_SID && TWILIO_TOKEN && TWILIO_WHATSAPP_FROM)
-}
-
 /**
- * Send a WhatsApp message via Twilio
+ * WhatsApp sending is disabled.
  */
 export async function sendWhatsApp(to: string, body: string): Promise<WhatsAppResult> {
   const normalizedTo = normalizeEgyptPhone(to)
-
-  if (!isWhatsAppConfigured()) {
-    console.log(`[WhatsApp][LOG ONLY] To: ${normalizedTo} | Body: ${body}`)
-    return { success: false }
-  }
-
-  try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`
-    const auth = Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64')
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        To: `whatsapp:${normalizedTo}`,
-        From: `whatsapp:${TWILIO_WHATSAPP_FROM}`,
-        Body: body,
-      }),
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      console.log(`[WhatsApp] Sent to ${normalizedTo} | SID: ${data.sid}`)
-      return { success: true, messageId: data.sid }
-    }
-
-    const errorData = await response.json().catch(() => null)
-    console.error('[WhatsApp] Twilio error:', errorData?.message || response.statusText)
-    return { success: false }
-  } catch (error) {
-    console.error('[WhatsApp] Failed to send:', error)
-    return { success: false }
-  }
+  console.log(`[WhatsApp][DISABLED] To: ${normalizedTo} | Body: ${body}`)
+  return { success: false }
 }
 
 /**

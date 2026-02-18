@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { getActiveDailyTips, getAllDailyTips, createDailyTip } from '@/lib/daily-tips'
+import { sanitizeHtml } from '@/lib/html-sanitizer'
 import { z } from 'zod'
 
 const createTipSchema = z.object({
@@ -44,7 +45,11 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validated = createTipSchema.parse(body)
-    const tip = await createDailyTip(validated)
+    const sanitized = {
+      ...validated,
+      fullContent: sanitizeHtml(validated.fullContent),
+    }
+    const tip = await createDailyTip(sanitized)
     return NextResponse.json(tip, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { getActiveArticles, getAllArticles, createArticle, ARTICLE_CATEGORIES } from '@/lib/ramadan-tips'
+import { getSignedMediaUrl } from '@/lib/uploads'
+import { sanitizeHtml } from '@/lib/html-sanitizer'
 import { z } from 'zod'
 
 const createArticleSchema = z.object({
@@ -21,16 +23,39 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || undefined
     const search = searchParams.get('search') || undefined
 
+    const withSignedMedia = async (article: any, preserveCanonical: boolean) => {
+      const [signedImageUrl, signedVideoUrl] = await Promise.all([
+        getSignedMediaUrl(article.imageUrl),
+        getSignedMediaUrl(article.videoUrl),
+      ])
+
+      if (preserveCanonical) {
+        return {
+          ...article,
+          imagePreviewUrl: signedImageUrl || article.imageUrl || null,
+          videoPreviewUrl: signedVideoUrl || article.videoUrl || null,
+        }
+      }
+
+      return {
+        ...article,
+        imageUrl: signedImageUrl || article.imageUrl || null,
+        videoUrl: signedVideoUrl || article.videoUrl || null,
+      }
+    }
+
     if (admin) {
       const session = await getServerSession(authOptions)
       if (session?.user && (session.user as any).role === 'ADMIN') {
         const articles = await getAllArticles({ category, search })
-        return NextResponse.json(articles)
+        const hydrated = await Promise.all(articles.map((article: any) => withSignedMedia(article, true)))
+        return NextResponse.json(hydrated)
       }
     }
 
     const articles = await getActiveArticles(category)
-    return NextResponse.json(articles)
+    const hydrated = await Promise.all(articles.map((article: any) => withSignedMedia(article, false)))
+    return NextResponse.json(hydrated)
   } catch (error) {
     console.error('Error fetching articles:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -46,7 +71,11 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validated = createArticleSchema.parse(body)
-    const article = await createArticle(validated)
+    const sanitized = {
+      ...validated,
+      htmlContent: sanitizeHtml(validated.htmlContent),
+    }
+    const article = await createArticle(sanitized)
     return NextResponse.json(article, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {

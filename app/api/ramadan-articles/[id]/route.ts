@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { getArticleById, updateArticle, deleteArticle, toggleArticleStatus } from '@/lib/ramadan-tips'
+import { getSignedMediaUrl } from '@/lib/uploads'
+import { sanitizeHtml } from '@/lib/html-sanitizer'
 import { z } from 'zod'
 
 const updateArticleSchema = z.object({
@@ -19,11 +21,36 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions)
+    const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN'
+
     const article = await getArticleById(params.id)
     if (!article) {
       return NextResponse.json({ error: 'Article not found' }, { status: 404 })
     }
-    return NextResponse.json(article)
+
+    if (!isAdmin && !(article as any).isActive) {
+      return NextResponse.json({ error: 'Article not found' }, { status: 404 })
+    }
+
+    const [signedImageUrl, signedVideoUrl] = await Promise.all([
+      getSignedMediaUrl((article as any).imageUrl),
+      getSignedMediaUrl((article as any).videoUrl),
+    ])
+
+    if (isAdmin) {
+      return NextResponse.json({
+        ...article,
+        imagePreviewUrl: signedImageUrl || (article as any).imageUrl || null,
+        videoPreviewUrl: signedVideoUrl || (article as any).videoUrl || null,
+      })
+    }
+
+    return NextResponse.json({
+      ...article,
+      imageUrl: signedImageUrl || (article as any).imageUrl || null,
+      videoUrl: signedVideoUrl || (article as any).videoUrl || null,
+    })
   } catch (error) {
     console.error('Error fetching article:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -42,7 +69,11 @@ export async function PUT(
 
     const body = await request.json()
     const validated = updateArticleSchema.parse(body)
-    const article = await updateArticle(params.id, validated)
+    const sanitized = {
+      ...validated,
+      ...(validated.htmlContent ? { htmlContent: sanitizeHtml(validated.htmlContent) } : {}),
+    }
+    const article = await updateArticle(params.id, sanitized)
     return NextResponse.json(article)
   } catch (error) {
     if (error instanceof z.ZodError) {

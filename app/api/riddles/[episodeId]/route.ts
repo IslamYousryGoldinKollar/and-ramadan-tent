@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { getEpisodeById, updateRiddleEpisode, deleteRiddleEpisode, toggleEpisodeStatus } from '@/lib/riddles'
+import { getSignedMediaUrl } from '@/lib/uploads'
 import { z } from 'zod'
 
 const updateEpisodeSchema = z.object({
@@ -16,7 +17,12 @@ export async function GET(
   { params }: { params: { episodeId: string } }
 ) {
   try {
-    const episode = await getEpisodeById(params.episodeId)
+    const session = await getServerSession(authOptions)
+    const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN'
+
+    const episode = await getEpisodeById(params.episodeId, {
+      includeCorrectAnswers: isAdmin,
+    })
 
     if (!episode) {
       return NextResponse.json(
@@ -25,7 +31,18 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(episode)
+    if (!isAdmin && !(episode as any).isActive) {
+      return NextResponse.json(
+        { error: 'Episode not found' },
+        { status: 404 }
+      )
+    }
+
+    const signedVideoUrl = await getSignedMediaUrl((episode as any).videoUrl)
+    return NextResponse.json({
+      ...episode,
+      videoUrl: signedVideoUrl || (episode as any).videoUrl,
+    })
   } catch (error) {
     console.error('Error fetching episode:', error)
     return NextResponse.json(

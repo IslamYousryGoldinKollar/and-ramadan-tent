@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth-options'
 import { getApps, initializeApp, cert } from 'firebase-admin/app'
 
 export async function GET(request: NextRequest) {
   const steps: string[] = []
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    const session = await getServerSession(authOptions)
+    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     steps.push('Starting debug-storage')
     
     // 1. Check Env Vars
@@ -40,8 +51,6 @@ export async function GET(request: NextRequest) {
     } else {
       app = apps[0]
       steps.push(`Using existing app: ${app.name}`)
-      // Check options
-      steps.push(`App options: ${JSON.stringify(app.options)}`)
     }
 
     // 3. Get Storage
@@ -93,8 +102,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: false, 
       steps, 
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
+      error: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
 }

@@ -10,18 +10,10 @@ env:
   - variable: NEXTAUTH_URL
     value: "https://peopleofeand.goldinkollar.com"
   - variable: NEXTAUTH_SECRET
-    value: "fOUQacJv4AeRWX4gFeA3BSitluY59IWHhMcH2s5fJCY="
+    secret: nextauthSecret
   - variable: APP_URL
     value: "https://peopleofeand.goldinkollar.com"
   - variable: RESEND_API_KEY
-    value: "re_G9M3N6GT_BqiUZXLum7XpHroEa16e55sc"
+    secret: resendApiKey
   - variable: EMAIL_FROM
     value: "Ramadan Tent <ramadan@theoffsight.com>"
-  - variable: TWILIO_PHONE_NUMBER
-    value: "+18044305569"
-  - variable: TWILIO_MESSAGING_SERVICE_SID
-    value: "MG7edaf66dcde516b0831d45da9d042976"
-  - variable: TWILIO_WHATSAPP_FROM
-    value: "+14155238886"
-  # Twilio secrets - these are set in Cloud Run env vars directly
-  # TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are managed via Cloud Run console

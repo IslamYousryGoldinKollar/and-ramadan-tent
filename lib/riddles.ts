@@ -42,12 +42,22 @@ export interface SubmitAnswersData {
   }>
 }
 
-async function getQuestionsForEpisode(episodeId: string) {
+async function getQuestionsForEpisode(episodeId: string, includeCorrectAnswers: boolean = true) {
   const snap = await db.collection('riddleQuestions')
     .where('episodeId', '==', episodeId)
     .orderBy('createdAt', 'asc')
     .get()
-  return docsToArray(snap)
+  const questions = docsToArray(snap) as any[]
+
+  if (includeCorrectAnswers) {
+    return questions
+  }
+
+  return questions.map((question) => {
+    const sanitizedQuestion = { ...question }
+    delete (sanitizedQuestion as any).correctAnswer
+    return sanitizedQuestion
+  })
 }
 
 async function getAnswerCountForEpisode(episodeId: string) {
@@ -191,7 +201,7 @@ export async function getActiveEpisodes() {
 
   return Promise.all(
     episodes.map(async (ep: any) => {
-      const questions = await getQuestionsForEpisode(ep.id)
+      const questions = await getQuestionsForEpisode(ep.id, false)
       return { ...ep, questions }
     })
   )
@@ -200,11 +210,14 @@ export async function getActiveEpisodes() {
 /**
  * Get episode by ID with questions
  */
-export async function getEpisodeById(episodeId: string) {
+export async function getEpisodeById(
+  episodeId: string,
+  options?: { includeCorrectAnswers?: boolean }
+) {
   const doc = await db.collection('riddleEpisodes').doc(episodeId).get()
   if (!doc.exists) return null
   const episode = toPlainObject(doc)
-  const questions = await getQuestionsForEpisode(episodeId)
+  const questions = await getQuestionsForEpisode(episodeId, options?.includeCorrectAnswers ?? false)
   const answerCount = await getAnswerCountForEpisode(episodeId)
   return { ...episode, questions, _count: { answers: answerCount } }
 }
@@ -239,7 +252,7 @@ export async function getEpisodeStats(episodeId: string) {
  * Submit answers for an episode
  */
 export async function submitRiddleAnswers(data: SubmitAnswersData) {
-  const episode = await getEpisodeById(data.episodeId)
+  const episode = await getEpisodeById(data.episodeId, { includeCorrectAnswers: true })
   if (!episode) throw new Error('Episode not found')
   if (!(episode as any).isActive) throw new Error('Episode is not active')
 

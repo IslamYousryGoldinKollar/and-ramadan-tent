@@ -1,10 +1,10 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Public read access for uploaded content (images, videos for CMS)
+    // Deny all direct client access.
+    // Files are served via short-lived signed URLs generated server-side.
     match /uploads/{allPaths=**} {
-      allow read;
-      allow write: if false; // Writes happen via Admin SDK only
+      allow read, write: if false;
     }
   }
 }

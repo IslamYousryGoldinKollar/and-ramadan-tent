@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { getActiveEpisodes, getAllEpisodes, createRiddleEpisode } from '@/lib/riddles'
+import { getSignedMediaUrl } from '@/lib/uploads'
 import { z } from 'zod'
 
 const createEpisodeSchema = z.object({
@@ -16,16 +17,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const admin = searchParams.get('admin') === 'true'
 
+    const withSignedVideo = async (episode: any) => ({
+      ...episode,
+      videoUrl: (await getSignedMediaUrl(episode.videoUrl)) || episode.videoUrl,
+    })
+
     if (admin) {
       const session = await getServerSession(authOptions)
       if (session?.user && (session.user as any).role === 'ADMIN') {
         const episodes = await getAllEpisodes()
-        return NextResponse.json(episodes)
+        const hydrated = await Promise.all(episodes.map((episode: any) => withSignedVideo(episode)))
+        return NextResponse.json(hydrated)
       }
     }
 
     const episodes = await getActiveEpisodes()
-    return NextResponse.json(episodes)
+    const hydrated = await Promise.all(episodes.map((episode: any) => withSignedVideo(episode)))
+    return NextResponse.json(hydrated)
   } catch (error) {
     console.error('Error fetching episodes:', error)
     return NextResponse.json(

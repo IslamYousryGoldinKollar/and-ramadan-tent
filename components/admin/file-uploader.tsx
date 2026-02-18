@@ -5,7 +5,7 @@ import { Upload, X, FileVideo, FileImage, File } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface FileUploaderProps {
-  onUpload: (url: string) => void
+  onUpload: (url: string, previewUrl?: string) => void
   accept?: string
   maxSizeMB?: number
   label?: string
@@ -53,8 +53,9 @@ export function FileUploader({
       }
 
       const data = await res.json()
-      setPreview(data.url)
-      onUpload(data.url)
+      const previewUrl = data.signedUrl || data.url
+      setPreview(previewUrl)
+      onUpload(data.url, previewUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {

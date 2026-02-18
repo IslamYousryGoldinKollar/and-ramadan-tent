@@ -3,8 +3,6 @@ import { calculateCredits, MAX_CAPACITY } from './utils'
 import { generateQRCode } from './qrcode'
 import { fillVacatedSlots } from './waiting-list'
 import { sendBookingConfirmation, sendModificationAlert, sendCancellationConfirmation } from './notifications'
-import { sendBookingConfirmationSms } from './sms'
-import { sendBookingConfirmationWhatsApp, sendCancellationWhatsApp, sendRescheduleWhatsApp } from './whatsapp'
 import { createAuditLog } from './audit'
 
 export type ReservationStatus = 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'RESCHEDULED' | 'CHECKED_IN'
@@ -126,13 +124,6 @@ export async function createPublicReservation(
     location: 'e& Egypt HQ Kattameya, L1',
   })
 
-  if (phoneNumber) {
-    await Promise.allSettled([
-      sendBookingConfirmationSms(phoneNumber, serialNumber, reservationDate, seatCount),
-      sendBookingConfirmationWhatsApp(phoneNumber, serialNumber, reservationDate, seatCount),
-    ])
-  }
-
   return result
 }
 
@@ -247,9 +238,6 @@ export async function cancelReservation(reservationId: string, userId: string) {
   if (userEmail) {
     await sendCancellationConfirmation(userEmail, reservation.serialNumber)
   }
-  if (reservation.phoneNumber) {
-    await sendCancellationWhatsApp(reservation.phoneNumber, reservation.serialNumber)
-  }
 
   await fillVacatedSlots(reservation.reservationDate, reservation.seatCount)
   return reservation
@@ -306,9 +294,6 @@ export async function rescheduleReservation(
 
   if (userEmail) {
     await sendModificationAlert(userEmail, { oldDate, newDate, serialNumber: newSerialNumber })
-  }
-  if (reservation.phoneNumber) {
-    await sendRescheduleWhatsApp(reservation.phoneNumber, newSerialNumber, oldDate, newDate)
   }
 
   await fillVacatedSlots(oldDate, reservation.seatCount)

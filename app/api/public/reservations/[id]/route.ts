@@ -4,7 +4,7 @@ import { fillVacatedSlots } from '@/lib/waiting-list'
 import { sendCancellationConfirmation, sendModificationAlert } from '@/lib/notifications'
 import { MAX_CAPACITY } from '@/lib/utils'
 import { generateQRCode } from '@/lib/qrcode'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { rateLimitDistributed, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const ACTIVE_STATUSES = ['CONFIRMED', 'RESCHEDULED', 'CHECKED_IN']
@@ -24,13 +24,21 @@ export async function DELETE(
 ) {
   try {
     const ip = getClientIp(request)
-    const limiter = rateLimit(`public-cancel:${ip}`, { windowMs: 60_000, maxRequests: 20 })
+    const limiter = await rateLimitDistributed(`public-cancel:${ip}`, { windowMs: 60_000, maxRequests: 20 })
     if (!limiter.success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
 
     const body = await request.json()
     const validated = cancelSchema.parse(body)
+
+    const identityLimiter = await rateLimitDistributed(
+      `public-cancel:identity:${ip}:${params.id}:${validated.email.toLowerCase()}`,
+      { windowMs: 15 * 60_000, maxRequests: 5 }
+    )
+    if (!identityLimiter.success) {
+      return NextResponse.json({ error: 'Too many cancellation attempts. Please try again later.' }, { status: 429 })
+    }
 
     const doc = await db.collection('reservations').doc(params.id).get()
     if (!doc.exists) {
@@ -40,10 +48,10 @@ export async function DELETE(
     const reservation = toPlainObject<any>(doc)!
 
     if (!reservation.email) {
-      return NextResponse.json({ error: 'This reservation requires authentication' }, { status: 403 })
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
     if (reservation.email.toLowerCase() !== validated.email.toLowerCase()) {
-      return NextResponse.json({ error: 'Email does not match reservation' }, { status: 403 })
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
     if (reservation.status === 'CANCELLED') {
       return NextResponse.json({ error: 'Reservation already cancelled' }, { status: 400 })
@@ -75,13 +83,21 @@ export async function PATCH(
 ) {
   try {
     const ip = getClientIp(request)
-    const limiter = rateLimit(`public-reschedule:${ip}`, { windowMs: 60_000, maxRequests: 20 })
+    const limiter = await rateLimitDistributed(`public-reschedule:${ip}`, { windowMs: 60_000, maxRequests: 20 })
     if (!limiter.success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
 
     const body = await request.json()
     const validated = rescheduleSchema.parse(body)
+
+    const identityLimiter = await rateLimitDistributed(
+      `public-reschedule:identity:${ip}:${params.id}:${validated.email.toLowerCase()}`,
+      { windowMs: 15 * 60_000, maxRequests: 5 }
+    )
+    if (!identityLimiter.success) {
+      return NextResponse.json({ error: 'Too many reschedule attempts. Please try again later.' }, { status: 429 })
+    }
 
     const doc = await db.collection('reservations').doc(params.id).get()
     if (!doc.exists) {
@@ -91,10 +107,10 @@ export async function PATCH(
     const reservation = toPlainObject<any>(doc)!
 
     if (!reservation.email) {
-      return NextResponse.json({ error: 'This reservation requires authentication' }, { status: 403 })
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
     if (reservation.email.toLowerCase() !== validated.email.toLowerCase()) {
-      return NextResponse.json({ error: 'Email does not match reservation' }, { status: 403 })
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
     if (reservation.status === 'CANCELLED') {
       return NextResponse.json({ error: 'Cannot reschedule a cancelled reservation' }, { status: 400 })

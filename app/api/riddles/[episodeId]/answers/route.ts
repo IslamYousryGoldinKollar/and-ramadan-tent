@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { submitRiddleAnswers, getEpisodeAnswers } from '@/lib/riddles'
+import { rateLimitDistributed, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const submitAnswersSchema = z.object({
@@ -21,8 +22,22 @@ export async function POST(
   { params }: { params: { episodeId: string } }
 ) {
   try {
+    const ip = getClientIp(request)
+    const requestLimiter = await rateLimitDistributed(`riddle-answers:ip:${ip}`, { windowMs: 60_000, maxRequests: 20 })
+    if (!requestLimiter.success) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+    }
+
     const body = await request.json()
     const validated = submitAnswersSchema.parse(body)
+
+    const identityLimiter = await rateLimitDistributed(
+      `riddle-answers:identity:${ip}:${params.episodeId}:${validated.email.toLowerCase()}:${validated.idNumber}`,
+      { windowMs: 15 * 60_000, maxRequests: 3 }
+    )
+    if (!identityLimiter.success) {
+      return NextResponse.json({ error: 'Too many submission attempts. Please try again later.' }, { status: 429 })
+    }
 
     const answers = await submitRiddleAnswers({
       episodeId: params.episodeId,

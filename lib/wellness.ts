@@ -1,4 +1,5 @@
 import { db, generateId, toPlainObject, docsToArray } from './db'
+import { sanitizeHtml } from './html-sanitizer'
 
 export interface CreateWellnessContentData {
   title: string
@@ -15,7 +16,7 @@ export async function createWellnessContent(data: CreateWellnessContentData) {
   const now = new Date()
   const doc = {
     title: data.title,
-    htmlContent: data.content,
+    htmlContent: sanitizeHtml(data.content),
     displayOrder: data.displayOrder || 0,
     isActive: true,
     category: 'General',
@@ -65,7 +66,7 @@ export async function updateWellnessContent(
 ) {
   const updateData: any = { ...data, updatedAt: new Date() }
   if (data.content) {
-    updateData.htmlContent = data.content
+    updateData.htmlContent = sanitizeHtml(data.content)
     delete updateData.content
   }
   delete updateData.pdfUrl

@@ -1,6 +1,12 @@
 /**
  * Script to create an admin user in the Firestore database
- * Usage: node scripts/setup-admin.js
+ * Usage:
+ * ADMIN_EMPLOYEE_ID=ADMIN001 \
+ * ADMIN_FULL_NAME="Admin Name" \
+ * ADMIN_EMAIL="admin@eand.com" \
+ * ADMIN_PASSWORD="StrongPassword" \
+ * ADMIN_DEPARTMENT="IT" \
+ * node scripts/setup-admin.js
  * 
  * Make sure GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT_KEY is set
  */
@@ -10,6 +16,14 @@ const { getFirestore } = require('firebase-admin/firestore')
 const bcrypt = require('bcryptjs')
 
 const DATABASE_ID = 'eandramadan'
+
+function requireEnv(name) {
+  const value = process.env[name]
+  if (!value || !value.trim()) {
+    throw new Error(`Missing required environment variable: ${name}`)
+  }
+  return value.trim()
+}
 
 // Initialize Firebase Admin
 let app
@@ -31,11 +45,11 @@ async function setupAdmin() {
   try {
     console.log('=== e& Egypt Ramadan Tent - Admin User Setup ===\n')
 
-    const employeeId = 'ADMIN001'
-    const fullName = 'Islam Yousry'
-    const email = 'islam.yousry@goldinkollar.com'
-    const password = 'EandRamadan@GK'
-    const department = 'IT'
+    const employeeId = requireEnv('ADMIN_EMPLOYEE_ID')
+    const fullName = requireEnv('ADMIN_FULL_NAME')
+    const email = requireEnv('ADMIN_EMAIL').toLowerCase()
+    const password = requireEnv('ADMIN_PASSWORD')
+    const department = (process.env.ADMIN_DEPARTMENT || '').trim() || 'IT'
 
     if (!email.endsWith('@eand.com') && !email.endsWith('@goldinkollar.com')) {
       console.error('\n❌ Error: Email must be from @eand.com or @goldinkollar.com domain')
@@ -56,7 +70,7 @@ async function setupAdmin() {
       .get()
 
     const byEmail = await db.collection('users')
-      .where('email', '==', email.toLowerCase())
+      .where('email', '==', email)
       .limit(1)
       .get()
 
@@ -82,7 +96,7 @@ async function setupAdmin() {
       await db.collection('users').doc(id).set({
         employeeId,
         fullName,
-        email: email.toLowerCase(),
+        email,
         password: hashedPassword,
         department: department || null,
         role: 'ADMIN',
@@ -91,7 +105,7 @@ async function setupAdmin() {
       })
       console.log('\n✅ Admin user created successfully!')
       console.log(`   Employee ID: ${employeeId}`)
-      console.log(`   Email: ${email.toLowerCase()}`)
+      console.log(`   Email: ${email}`)
       console.log(`   Role: ADMIN`)
     }
   } catch (error) {
