@@ -10,13 +10,7 @@ import { CompletionScreen } from '@/components/survey/completion-screen'
 import { ChevronRight, ChevronLeft, Sparkles, ArrowRight, User, Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const SECTION_LABELS = ['Identity', 'Activities', 'Tent', 'Fawazeer', 'Cooking', 'Branding']
-
-const DEPARTMENTS = [
-  'Human Resources', 'Finance', 'Marketing', 'Sales', 'Technology',
-  'Customer Experience', 'Legal', 'Operations', 'Strategy',
-  'Corporate Communications', 'Procurement', 'Internal Audit', 'Other',
-]
+const SECTION_LABELS = ['Identity', 'Pre-Activities', 'Tent', 'Fawazeer', 'Cooking', 'Branding']
 
 const tentImages = [
   '/1772441430606.jpeg',
@@ -242,16 +236,13 @@ export default function SurveyPage() {
                   <Building2 className="w-3.5 h-3.5" />
                   Department
                 </label>
-                <select
+                <input
+                  type="text"
                   value={data.department || ''}
                   onChange={(e) => update('department', e.target.value)}
-                  className="w-full bg-[#1a1345] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-ramadan-gold/40 focus:border-ramadan-gold/30 transition-all"
-                >
-                  <option value="" disabled>Select department</option>
-                  {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
+                  placeholder="Enter your department"
+                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:ring-1 focus:ring-ramadan-gold/40 focus:border-ramadan-gold/30 transition-all"
+                />
               </div>
             </div>
           </div>
@@ -265,12 +256,12 @@ export default function SurveyPage() {
             overlay="bg-gradient-to-b from-eand-ocean/80 via-eand-ocean/65 to-eand-ocean/90"
           >
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-              <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center">Ramadan Activities</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center">Pre-Ramadan Activities</h2>
               <p className="text-white/40 text-sm mb-8 text-center max-w-sm">
                 Think back to all the activities and events we organized
               </p>
               <StarRating
-                question="How much did you enjoy the Ramadan activities overall?"
+                question="How much did you enjoy the Pre-Ramadan activities?"
                 value={data.activitiesRating}
                 onRate={(r) => rateAndAdvance('activitiesRating', r)}
                 onFullMark={() => fullMarkAndAdvance('activitiesRating')}
