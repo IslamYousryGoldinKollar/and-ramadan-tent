@@ -3,110 +3,106 @@
 import { useState, useCallback, useEffect } from 'react'
 import { EandLogo } from '@/components/ui/eand-logo'
 import { ProgressBar } from '@/components/survey/progress-bar'
-import { ImageCarousel } from '@/components/survey/image-carousel'
 import { EmojiRating } from '@/components/survey/emoji-rating'
-import { ChoiceSelector } from '@/components/survey/choice-selector'
-import { TextFeedback } from '@/components/survey/text-feedback'
-import { SectionWrapper } from '@/components/survey/section-wrapper'
+import { StarRating } from '@/components/survey/star-rating'
+import { AutoSlideHero } from '@/components/survey/auto-slide-hero'
+import { CharacterShowcase } from '@/components/survey/character-showcase'
 import { CompletionScreen } from '@/components/survey/completion-screen'
-import { Moon, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react'
+import { Moon, ChevronRight, ChevronLeft, Sparkles, Users, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const SECTION_LABELS = ['Activities', 'Tent', 'Fawazeer', 'Cooking', 'Branding']
+const SECTION_LABELS = ['You', 'Activities', 'Tent', 'Fawazeer', 'Cooking', 'Branding']
 
-const activityImages = [
-  { src: '/ramadan activity32.jpg', alt: 'Activity 1' },
-  { src: '/ramadan activity33.jpg', alt: 'Activity 2' },
-  { src: '/ramadan activity34.jpg', alt: 'Activity 3' },
-  { src: '/ramadan activity35.jpg', alt: 'Activity 4' },
-  { src: '/ramadan activity36.jpg', alt: 'Activity 5' },
-  { src: '/ramadan activity37.jpg', alt: 'Activity 6' },
-  { src: '/ramadan activity38.jpg', alt: 'Activity 7' },
+const DEPARTMENTS = [
+  'Human Resources', 'Finance', 'Marketing', 'Sales', 'Technology',
+  'Customer Experience', 'Legal', 'Operations', 'Strategy',
+  'Corporate Communications', 'Procurement', 'Internal Audit', 'Other',
 ]
 
-const fawazeerImages = [
-  { src: '/fawazeer32.png', alt: 'Fawazeer 1' },
-  { src: '/fawazeer33.png', alt: 'Fawazeer 2' },
-  { src: '/fawazeer34.png', alt: 'Fawazeer 3' },
-  { src: '/fawazeer35.png', alt: 'Fawazeer 4' },
-  { src: '/fawazeer36.png', alt: 'Fawazeer 5' },
-  { src: '/fawazeer37.png', alt: 'Fawazeer 6' },
-  { src: '/fawazeer38.png', alt: 'Fawazeer 7' },
-  { src: '/fawazeer39.png', alt: 'Fawazeer 8' },
-  { src: '/fawazeer40.png', alt: 'Fawazeer 9' },
-  { src: '/fawazeer41.png', alt: 'Fawazeer 10' },
-  { src: '/fawazeer42.png', alt: 'Fawazeer 11' },
+const tentImages = [
+  '/ramadan activity32.jpg',
+  '/ramadan activity33.jpg',
+  '/ramadan activity34.jpg',
+  '/ramadan activity35.jpg',
+  '/ramadan activity36.jpg',
+  '/ramadan activity37.jpg',
+  '/ramadan activity38.jpg',
+  '/1772441430606.jpeg',
+  '/1772441431138.jpeg',
+]
+
+const fawazeerCharacters = [
+  '/fawazeer32.png',
+  '/fawazeer33.png',
+  '/fawazeer34.png',
+  '/fawazeer35.png',
+  '/fawazeer36.png',
+  '/fawazeer37.png',
+  '/fawazeer38.png',
+  '/fawazeer39.png',
+  '/fawazeer40.png',
+  '/fawazeer41.png',
 ]
 
 const cookingImages = [
-  { src: '/coocking.JPG', alt: 'Cooking Show' },
-  { src: '/coocking32.JPG', alt: 'Cooking Competition 1' },
-  { src: '/coocking33.JPG', alt: 'Cooking Competition 2' },
-  { src: '/coocking34.JPG', alt: 'Cooking Competition 3' },
+  '/coocking.JPG',
+  '/coocking32.JPG',
+  '/coocking33.JPG',
+  '/coocking34.JPG',
+]
+
+const activityBgImages = [
+  '/1772441430606.jpeg',
+  '/1772441431138.jpeg',
+  '/ramadan activity35.jpg',
+  '/ramadan activity37.jpg',
 ]
 
 interface SurveyData {
-  // Section 1 - Activities
-  activitiesEnjoyment?: number
-  activitiesStandout?: number
-  activitiesJoinAgain?: string
-  // Section 2 - Tent
-  tentUsed?: string
-  tentExperience?: number
-  tentImprovement?: string
-  // Section 3 - Fawazeer
-  fawazeerEngaging?: number
-  fawazeerEmployees?: string
-  fawazeerTone?: number
-  // Section 4 - Cooking
-  cookingIdea?: number
-  cookingEngaging?: string
-  cookingParticipate?: string
-  // Section 5 - Branding
-  brandingFeel?: number
-  brandingEnhanced?: string
-  brandingImprovement?: string
+  employeeId?: string
+  department?: string
+  activitiesRating?: number
+  tentRating?: number
+  fawazeerRating?: number
+  cookingRating?: number
+  brandingRating?: number
 }
 
 export default function SurveyPage() {
   const [started, setStarted] = useState(false)
   const [currentSection, setCurrentSection] = useState(0)
-  const [direction, setDirection] = useState<'left' | 'right' | 'none'>('none')
   const [completed, setCompleted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [data, setData] = useState<SurveyData>({})
+  const [transitioning, setTransitioning] = useState(false)
 
   const update = useCallback((key: keyof SurveyData, value: string | number) => {
     setData((prev) => ({ ...prev, [key]: value }))
   }, [])
 
+  const totalSections = 6
+
   const canProceed = useCallback(() => {
     switch (currentSection) {
-      case 0:
-        return data.activitiesEnjoyment && data.activitiesStandout !== undefined && data.activitiesJoinAgain
-      case 1:
-        return data.tentUsed && data.tentExperience
-      case 2:
-        return data.fawazeerEngaging && data.fawazeerEmployees
-      case 3:
-        return data.cookingIdea && data.cookingEngaging
-      case 4:
-        return data.brandingFeel && data.brandingEnhanced
-      default:
-        return false
+      case 0: return !!(data.employeeId && data.employeeId.length >= 3 && data.department)
+      case 1: return !!data.activitiesRating
+      case 2: return !!data.tentRating
+      case 3: return !!data.fawazeerRating
+      case 4: return !!data.cookingRating
+      case 5: return !!data.brandingRating
+      default: return false
     }
   }, [currentSection, data])
 
   const goNext = useCallback(async () => {
-    if (currentSection < 4) {
-      setDirection('left')
+    if (transitioning) return
+    if (currentSection < totalSections - 1) {
+      setTransitioning(true)
       setTimeout(() => {
         setCurrentSection((prev) => prev + 1)
-        setDirection('right')
-        setTimeout(() => setDirection('none'), 50)
-      }, 300)
+        setTransitioning(false)
+      }, 400)
     } else {
-      // Submit
       setSubmitting(true)
       try {
         await fetch('/api/survey', {
@@ -120,20 +116,17 @@ export default function SurveyPage() {
       setSubmitting(false)
       setCompleted(true)
     }
-  }, [currentSection, data])
+  }, [currentSection, data, transitioning])
 
   const goPrev = useCallback(() => {
-    if (currentSection > 0) {
-      setDirection('right')
-      setTimeout(() => {
-        setCurrentSection((prev) => prev - 1)
-        setDirection('left')
-        setTimeout(() => setDirection('none'), 50)
-      }, 300)
-    }
-  }, [currentSection])
+    if (transitioning || currentSection === 0) return
+    setTransitioning(true)
+    setTimeout(() => {
+      setCurrentSection((prev) => prev - 1)
+      setTransitioning(false)
+    }, 400)
+  }, [currentSection, transitioning])
 
-  // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' && canProceed()) goNext()
@@ -169,178 +162,184 @@ export default function SurveyPage() {
         <div className="px-4 pb-3">
           <ProgressBar
             currentStep={currentSection}
-            totalSteps={5}
+            totalSteps={totalSections}
             sectionLabels={SECTION_LABELS}
           />
         </div>
       </header>
 
-      {/* Sections container */}
+      {/* Section content */}
       <div className="flex-1 relative overflow-hidden">
-        {/* Section 1: Activities */}
-        <SectionWrapper
-          title="Pre-Ramadan & Ramadan Activities"
-          subtitle="Relive the moments that brought us together"
-          emoji="🟣"
-          color="purple"
-          isActive={currentSection === 0}
-          direction={currentSection > 0 ? 'left' : currentSection < 0 ? 'right' : 'none'}
-        >
-          <ImageCarousel
-            images={activityImages}
-            selectable
-            selectedIndex={data.activitiesStandout}
-            onSelect={(i) => update('activitiesStandout', i)}
-          />
-          <p className="text-white/50 text-xs text-center -mt-4">↑ Tap the activity that stood out the most</p>
-          <EmojiRating
-            question="How much did you enjoy these activities?"
-            value={data.activitiesEnjoyment}
-            onRate={(r) => update('activitiesEnjoyment', r)}
-          />
-          <ChoiceSelector
-            question="How likely are you to join again?"
-            options={['Definitely!', 'Probably', 'Maybe next time', 'Not sure']}
-            value={data.activitiesJoinAgain}
-            onSelect={(v) => update('activitiesJoinAgain', v)}
-          />
-        </SectionWrapper>
+        {/* Section 0: Identity */}
+        <SectionPanel active={currentSection === 0} transitioning={transitioning}>
+          <div className="flex-1 bg-gradient-to-b from-purple-900/60 via-eand-ocean to-purple-950/60 flex flex-col items-center justify-center px-6 py-10">
+            <span className="text-4xl mb-4">�</span>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 text-center">Tell Us About You</h2>
+            <p className="text-white/50 text-sm mb-10 text-center">So we can understand your perspective better</p>
 
-        {/* Section 2: Ramadan Tent */}
-        <SectionWrapper
-          title="Ramadan Tent"
-          subtitle="The warmth of gathering together for Iftar"
-          emoji="🟡"
-          color="amber"
-          isActive={currentSection === 1}
-          direction={currentSection > 1 ? 'left' : currentSection < 1 ? 'right' : 'none'}
-        >
-          <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-2">
-            <div className="absolute inset-0 bg-gradient-to-b from-amber-900/20 to-eand-ocean/80" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <span className="text-6xl mb-4 block">🕌</span>
-                <p className="text-white/90 text-xl font-bold">The Ramadan Tent</p>
-                <p className="text-white/50 text-sm mt-1">Where everyone gathered for Iftar</p>
+            <div className="w-full max-w-sm flex flex-col gap-6">
+              <div>
+                <label className="text-white/70 text-sm font-medium mb-2 block">Employee ID</label>
+                <input
+                  type="text"
+                  value={data.employeeId || ''}
+                  onChange={(e) => update('employeeId', e.target.value)}
+                  placeholder="Enter your employee ID"
+                  className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-ramadan-gold/50 focus:border-ramadan-gold/50 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-white/70 text-sm font-medium mb-2 block">Department</label>
+                <select
+                  value={data.department || ''}
+                  onChange={(e) => update('department', e.target.value)}
+                  className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-ramadan-gold/50 focus:border-ramadan-gold/50 transition-all appearance-none"
+                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.5)\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' }}
+                >
+                  <option value="" disabled className="bg-eand-ocean text-white/50">Select department</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept} className="bg-eand-ocean text-white">{dept}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
-          <ChoiceSelector
-            question="Did you use the tent booking feature?"
-            options={['Yes, multiple times!', 'Yes, once or twice', 'No, but I wanted to', 'No, I didn\'t know about it']}
-            value={data.tentUsed}
-            onSelect={(v) => update('tentUsed', v)}
-          />
-          <EmojiRating
-            question="How was your overall tent experience?"
-            value={data.tentExperience}
-            onRate={(r) => update('tentExperience', r)}
-          />
-          <TextFeedback
-            question="What would make the tent experience even better?"
-            value={data.tentImprovement || ''}
-            onChange={(v) => update('tentImprovement', v)}
-            placeholder="Your ideas for improvement..."
-          />
-        </SectionWrapper>
+        </SectionPanel>
+
+        {/* Section 1: Activities */}
+        <SectionPanel active={currentSection === 1} transitioning={transitioning}>
+          <AutoSlideHero
+            images={activityBgImages}
+            interval={3500}
+            overlay="bg-gradient-to-b from-purple-900/80 via-eand-ocean/70 to-eand-ocean/90"
+          >
+            <div className="flex-1 flex flex-col items-center justify-center px-6 py-10">
+              <span className="text-4xl mb-3">�</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 text-center">Pre-Ramadan & Ramadan Activities</h2>
+              <p className="text-white/50 text-sm mb-10 text-center max-w-md">
+                Think back to all the activities and events we organized this Ramadan
+              </p>
+              <EmojiRating
+                question="How much did you enjoy the Ramadan activities overall?"
+                value={data.activitiesRating}
+                onRate={(r) => update('activitiesRating', r)}
+              />
+            </div>
+          </AutoSlideHero>
+        </SectionPanel>
+
+        {/* Section 2: Tent */}
+        <SectionPanel active={currentSection === 2} transitioning={transitioning}>
+          <AutoSlideHero
+            images={tentImages}
+            interval={3000}
+            overlay="bg-gradient-to-b from-amber-900/75 via-eand-ocean/65 to-eand-ocean/90"
+          >
+            <div className="flex-1 flex flex-col items-center justify-center px-6 py-10">
+              <span className="text-4xl mb-3">🟡</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 text-center">Ramadan Tent</h2>
+              <p className="text-white/50 text-sm mb-6 text-center max-w-md">
+                The heart of our Ramadan — where we gathered for Iftar
+              </p>
+
+              {/* Stats bar */}
+              <div className="flex items-center justify-center gap-6 mb-10 animate-fade-in-up">
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/10">
+                  <Users className="w-4 h-4 text-ramadan-gold" />
+                  <div>
+                    <p className="text-white font-bold text-lg leading-tight">1,744</p>
+                    <p className="text-white/40 text-[10px]">Registrations</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/10">
+                  <Eye className="w-4 h-4 text-ramadan-gold" />
+                  <div>
+                    <p className="text-white font-bold text-lg leading-tight">6,288</p>
+                    <p className="text-white/40 text-[10px]">Page Visits</p>
+                  </div>
+                </div>
+              </div>
+
+              <EmojiRating
+                question="How would you rate the Ramadan Tent experience?"
+                value={data.tentRating}
+                onRate={(r) => update('tentRating', r)}
+              />
+            </div>
+          </AutoSlideHero>
+        </SectionPanel>
 
         {/* Section 3: Fawazeer */}
-        <SectionWrapper
-          title="Fawazeer Riddles"
-          subtitle="Fun, culture, and employee-powered storytelling"
-          emoji="🔵"
-          color="blue"
-          isActive={currentSection === 2}
-          direction={currentSection > 2 ? 'left' : currentSection < 2 ? 'right' : 'none'}
-        >
-          <ImageCarousel images={fawazeerImages} />
-          <EmojiRating
-            question="How engaging were the riddles?"
-            value={data.fawazeerEngaging}
-            onRate={(r) => update('fawazeerEngaging', r)}
-          />
-          <ChoiceSelector
-            question="Did you like seeing employees in the content?"
-            options={['Loved it! Made it personal', 'It was nice', 'Neutral', 'Prefer professional actors']}
-            value={data.fawazeerEmployees}
-            onSelect={(v) => update('fawazeerEmployees', v)}
-          />
-          <EmojiRating
-            question="Was the tone (fun/music/storytelling) effective?"
-            value={data.fawazeerTone}
-            onRate={(r) => update('fawazeerTone', r)}
-          />
-        </SectionWrapper>
+        <SectionPanel active={currentSection === 3} transitioning={transitioning}>
+          <div className="flex-1 bg-gradient-to-b from-blue-900/70 via-eand-ocean to-blue-950/70 flex flex-col overflow-hidden">
+            <div className="text-center pt-8 px-6">
+              <span className="text-4xl mb-3 block">🔵</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Ramadan Fawazeer</h2>
+              <p className="text-white/50 text-sm max-w-md mx-auto">
+                Fun, culture, and employee-powered storytelling
+              </p>
+            </div>
 
-        {/* Section 4: Cooking Show */}
-        <SectionWrapper
-          title="Cooking Show Competition"
-          subtitle="Where food met company culture and values"
-          emoji="🔴"
-          color="red"
-          isActive={currentSection === 3}
-          direction={currentSection > 3 ? 'left' : currentSection < 3 ? 'right' : 'none'}
-        >
-          <ImageCarousel images={cookingImages} />
-          <EmojiRating
-            question="How did you find the cooking competition idea?"
-            value={data.cookingIdea}
-            onRate={(r) => update('cookingIdea', r)}
-          />
-          <ChoiceSelector
-            question="Was the cooking show engaging?"
-            options={['Very engaging!', 'Quite interesting', 'Somewhat', 'Not really']}
-            value={data.cookingEngaging}
-            onSelect={(v) => update('cookingEngaging', v)}
-          />
-          <ChoiceSelector
-            question="Would you participate in the next one?"
-            options={['Absolutely! Sign me up!', 'Probably', 'Maybe as a viewer', 'Not my thing']}
-            value={data.cookingParticipate}
-            onSelect={(v) => update('cookingParticipate', v)}
-          />
-        </SectionWrapper>
+            <CharacterShowcase images={fawazeerCharacters} interval={2500} />
 
-        {/* Section 5: Branding */}
-        <SectionWrapper
-          title="Branding & Atmosphere"
-          subtitle="The Ramadan identity across our spaces"
-          emoji="🟢"
-          color="emerald"
-          isActive={currentSection === 4}
-          direction={currentSection < 4 ? 'right' : 'none'}
-        >
-          <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-2 bg-gradient-to-br from-emerald-900/40 to-eand-ocean">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <span className="text-4xl animate-float">🏮</span>
-                  <span className="text-5xl animate-float delay-200">🌙</span>
-                  <span className="text-4xl animate-float delay-400">🏮</span>
-                </div>
-                <p className="text-white/90 text-xl font-bold">Ramadan Branding</p>
-                <p className="text-white/50 text-sm mt-1">Decorations, visuals & Ramadan spirit</p>
-              </div>
+            <div className="px-6 pb-10 pt-4">
+              <EmojiRating
+                question="How engaging were the Ramadan Fawazeer?"
+                value={data.fawazeerRating}
+                onRate={(r) => update('fawazeerRating', r)}
+              />
             </div>
           </div>
-          <EmojiRating
-            question="How did you feel about the Ramadan branding?"
-            value={data.brandingFeel}
-            onRate={(r) => update('brandingFeel', r)}
-          />
-          <ChoiceSelector
-            question="Did the branding enhance your Ramadan experience?"
-            options={['Definitely, it felt immersive!', 'Yes, it was noticeable', 'A little bit', 'Not really']}
-            value={data.brandingEnhanced}
-            onSelect={(v) => update('brandingEnhanced', v)}
-          />
-          <TextFeedback
-            question="Any ideas to improve the Ramadan atmosphere?"
-            value={data.brandingImprovement || ''}
-            onChange={(v) => update('brandingImprovement', v)}
-            placeholder="Share your vision..."
-          />
-        </SectionWrapper>
+        </SectionPanel>
+
+        {/* Section 4: Cooking Show */}
+        <SectionPanel active={currentSection === 4} transitioning={transitioning}>
+          <AutoSlideHero
+            images={cookingImages}
+            interval={3500}
+            overlay="bg-gradient-to-b from-red-900/75 via-eand-ocean/70 to-eand-ocean/90"
+          >
+            <div className="flex-1 flex flex-col items-center justify-center px-6 py-10">
+              <span className="text-4xl mb-3">🔴</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 text-center">Cooking Show Competition</h2>
+              <p className="text-white/50 text-sm mb-10 text-center max-w-md">
+                Where food met company culture and team spirit
+              </p>
+              <EmojiRating
+                question="How would you rate the Cooking Show experience?"
+                value={data.cookingRating}
+                onRate={(r) => update('cookingRating', r)}
+              />
+            </div>
+          </AutoSlideHero>
+        </SectionPanel>
+
+        {/* Section 5: Branding */}
+        <SectionPanel active={currentSection === 5} transitioning={transitioning}>
+          <div className="flex-1 bg-gradient-to-b from-emerald-900/60 via-eand-ocean to-emerald-950/60 flex flex-col items-center justify-center px-6 py-10 relative overflow-hidden">
+            {/* Decorative lanterns */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-12 left-[10%] text-3xl opacity-15 animate-float">🏮</div>
+              <div className="absolute top-20 right-[12%] text-4xl opacity-20 animate-float-slow delay-500">�</div>
+              <div className="absolute bottom-28 left-[18%] text-2xl opacity-10 animate-float delay-300">✨</div>
+              <div className="absolute bottom-20 right-[15%] text-3xl opacity-15 animate-float-slow delay-700">🏮</div>
+            </div>
+
+            <span className="text-4xl mb-3 relative z-10">🟢</span>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 text-center relative z-10">Branding & Atmosphere</h2>
+            <p className="text-white/50 text-sm mb-10 text-center max-w-md relative z-10">
+              The Ramadan decorations, visuals & spirit across our spaces
+            </p>
+
+            <div className="relative z-10">
+              <StarRating
+                question="How would you rate the Ramadan branding & atmosphere?"
+                value={data.brandingRating}
+                onRate={(r) => update('brandingRating', r)}
+              />
+            </div>
+          </div>
+        </SectionPanel>
       </div>
 
       {/* Fixed bottom navigation */}
@@ -375,7 +374,7 @@ export default function SurveyPage() {
                 <div className="w-4 h-4 border-2 border-eand-ocean/30 border-t-eand-ocean rounded-full animate-spin" />
                 Sending...
               </>
-            ) : currentSection === 4 ? (
+            ) : currentSection === totalSections - 1 ? (
               <>
                 <Sparkles className="w-4 h-4" />
                 Submit
@@ -389,6 +388,23 @@ export default function SurveyPage() {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function SectionPanel({ active, transitioning, children }: { active: boolean; transitioning: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={cn(
+        'absolute inset-0 flex flex-col transition-all duration-500 ease-out',
+        active && !transitioning
+          ? 'opacity-100 translate-x-0 scale-100'
+          : active && transitioning
+          ? 'opacity-0 scale-95'
+          : 'opacity-0 translate-x-full scale-95 pointer-events-none'
+      )}
+    >
+      {children}
     </div>
   )
 }
@@ -459,7 +475,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </button>
 
           <p className="text-white/30 text-xs mt-6 animate-fade-in delay-500">
-            5 quick sections • 100% anonymous
+            6 quick steps • Takes about 2 minutes
           </p>
         </div>
       )}

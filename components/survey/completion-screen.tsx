@@ -4,76 +4,53 @@ import { useEffect, useState } from 'react'
 import { EandLogo } from '@/components/ui/eand-logo'
 
 export function CompletionScreen() {
-  const [showConfetti, setShowConfetti] = useState(false)
   const [showContent, setShowContent] = useState(false)
 
   useEffect(() => {
-    setShowConfetti(true)
-    const timer = setTimeout(() => setShowContent(true), 400)
+    const timer = setTimeout(() => setShowContent(true), 300)
     return () => clearTimeout(timer)
   }, [])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-6">
-      {/* Confetti particles */}
-      {showConfetti && (
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 40 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-fall"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `-${Math.random() * 20}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${2 + Math.random() * 3}s`,
-              }}
-            >
-              <div
-                className="w-2 h-2 md:w-3 md:h-3 rounded-sm"
-                style={{
-                  backgroundColor: ['#C9A84C', '#E00800', '#47CB6C', '#18114B', '#7C0124', '#D18D86'][
-                    Math.floor(Math.random() * 6)
-                  ],
-                  transform: `rotate(${Math.random() * 360}deg)`,
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Soft floating lanterns */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-16 left-[15%] text-3xl opacity-20 animate-float">🏮</div>
+        <div className="absolute top-24 right-[20%] text-2xl opacity-15 animate-float-slow delay-500">🏮</div>
+        <div className="absolute bottom-32 left-[25%] text-2xl opacity-10 animate-float delay-300">✨</div>
+        <div className="absolute bottom-24 right-[15%] text-3xl opacity-15 animate-float-slow delay-700">✨</div>
+        <div className="absolute top-1/3 left-1/4 w-48 h-48 bg-ramadan-gold/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/4 w-36 h-36 bg-ramadan-gold/5 rounded-full blur-3xl" />
+      </div>
 
       {showContent && (
-        <div className="text-center z-10 animate-scale-in">
-          {/* Trophy */}
-          <div className="text-7xl md:text-8xl mb-6 animate-bounce">🏆</div>
+        <div className="text-center z-10 animate-fade-in-up">
+          {/* Crescent */}
+          <div className="text-5xl md:text-6xl mb-8">�</div>
 
           {/* Heading */}
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Thank You!
+            شكراً لك
           </h1>
-          <p className="text-white/70 text-lg md:text-xl max-w-md mx-auto mb-3 leading-relaxed">
-            Your feedback helps us create even better experiences.
+          <h2 className="text-xl md:text-2xl font-semibold text-ramadan-gold mb-6">
+            Thank You
+          </h2>
+          <p className="text-white/60 text-base md:text-lg max-w-sm mx-auto mb-3 leading-relaxed">
+            Your feedback means a lot to us and will help shape an even better Ramadan experience next year.
           </p>
-          <p className="text-ramadan-gold text-base font-semibold mb-10">
-            Ramadan Kareem 🌙
+          <p className="text-white/40 text-sm max-w-xs mx-auto mb-10 leading-relaxed">
+            May the blessings of Ramadan stay with you throughout the year.
           </p>
 
-          {/* Stars */}
-          <div className="flex items-center justify-center gap-2 mb-10">
-            {['⭐', '🌟', '✨', '🌟', '⭐'].map((star, i) => (
-              <span
-                key={i}
-                className="text-2xl animate-twinkle"
-                style={{ animationDelay: `${i * 200}ms` }}
-              >
-                {star}
-              </span>
-            ))}
+          {/* Divider */}
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <div className="h-px w-12 bg-ramadan-gold/20" />
+            <span className="text-ramadan-gold/40 text-xs">رمضان كريم</span>
+            <div className="h-px w-12 bg-ramadan-gold/20" />
           </div>
 
           {/* Logo */}
-          <div className="flex flex-col items-center gap-3 opacity-50">
+          <div className="flex flex-col items-center gap-3 opacity-40">
             <EandLogo size="md" className="brightness-0 invert" />
             <p className="text-white/30 text-xs">© 2026 e& Egypt</p>
           </div>
