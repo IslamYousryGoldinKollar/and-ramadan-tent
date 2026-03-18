@@ -21,13 +21,6 @@ const DEPARTMENTS = [
 const tentImages = [
   '/1772441430606.jpeg',
   '/1772441431138.jpeg',
-  '/ramadan activity32.jpg',
-  '/ramadan activity33.jpg',
-  '/ramadan activity34.jpg',
-  '/ramadan activity35.jpg',
-  '/ramadan activity36.jpg',
-  '/ramadan activity37.jpg',
-  '/ramadan activity38.jpg',
 ]
 
 const fawazeerCharacters = [
@@ -55,8 +48,12 @@ const activityBgImages = [
   '/ramadan activity35.jpg',
   '/ramadan activity37.jpg',
   '/ramadan activity38.jpg',
-  '/1772441430606.jpeg',
-  '/1772441431138.jpeg',
+]
+
+const brandingImages = [
+  '/branding32.jpg',
+  '/branding33.jpg',
+  '/branding34.jpg',
 ]
 
 interface SurveyData {
@@ -248,12 +245,11 @@ export default function SurveyPage() {
                 <select
                   value={data.department || ''}
                   onChange={(e) => update('department', e.target.value)}
-                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-ramadan-gold/40 focus:border-ramadan-gold/30 transition-all appearance-none"
-                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.3)\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}
+                  className="w-full bg-[#1a1345] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-ramadan-gold/40 focus:border-ramadan-gold/30 transition-all"
                 >
-                  <option value="" disabled className="bg-eand-ocean text-white/40">Select department</option>
+                  <option value="" disabled>Select department</option>
                   {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept} className="bg-eand-ocean text-white">{dept}</option>
+                    <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
               </div>
@@ -348,18 +344,18 @@ export default function SurveyPage() {
           </AutoSlideHero>
         </SectionPanel>
 
-        {/* Section 5: Branding — Star Rating */}
+        {/* Section 5: Branding — Star Rating with branding images */}
         <SectionPanel active={currentSection === 5} transitioning={transitioning}>
-          <div className="flex-1 bg-gradient-to-b from-eand-ocean via-eand-ocean to-eand-ocean flex flex-col items-center justify-center px-6 py-8 relative overflow-hidden">
-            {/* Subtle ambient glow */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-ramadan-gold/[0.03] rounded-full blur-[80px]" />
-
-            <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center relative z-10">Branding & Atmosphere</h2>
-            <p className="text-white/40 text-sm mb-8 text-center max-w-sm relative z-10">
-              The Ramadan decorations, visuals & spirit across our spaces
-            </p>
-
-            <div className="relative z-10">
+          <AutoSlideHero
+            images={brandingImages}
+            interval={3500}
+            overlay="bg-gradient-to-b from-eand-ocean/80 via-eand-ocean/65 to-eand-ocean/90"
+          >
+            <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+              <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center">Branding & Atmosphere</h2>
+              <p className="text-white/40 text-sm mb-8 text-center max-w-sm">
+                The Ramadan decorations, visuals & spirit across our spaces
+              </p>
               <StarRating
                 question="How would you rate the Ramadan branding & atmosphere?"
                 value={data.brandingRating}
@@ -367,7 +363,7 @@ export default function SurveyPage() {
                 onFullMark={() => fullMarkAndAdvance('brandingRating')}
               />
             </div>
-          </div>
+          </AutoSlideHero>
         </SectionPanel>
       </div>
 
