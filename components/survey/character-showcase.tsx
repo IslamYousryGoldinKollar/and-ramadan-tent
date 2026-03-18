@@ -33,7 +33,7 @@ export function CharacterShowcase({ images, interval = 3000 }: CharacterShowcase
   const characters = getVisibleCharacters()
 
   return (
-    <div className="relative w-full flex-1 min-h-[200px] flex items-end justify-center overflow-hidden">
+    <div className="relative w-full flex-1 min-h-[180px] max-h-[280px] flex items-end justify-center overflow-hidden mt-2">
       {characters.map(({ index, offset }) => {
         const absOffset = Math.abs(offset)
         const isFocused = offset === 0
@@ -50,7 +50,7 @@ export function CharacterShowcase({ images, interval = 3000 }: CharacterShowcase
             }}
           >
             <div className={cn(
-              'relative w-[220px] h-[320px] md:w-[280px] md:h-[400px]',
+              'relative w-[180px] h-[250px] md:w-[220px] md:h-[280px]',
               isFocused && 'drop-shadow-[0_0_40px_rgba(201,168,76,0.25)]'
             )}>
               <Image

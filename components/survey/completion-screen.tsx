@@ -26,7 +26,7 @@ export function CompletionScreen() {
       {showContent && (
         <div className="text-center z-10 animate-fade-in-up">
           {/* Crescent */}
-          <div className="text-5xl md:text-6xl mb-8">�</div>
+          <div className="text-5xl md:text-6xl mb-8">{'\u{1F319}'}</div>
 
           {/* Heading */}
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
