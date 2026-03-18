@@ -105,6 +105,10 @@
     border-radius: 9999px;
     pointer-events: none;
   }
+  /* Hide scrollbar for carousel */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
   /* Responsive container that works on both mobile and desktop */
   .content-container {
     @apply max-w-lg mx-auto w-full px-4;
