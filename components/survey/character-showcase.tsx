@@ -33,7 +33,7 @@ export function CharacterShowcase({ images, interval = 3000 }: CharacterShowcase
   const characters = getVisibleCharacters()
 
   return (
-    <div className="relative w-full h-[280px] md:h-[340px] flex items-end justify-center overflow-hidden">
+    <div className="relative w-full flex-1 min-h-[200px] flex items-end justify-center overflow-hidden">
       {characters.map(({ index, offset }) => {
         const absOffset = Math.abs(offset)
         const isFocused = offset === 0
@@ -43,22 +43,22 @@ export function CharacterShowcase({ images, interval = 3000 }: CharacterShowcase
             key={`${index}-${offset}`}
             className="absolute bottom-0 transition-all duration-700 ease-out"
             style={{
-              transform: `translateX(${offset * 100}px) scale(${isFocused ? 1 : absOffset === 1 ? 0.82 : 0.65})`,
+              transform: `translateX(${offset * 130}px) scale(${isFocused ? 1 : absOffset === 1 ? 0.78 : 0.58})`,
               zIndex: 10 - absOffset,
-              filter: isFocused ? 'none' : `blur(${absOffset * 2}px)`,
-              opacity: isFocused ? 1 : absOffset === 1 ? 0.6 : 0.3,
+              filter: isFocused ? 'none' : `blur(${absOffset * 2.5}px)`,
+              opacity: isFocused ? 1 : absOffset === 1 ? 0.55 : 0.2,
             }}
           >
             <div className={cn(
-              'relative w-[180px] h-[260px] md:w-[220px] md:h-[320px]',
-              isFocused && 'drop-shadow-[0_0_30px_rgba(201,168,76,0.3)]'
+              'relative w-[220px] h-[320px] md:w-[280px] md:h-[400px]',
+              isFocused && 'drop-shadow-[0_0_40px_rgba(201,168,76,0.25)]'
             )}>
               <Image
                 src={images[index]}
                 alt={`Fawazeer character ${index + 1}`}
                 fill
                 className="object-contain object-bottom"
-                sizes="220px"
+                sizes="280px"
               />
             </div>
           </div>
@@ -66,7 +66,7 @@ export function CharacterShowcase({ images, interval = 3000 }: CharacterShowcase
       })}
 
       {/* Subtle glow under focused character */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-8 bg-ramadan-gold/10 blur-2xl rounded-full" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-12 bg-ramadan-gold/8 blur-3xl rounded-full" />
     </div>
   )
 }

@@ -21,9 +21,9 @@ export function EmojiRating({ question, onRate, value }: EmojiRatingProps) {
   const [hovered, setHovered] = useState<number | null>(null)
 
   return (
-    <div className="w-full">
-      <p className="text-lg font-semibold text-white mb-6 text-center leading-relaxed">{question}</p>
-      <div className="flex items-center justify-center gap-3">
+    <div className="w-full max-w-md mx-auto">
+      <p className="text-[15px] font-medium text-white/90 mb-6 text-center leading-relaxed">{question}</p>
+      <div className="flex items-center justify-center gap-2">
         {emojis.map((item, index) => {
           const rating = index + 1
           const isSelected = value === rating
@@ -36,34 +36,25 @@ export function EmojiRating({ question, onRate, value }: EmojiRatingProps) {
               onMouseEnter={() => setHovered(rating)}
               onMouseLeave={() => setHovered(null)}
               className={cn(
-                'relative flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all duration-300',
+                'relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300',
                 isSelected
-                  ? 'scale-125 bg-white/20 shadow-lg shadow-ramadan-gold/20'
+                  ? 'scale-110 bg-white/15'
                   : isHovered
-                  ? 'scale-110 bg-white/10'
-                  : 'scale-100 bg-white/5 hover:bg-white/10'
+                  ? 'scale-105 bg-white/[0.06]'
+                  : 'bg-transparent hover:bg-white/[0.04]'
               )}
             >
-              <span
-                className={cn(
-                  'text-3xl md:text-4xl transition-transform duration-300',
-                  isSelected && 'animate-bounce'
-                )}
-              >
+              <span className={cn('text-2xl transition-transform duration-300', isSelected && 'scale-110')}>
                 {item.emoji}
               </span>
               <span
                 className={cn(
-                  'text-[10px] font-medium transition-opacity duration-200',
-                  isSelected ? 'text-ramadan-gold opacity-100' : 'text-white/50 opacity-0 group-hover:opacity-100',
-                  (isHovered || isSelected) && 'opacity-100'
+                  'text-[10px] font-medium transition-all duration-200',
+                  isSelected ? 'text-ramadan-gold' : isHovered ? 'text-white/50' : 'text-white/25'
                 )}
               >
                 {item.label}
               </span>
-              {isSelected && (
-                <div className="absolute -inset-1 rounded-2xl border-2 border-ramadan-gold/50 animate-pulse" />
-              )}
             </button>
           )
         })}
