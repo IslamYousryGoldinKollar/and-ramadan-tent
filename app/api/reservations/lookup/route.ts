@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getReservationBySerial } from '@/lib/reservations'
+import { getReservationBySerial, toPublicReservationView } from '@/lib/reservations'
 import { rateLimitDistributed, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(reservation)
+    return NextResponse.json(toPublicReservationView(reservation))
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

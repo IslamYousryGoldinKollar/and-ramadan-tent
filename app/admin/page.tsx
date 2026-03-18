@@ -160,6 +160,11 @@ export default function AdminDashboardPage() {
                 <h3 className="font-semibold">Analytics</h3>
                 <p className="text-sm text-gray-600">Traffic & engagement</p>
               </a>
+              <a href="/admin/survey" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+                <ClipboardList className="h-6 w-6 mb-2 text-eand-red group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold">Survey Report</h3>
+                <p className="text-sm text-gray-600">Experience ratings</p>
+              </a>
             </div>
           </CardContent>
         </Card>

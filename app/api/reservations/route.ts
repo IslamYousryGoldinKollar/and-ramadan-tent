@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { createReservation, getUserReservations, getReservationsForDateRange } from '@/lib/reservations'
+import { createReservation, getUserReservations, getReservationsForDateRange, toPublicReservationView } from '@/lib/reservations'
 import { z } from 'zod'
 
 const createReservationSchema = z.object({
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       validated.seatCount
     )
 
-    return NextResponse.json(reservation, { status: 201 })
+    return NextResponse.json(toPublicReservationView(reservation), { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

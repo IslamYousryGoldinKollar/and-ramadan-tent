@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { cancelReservation, rescheduleReservation } from '@/lib/reservations'
+import { cancelReservation, rescheduleReservation, toPublicReservationView } from '@/lib/reservations'
 import { db, toPlainObject } from '@/lib/db'
 import { z } from 'zod'
 
@@ -23,7 +23,7 @@ export async function DELETE(
     }
 
     const reservation = await cancelReservation(params.id, session.user.id)
-    return NextResponse.json(reservation)
+    return NextResponse.json(toPublicReservationView(reservation))
   } catch (error) {
     console.error('Error cancelling reservation:', error)
     return NextResponse.json(
@@ -64,7 +64,7 @@ export async function PATCH(
         session.user.id,
         validated.newDate
       )
-      return NextResponse.json(reservation)
+      return NextResponse.json(toPublicReservationView(reservation))
     }
 
     return NextResponse.json(

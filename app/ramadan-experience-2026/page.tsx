@@ -1,12 +1,9 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { EandLogo } from '@/components/ui/eand-logo'
 import { ProgressBar } from '@/components/survey/progress-bar'
-import { EmojiRating } from '@/components/survey/emoji-rating'
 import { StarRating } from '@/components/survey/star-rating'
-import { SliderRating } from '@/components/survey/slider-rating'
-import { ChoiceCards } from '@/components/survey/choice-cards'
 import { AutoSlideHero } from '@/components/survey/auto-slide-hero'
 import { CharacterShowcase } from '@/components/survey/character-showcase'
 import { CompletionScreen } from '@/components/survey/completion-screen'
@@ -80,6 +77,8 @@ export default function SurveyPage() {
   const [data, setData] = useState<SurveyData>({})
   const [transitioning, setTransitioning] = useState(false)
 
+  const autoAdvanceTimer = useRef<NodeJS.Timeout | null>(null)
+
   const update = useCallback((key: keyof SurveyData, value: string | number) => {
     setData((prev) => ({ ...prev, [key]: value }))
   }, [])
@@ -98,32 +97,74 @@ export default function SurveyPage() {
     }
   }, [currentSection, data])
 
-  const goNext = useCallback(async () => {
+  const doAdvance = useCallback(() => {
     if (transitioning) return
-    if (currentSection < totalSections - 1) {
-      setTransitioning(true)
-      setTimeout(() => {
-        setCurrentSection((prev) => prev + 1)
-        setTransitioning(false)
-      }, 350)
-    } else {
-      setSubmitting(true)
-      try {
-        await fetch('/api/survey', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ responses: data, completedAt: new Date().toISOString() }),
-        })
-      } catch (e) {
-        console.error('Survey submission failed:', e)
-      }
-      setSubmitting(false)
-      setCompleted(true)
+    setTransitioning(true)
+    setTimeout(() => {
+      setCurrentSection((prev) => prev + 1)
+      setTransitioning(false)
+    }, 350)
+  }, [transitioning])
+
+  const doSubmit = useCallback(async () => {
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      await fetch('/api/survey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responses: data, completedAt: new Date().toISOString() }),
+      })
+    } catch (e) {
+      console.error('Survey submission failed:', e)
     }
-  }, [currentSection, data, transitioning])
+    setSubmitting(false)
+    setCompleted(true)
+  }, [data, submitting])
+
+  const goNext = useCallback(async () => {
+    if (transitioning || !canProceed()) return
+    if (currentSection < totalSections - 1) {
+      doAdvance()
+    } else {
+      doSubmit()
+    }
+  }, [currentSection, transitioning, canProceed, doAdvance, doSubmit])
+
+  // Auto-advance after a star rating is selected (short delay so user sees their choice)
+  const scheduleAutoAdvance = useCallback(() => {
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
+    autoAdvanceTimer.current = setTimeout(() => {
+      if (currentSection < totalSections - 1) {
+        doAdvance()
+      } else {
+        doSubmit()
+      }
+    }, 600)
+  }, [currentSection, doAdvance, doSubmit])
+
+  // Rate + auto-advance helper for star sections
+  const rateAndAdvance = useCallback((key: keyof SurveyData, rating: number) => {
+    update(key, rating)
+    scheduleAutoAdvance()
+  }, [update, scheduleAutoAdvance])
+
+  // Full mark: set 5 stars + immediate advance (no delay)
+  const fullMarkAndAdvance = useCallback((key: keyof SurveyData) => {
+    update(key, 5)
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
+    setTimeout(() => {
+      if (currentSection < totalSections - 1) {
+        doAdvance()
+      } else {
+        doSubmit()
+      }
+    }, 300)
+  }, [update, currentSection, doAdvance, doSubmit])
 
   const goPrev = useCallback(() => {
     if (transitioning || currentSection === 0) return
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
     setTransitioning(true)
     setTimeout(() => {
       setCurrentSection((prev) => prev - 1)
@@ -139,6 +180,11 @@ export default function SurveyPage() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [canProceed, goNext, goPrev])
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => { if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current) }
+  }, [])
 
   if (completed) {
     return (
@@ -215,7 +261,7 @@ export default function SurveyPage() {
           </div>
         </SectionPanel>
 
-        {/* Section 1: Activities — Slider Rating */}
+        {/* Section 1: Activities — Star Rating */}
         <SectionPanel active={currentSection === 1} transitioning={transitioning}>
           <AutoSlideHero
             images={activityBgImages}
@@ -224,19 +270,20 @@ export default function SurveyPage() {
           >
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center">Ramadan Activities</h2>
-              <p className="text-white/40 text-sm mb-10 text-center max-w-sm">
+              <p className="text-white/40 text-sm mb-8 text-center max-w-sm">
                 Think back to all the activities and events we organized
               </p>
-              <SliderRating
+              <StarRating
                 question="How much did you enjoy the Ramadan activities overall?"
                 value={data.activitiesRating}
-                onRate={(r) => update('activitiesRating', r)}
+                onRate={(r) => rateAndAdvance('activitiesRating', r)}
+                onFullMark={() => fullMarkAndAdvance('activitiesRating')}
               />
             </div>
           </AutoSlideHero>
         </SectionPanel>
 
-        {/* Section 2: Tent — Emoji Rating with stats in question */}
+        {/* Section 2: Tent — Star Rating with stats in question */}
         <SectionPanel active={currentSection === 2} transitioning={transitioning}>
           <AutoSlideHero
             images={tentImages}
@@ -245,19 +292,20 @@ export default function SurveyPage() {
           >
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center">Ramadan Tent</h2>
-              <p className="text-white/40 text-sm mb-10 text-center max-w-sm">
+              <p className="text-white/40 text-sm mb-8 text-center max-w-sm">
                 The heart of our Ramadan gathering for Iftar
               </p>
-              <EmojiRating
+              <StarRating
                 question="1,744 employees registered and 6,288 visited the tent page. How would you rate the experience?"
                 value={data.tentRating}
-                onRate={(r) => update('tentRating', r)}
+                onRate={(r) => rateAndAdvance('tentRating', r)}
+                onFullMark={() => fullMarkAndAdvance('tentRating')}
               />
             </div>
           </AutoSlideHero>
         </SectionPanel>
 
-        {/* Section 3: Fawazeer — Choice Cards with big character showcase */}
+        {/* Section 3: Fawazeer — Star Rating with character showcase */}
         <SectionPanel active={currentSection === 3} transitioning={transitioning}>
           <div className="flex-1 bg-gradient-to-b from-indigo-950/80 via-eand-ocean to-eand-ocean flex flex-col overflow-hidden">
             <div className="text-center pt-5 px-6">
@@ -268,17 +316,11 @@ export default function SurveyPage() {
             <CharacterShowcase images={fawazeerCharacters} interval={2500} />
 
             <div className="px-6 pb-6 pt-2">
-              <ChoiceCards
+              <StarRating
                 question="How engaging were the Ramadan Fawazeer?"
                 value={data.fawazeerRating}
-                onRate={(r) => update('fawazeerRating', r)}
-                choices={[
-                  { label: 'Didn\'t watch', description: 'Missed it this time' },
-                  { label: 'It was okay', description: 'Some episodes were nice' },
-                  { label: 'Enjoyed it', description: 'Fun and creative' },
-                  { label: 'Loved it', description: 'Highlight of Ramadan' },
-                  { label: 'Absolutely amazing', description: 'Want more next year!' },
-                ]}
+                onRate={(r) => rateAndAdvance('fawazeerRating', r)}
+                onFullMark={() => fullMarkAndAdvance('fawazeerRating')}
               />
             </div>
           </div>
@@ -293,13 +335,14 @@ export default function SurveyPage() {
           >
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center">Cooking Show</h2>
-              <p className="text-white/40 text-sm mb-10 text-center max-w-sm">
+              <p className="text-white/40 text-sm mb-8 text-center max-w-sm">
                 Where food met company culture and team spirit
               </p>
               <StarRating
                 question="How would you rate the Cooking Show experience?"
                 value={data.cookingRating}
-                onRate={(r) => update('cookingRating', r)}
+                onRate={(r) => rateAndAdvance('cookingRating', r)}
+                onFullMark={() => fullMarkAndAdvance('cookingRating')}
               />
             </div>
           </AutoSlideHero>
@@ -312,7 +355,7 @@ export default function SurveyPage() {
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-ramadan-gold/[0.03] rounded-full blur-[80px]" />
 
             <h2 className="text-xl md:text-2xl font-semibold text-white mb-1.5 text-center relative z-10">Branding & Atmosphere</h2>
-            <p className="text-white/40 text-sm mb-10 text-center max-w-sm relative z-10">
+            <p className="text-white/40 text-sm mb-8 text-center max-w-sm relative z-10">
               The Ramadan decorations, visuals & spirit across our spaces
             </p>
 
@@ -320,7 +363,8 @@ export default function SurveyPage() {
               <StarRating
                 question="How would you rate the Ramadan branding & atmosphere?"
                 value={data.brandingRating}
-                onRate={(r) => update('brandingRating', r)}
+                onRate={(r) => rateAndAdvance('brandingRating', r)}
+                onFullMark={() => fullMarkAndAdvance('brandingRating')}
               />
             </div>
           </div>

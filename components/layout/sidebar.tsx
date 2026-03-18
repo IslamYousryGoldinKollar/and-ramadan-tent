@@ -16,6 +16,7 @@ import {
   ClipboardList,
   FileText,
   BarChart3,
+  ClipboardCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -36,6 +37,7 @@ const adminNavItems = [
   { href: '/admin/tips/daily', label: 'Daily Tips', icon: Lightbulb },
   { href: '/admin/tips/articles', label: 'Articles', icon: FileText },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/survey', label: 'Survey Report', icon: ClipboardCheck },
 ]
 
 export function Sidebar() {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPublicReservation } from '@/lib/reservations'
+import { createPublicReservation, toPublicReservationView } from '@/lib/reservations'
 import { isValidEgyptPhone, normalizeEgyptPhone } from '@/lib/sms'
 import { rateLimitDistributed, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       validated.seatCount
     )
 
-    return NextResponse.json(reservation, { status: 201 })
+    return NextResponse.json(toPublicReservationView(reservation), { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

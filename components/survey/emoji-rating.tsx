@@ -10,11 +10,11 @@ interface EmojiRatingProps {
 }
 
 const emojis = [
-  { emoji: '😐', label: 'Okay', color: 'from-gray-100 to-gray-200' },
-  { emoji: '🙂', label: 'Good', color: 'from-yellow-100 to-yellow-200' },
-  { emoji: '😊', label: 'Great', color: 'from-amber-100 to-amber-200' },
-  { emoji: '😍', label: 'Amazing', color: 'from-orange-100 to-orange-200' },
-  { emoji: '🤩', label: 'Incredible', color: 'from-ramadan-gold/20 to-ramadan-gold/40' },
+  { emoji: '\u{1F60A}', label: 'Good' },
+  { emoji: '\u{1F60D}', label: 'Great' },
+  { emoji: '\u{1F929}', label: 'Really great' },
+  { emoji: '\u{1F970}', label: 'Amazing' },
+  { emoji: '\u{2B50}', label: 'Incredible' },
 ]
 
 export function EmojiRating({ question, onRate, value }: EmojiRatingProps) {
@@ -22,7 +22,8 @@ export function EmojiRating({ question, onRate, value }: EmojiRatingProps) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <p className="text-[15px] font-medium text-white/90 mb-6 text-center leading-relaxed">{question}</p>
+      <div className="bg-eand-ocean/90 backdrop-blur-md rounded-2xl px-6 py-5 border border-white/[0.08]">
+      <p className="text-[15px] font-medium text-white mb-5 text-center leading-relaxed">{question}</p>
       <div className="flex items-center justify-center gap-2">
         {emojis.map((item, index) => {
           const rating = index + 1
@@ -58,6 +59,7 @@ export function EmojiRating({ question, onRate, value }: EmojiRatingProps) {
             </button>
           )
         })}
+      </div>
       </div>
     </div>
   )

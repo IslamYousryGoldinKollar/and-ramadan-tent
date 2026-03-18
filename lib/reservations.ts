@@ -9,6 +9,21 @@ export type ReservationStatus = 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'RESCHED
 
 const ACTIVE_STATUSES: ReservationStatus[] = ['CONFIRMED', 'RESCHEDULED', 'CHECKED_IN']
 
+/**
+ * Return a non-sensitive reservation view for public/non-admin API responses.
+ * Intentionally excludes PII fields like email, phoneNumber, and employeeId.
+ */
+export function toPublicReservationView(reservation: any) {
+  return {
+    id: reservation.id,
+    serialNumber: reservation.serialNumber,
+    reservationDate: reservation.reservationDate,
+    seatCount: reservation.seatCount,
+    status: reservation.status,
+    qrCodeString: reservation.qrCodeString ?? null,
+  }
+}
+
 async function getActiveReservationsForDate(reservationDate: Date) {
   const startOfDay = new Date(reservationDate)
   startOfDay.setHours(0, 0, 0, 0)

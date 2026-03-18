@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, toPlainObject } from '@/lib/db'
 import { rateLimitDistributed, getClientIp } from '@/lib/rate-limit'
+import { toPublicReservationView } from '@/lib/reservations'
 import { z } from 'zod'
 
 const lookupSchema = z.object({
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
 
-    return NextResponse.json(reservation)
+    return NextResponse.json(toPublicReservationView(reservation))
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 })

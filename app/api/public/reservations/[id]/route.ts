@@ -5,6 +5,7 @@ import { sendCancellationConfirmation, sendModificationAlert } from '@/lib/notif
 import { MAX_CAPACITY } from '@/lib/utils'
 import { generateQRCode } from '@/lib/qrcode'
 import { rateLimitDistributed, getClientIp } from '@/lib/rate-limit'
+import { toPublicReservationView } from '@/lib/reservations'
 import { z } from 'zod'
 
 const ACTIVE_STATUSES = ['CONFIRMED', 'RESCHEDULED', 'CHECKED_IN']
@@ -185,7 +186,7 @@ export async function PATCH(
     await fillVacatedSlots(oldDate, reservation.seatCount)
 
     const updatedDoc = await db.collection('reservations').doc(params.id).get()
-    return NextResponse.json(toPlainObject(updatedDoc))
+    return NextResponse.json(toPublicReservationView(toPlainObject(updatedDoc)!))
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 })

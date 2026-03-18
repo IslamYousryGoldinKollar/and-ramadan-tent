@@ -8,17 +8,22 @@ interface SliderRatingProps {
   onRate: (rating: number) => void
   value?: number
   labels?: string[]
+  defaultValue?: number
 }
 
-const defaultLabels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent']
+const defaultLabels = ['It was nice', 'Enjoyed it', 'Really good', 'Loved it', 'Outstanding']
 
-export function SliderRating({ question, onRate, value, labels = defaultLabels }: SliderRatingProps) {
+export function SliderRating({ question, onRate, value, labels = defaultLabels, defaultValue }: SliderRatingProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const activeIndex = hoveredIndex ?? (value ? value - 1 : -1)
+
+  // Visual default only — does NOT set value in parent state until user clicks
+  const displayValue = value ?? defaultValue
+  const activeIndex = hoveredIndex ?? (displayValue ? displayValue - 1 : -1)
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <p className="text-[15px] font-medium text-white/90 mb-8 text-center leading-relaxed">{question}</p>
+      <div className="bg-eand-ocean/90 backdrop-blur-md rounded-2xl px-6 py-5 border border-white/[0.08]">
+      <p className="text-[15px] font-medium text-white mb-6 text-center leading-relaxed">{question}</p>
       <div className="flex items-center gap-1.5">
         {labels.map((label, index) => {
           const rating = index + 1
@@ -54,10 +59,11 @@ export function SliderRating({ question, onRate, value, labels = defaultLabels }
         })}
       </div>
       {value && (
-        <p className="text-center text-ramadan-gold/70 text-xs mt-4 animate-fade-in">
+        <p className="text-center text-ramadan-gold/80 text-xs mt-4 animate-fade-in">
           {labels[value - 1]}
         </p>
       )}
+      </div>
     </div>
   )
 }
