@@ -69,9 +69,14 @@ export default function SurveyPage() {
   const [transitioning, setTransitioning] = useState(false)
 
   const autoAdvanceTimer = useRef<NodeJS.Timeout | null>(null)
+  const dataRef = useRef<SurveyData>(data)
 
   const update = useCallback((key: keyof SurveyData, value: string | number) => {
-    setData((prev) => ({ ...prev, [key]: value }))
+    setData((prev) => {
+      const next = { ...prev, [key]: value }
+      dataRef.current = next
+      return next
+    })
   }, [])
 
   const totalSections = 6
@@ -104,14 +109,14 @@ export default function SurveyPage() {
       await fetch('/api/survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ responses: data, completedAt: new Date().toISOString() }),
+        body: JSON.stringify({ responses: dataRef.current, completedAt: new Date().toISOString() }),
       })
     } catch (e) {
       console.error('Survey submission failed:', e)
     }
     setSubmitting(false)
     setCompleted(true)
-  }, [data, submitting])
+  }, [submitting])
 
   const goNext = useCallback(async () => {
     if (transitioning || !canProceed()) return
